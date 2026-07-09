@@ -8,6 +8,8 @@ const {
   buscarUsuarioPorEmail,
   buscarUsuarioPorId,
   actualizarPasswordUsuario,
+  actualizarNombreApellido,
+  obtenerPasswordHash,
 } = require('../db/queries');
 const { buscarEmpresaPorRut, contarUsuariosDeEmpresa } = require('../db/empresas.queries');
 const { obtenerPlan } = require('../utils/planes');
@@ -241,6 +243,58 @@ router.get('/me', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Error en /me:', err);
     res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// PUT /auth/me — actualizar nombre y apellido (el email queda fijo, no editable)
+router.put('/me', requireAuth, async (req, res) => {
+  const { nombre, apellido } = req.body;
+
+  if (!nombre || !apellido) {
+    return res.status(400).json({ error: 'nombre y apellido son obligatorios' });
+  }
+
+  try {
+    const usuario = await actualizarNombreApellido(req.userId, nombre.trim(), apellido.trim());
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    res.json({ usuario });
+  } catch (err) {
+    console.error('Error en PUT /me:', err);
+    res.status(500).json({ error: 'Error interno al actualizar el perfil' });
+  }
+});
+
+// PUT /auth/me/password — cambiar contraseña, pidiendo la actual como confirmación
+router.put('/me/password', requireAuth, async (req, res) => {
+  const { passwordActual, passwordNueva } = req.body;
+
+  if (!passwordActual || !passwordNueva) {
+    return res.status(400).json({ error: 'passwordActual y passwordNueva son obligatorias' });
+  }
+
+  if (passwordNueva.length < 8) {
+    return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres' });
+  }
+
+  try {
+    const hashActual = await obtenerPasswordHash(req.userId);
+    if (!hashActual) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const passwordOk = await bcrypt.compare(passwordActual, hashActual);
+    if (!passwordOk) {
+      return res.status(401).json({ error: 'La contraseña actual no es correcta' });
+    }
+
+    const nuevoHash = await bcrypt.hash(passwordNueva, SALT_ROUNDS);
+    await actualizarPasswordUsuario(req.userId, nuevoHash);
+    res.json({ mensaje: 'Contraseña actualizada correctamente' });
+  } catch (err) {
+    console.error('Error en PUT /me/password:', err);
+    res.status(500).json({ error: 'Error interno al cambiar la contraseña' });
   }
 });
 

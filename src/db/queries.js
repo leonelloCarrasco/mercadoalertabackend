@@ -40,9 +40,24 @@ async function actualizarPasswordUsuario(userId, passwordHash) {
   );
 }
 
+async function actualizarNombreApellido(userId, nombre, apellido) {
+  const result = await pool.query(
+    'UPDATE users SET nombre = $1, apellido = $2 WHERE id = $3 RETURNING id, email, nombre, apellido',
+    [nombre, apellido, userId]
+  );
+  return result.rows[0] || null;
+}
+
+async function obtenerPasswordHash(userId) {
+  const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
+  return result.rows[0]?.password_hash || null;
+}
+
 module.exports = {
   crearUsuario,
   buscarUsuarioPorEmail,
   buscarUsuarioPorId,
   actualizarPasswordUsuario,
+  actualizarNombreApellido,
+  obtenerPasswordHash,
 };
