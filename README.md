@@ -1,2 +1,2 @@
-# mercadoalertabackend
-Terminal de Monitoreo de MercadoPublico (Backend)
+# mercadoalerta_backend
+Terminal de Monitoreo Productos de MercadoLibre (Backend)
