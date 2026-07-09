@@ -286,7 +286,7 @@ router.put('/me/password', requireAuth, async (req, res) => {
 
     const passwordOk = await bcrypt.compare(passwordActual, hashActual);
     if (!passwordOk) {
-      return res.status(401).json({ error: 'La contraseña actual no es correcta' });
+      return res.status(400).json({ error: 'La contraseña actual no es correcta' });
     }
 
     const nuevoHash = await bcrypt.hash(passwordNueva, SALT_ROUNDS);

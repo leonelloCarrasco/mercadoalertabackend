@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const pool = require('./db/pool');
 
 const authRoutes = require('./routes/auth.routes');
 const adminRoutes = require('./routes/admin.routes');
@@ -34,8 +35,20 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static('public'));
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+// Este endpoint tiene doble propósito:
+// 1. Confirmar que el servidor Y la base de datos están realmente conectados
+//    (no solo que el proceso de Node responde).
+// 2. Servir de "ping" para servicios de uptime (ej. UptimeRobot) que mantienen
+//    el servicio despierto en hostings gratuitos que duermen por inactividad
+//    (ver README para el detalle de esa estrategia).
+app.get('/api/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok', db: 'connected', timestamp: new Date().toISOString() });
+  } catch (err) {
+    console.error('[health] Error de conexión a la base de datos:', err.message);
+    res.status(503).json({ status: 'error', db: 'disconnected' });
+  }
 });
 
 app.use('/api/auth', authRoutes);
