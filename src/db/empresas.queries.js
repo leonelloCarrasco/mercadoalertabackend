@@ -79,6 +79,17 @@ async function contarUsuariosDeEmpresa(empresaId) {
   return result.rows[0].total;
 }
 
+async function actualizarContactoEmpresa(empresaId, { responsableNombre, responsableApellido, emailContacto, telefonoContacto }) {
+  const result = await pool.query(
+    `UPDATE empresas
+     SET responsable_nombre = $1, responsable_apellido = $2, email_contacto = $3, telefono_contacto = $4
+     WHERE id = $5
+     RETURNING *`,
+    [responsableNombre, responsableApellido, emailContacto, telefonoContacto, empresaId]
+  );
+  return result.rows[0] || null;
+}
+
 module.exports = {
   crearEmpresa,
   buscarEmpresaPorRut,

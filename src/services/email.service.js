@@ -117,4 +117,14 @@ function armarEmailRecuperacion(link) {
   return { subject: 'Recupera tu contraseña — MercadoAlerta', html };
 }
 
-module.exports = { enviarEmailAlerta, armarResumenLicitaciones, armarResumenCompraAgil, armarEmailRecuperacion };
+function armarEmailAccesoEmpresa(link, nombreEmpresa) {
+  const html = `
+    <h2>Acceso a la gestión de tu empresa</h2>
+    <p>Recibimos una solicitud para acceder a la gestión de <strong>${nombreEmpresa || 'tu empresa'}</strong> en MercadoAlerta.</p>
+    <p><a href="${link}">Haz clic aquí para entrar</a></p>
+    <p>Este link vence en 30 minutos y solo se puede usar una vez. Si no fuiste tú quien lo solicitó, puedes ignorar este correo.</p>
+  `;
+  return { subject: 'Acceso a la gestión de tu empresa — MercadoAlerta', html };
+}
+
+module.exports = { enviarEmailAlerta, armarResumenLicitaciones, armarResumenCompraAgil, armarEmailRecuperacion, armarEmailAccesoEmpresa };
