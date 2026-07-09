@@ -11,7 +11,7 @@ const {
 } = require('../db/password-reset.queries');
 const { enviarEmailAlerta, armarEmailAccesoEmpresa } = require('../services/email.service');
 const { requireEmpresaSession } = require('../middleware/requireEmpresaSession.middleware');
-const { normalizarRut } = require('../utils/rut');
+const { normalizarRut, validarRut } = require('../utils/rut');
 const { forgotPasswordLimiter } = require('../middleware/rate-limit.middleware');
 
 const router = express.Router();
@@ -37,6 +37,10 @@ router.post('/solicitar-acceso', forgotPasswordLimiter, async (req, res) => {
 
   if (!email || !rut) {
     return res.status(400).json({ error: 'email y rut son obligatorios' });
+  }
+
+  if (!validarRut(rut)) {
+    return res.status(400).json({ error: 'El RUT ingresado no es válido. Verifica el formato (ej. 12.345.678-9).' });
   }
 
   // Respuesta genérica siempre igual, exista o no la combinación — mismo
