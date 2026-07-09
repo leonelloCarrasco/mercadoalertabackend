@@ -99,4 +99,5 @@ module.exports = {
   guardarSuscripcionMercadoPago,
   activarPagoEmpresa,
   actualizarPlanEmpresa,
+  actualizarContactoEmpresa,
 };
