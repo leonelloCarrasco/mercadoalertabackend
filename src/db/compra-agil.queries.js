@@ -26,13 +26,14 @@ async function guardarCompraAgil(item, detalle = null) {
   await pool.query(
     `INSERT INTO compras_agiles_vistas
        (codigo_externo, nombre, categoria, monto_estimado, region,
-        rut_institucion, nombre_institucion, estado, fecha_publicacion, fecha_cierre, proveedores_cotizando)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        rut_institucion, nombre_institucion, estado, fecha_publicacion, fecha_cierre,
+        proveedores_cotizando, productos_solicitados)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      ON CONFLICT (codigo_externo) DO NOTHING`,
     [
       item.codigo,
       item.nombre,
-      null, // Compra Ágil no expone categoría en el listado; se puede completar leyendo productos_solicitados del detalle si se necesita
+      null, // Campo original sin uso real — el detalle de categorías ahora vive en productos_solicitados
       item.montos?.monto_disponible_clp || null,
       item.institucion?.nombre_region || null,
       item.institucion?.rut || null,
@@ -41,6 +42,7 @@ async function guardarCompraAgil(item, detalle = null) {
       item.fechas?.fecha_publicacion || null,
       item.fechas?.fecha_cierre || null,
       detalle ? JSON.stringify(detalle.proveedores_cotizando || []) : null,
+      detalle ? JSON.stringify(detalle.productos_solicitados || []) : null,
     ]
   );
 }
@@ -52,9 +54,63 @@ async function listarComprasAgilesNuevas() {
   return result.rows;
 }
 
+/**
+ * Compras Ágiles guardadas ANTES de que empezáramos a guardar productos_solicitados
+ * (migración 015) — solo las que siguen "publicada", ya que las cerradas/canceladas
+ * nunca más van a generar una alerta, y no vale la pena gastar cuota de la API en ellas.
+ */
+async function listarCompraAgilSinProductos() {
+  const result = await pool.query(
+    `SELECT codigo_externo FROM compras_agiles_vistas
+     WHERE productos_solicitados IS NULL AND estado = 'publicada'
+     ORDER BY primera_vez_vista DESC`
+  );
+  return result.rows.map((r) => r.codigo_externo);
+}
+
+async function actualizarProductosSolicitados(codigoExterno, productosSolicitados) {
+  await pool.query(
+    'UPDATE compras_agiles_vistas SET productos_solicitados = $1 WHERE codigo_externo = $2',
+    [JSON.stringify(productosSolicitados), codigoExterno]
+  );
+}
+
+/**
+ * Compras Ágiles cerradas que seguían "publicada" la última vez que las vimos —
+ * candidatas a revisar. Igual que licitaciones, se limita a los últimos 90 días.
+ */
+async function listarCompraAgilPendienteDeResolucion() {
+  const result = await pool.query(
+    `SELECT codigo_externo FROM compras_agiles_vistas
+     WHERE resuelta = false
+       AND estado = 'publicada'
+       AND fecha_cierre IS NOT NULL
+       AND fecha_cierre < NOW()
+       AND fecha_cierre > NOW() - INTERVAL '90 days'
+     ORDER BY fecha_cierre ASC`
+  );
+  return result.rows.map((r) => r.codigo_externo);
+}
+
+async function actualizarResolucionCompraAgil(codigoExterno, {
+  estado, idOrdenCompra, proveedoresCotizando, resuelta,
+}) {
+  await pool.query(
+    `UPDATE compras_agiles_vistas
+     SET estado = $1, id_orden_compra = $2, proveedores_cotizando = $3,
+         resuelta = $4, fecha_ultima_revision = NOW()
+     WHERE codigo_externo = $5`,
+    [estado, idOrdenCompra, JSON.stringify(proveedoresCotizando || []), resuelta, codigoExterno]
+  );
+}
+
 module.exports = {
   compraAgilYaVista,
   obtenerCodigosCompraAgilYaVistos,
   guardarCompraAgil,
   listarComprasAgilesNuevas,
+  listarCompraAgilSinProductos,
+  actualizarProductosSolicitados,
+  listarCompraAgilPendienteDeResolucion,
+  actualizarResolucionCompraAgil,
 };

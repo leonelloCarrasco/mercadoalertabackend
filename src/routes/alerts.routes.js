@@ -11,6 +11,7 @@ const {
 } = require('../db/alert-configs.queries');
 const { listarHistorialUsuario } = require('../db/alerts-sent.queries');
 const { listarRegionesDisponibles } = require('../db/regiones.queries');
+const { buscarCategorias, obtenerTitulosPorCodigos } = require('../db/categorias-unspsc.queries');
 const { obtenerPlan } = require('../utils/planes');
 
 const router = express.Router();
@@ -25,6 +26,37 @@ router.get('/regiones', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener las regiones' });
+  }
+});
+
+// GET /api/alerts/categorias/buscar?q=texto — buscador para el picker de categorías
+router.get('/categorias/buscar', async (req, res) => {
+  const texto = (req.query.q || '').trim();
+
+  if (texto.length < 2) {
+    return res.json({ resultados: [] });
+  }
+
+  try {
+    const resultados = await buscarCategorias(texto);
+    res.json({ resultados });
+  } catch (err) {
+    console.error('Error en /categorias/buscar:', err);
+    res.status(500).json({ error: 'Error al buscar categorías' });
+  }
+});
+
+// GET /api/alerts/categorias/detalle?codigos=72131500,43211500 — resuelve
+// códigos a sus títulos, para mostrar la descripción en el listado de alertas.
+router.get('/categorias/detalle', async (req, res) => {
+  const codigos = (req.query.codigos || '').split(',').map((c) => c.trim()).filter(Boolean);
+
+  try {
+    const categorias = await obtenerTitulosPorCodigos(codigos);
+    res.json({ categorias });
+  } catch (err) {
+    console.error('Error en /categorias/detalle:', err);
+    res.status(500).json({ error: 'Error al resolver categorías' });
   }
 });
 

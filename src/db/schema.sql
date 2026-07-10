@@ -82,6 +82,13 @@ CREATE TABLE licitaciones_vistas (
   tipo_licitacion VARCHAR(10),
   monto_utm_min NUMERIC,
   monto_utm_max NUMERIC,
+  items JSONB,
+  estado VARCHAR(50),
+  fecha_adjudicacion TIMESTAMP,
+  numero_oferentes INTEGER,
+  url_acta TEXT,
+  resuelta BOOLEAN DEFAULT false,
+  fecha_ultima_revision TIMESTAMP,
   primera_vez_vista TIMESTAMP DEFAULT NOW()
 );
 
@@ -97,6 +104,10 @@ CREATE TABLE compras_agiles_vistas (
   fecha_publicacion TIMESTAMP,
   fecha_cierre TIMESTAMP,
   proveedores_cotizando JSONB,
+  productos_solicitados JSONB,
+  id_orden_compra VARCHAR(100),
+  resuelta BOOLEAN DEFAULT false,
+  fecha_ultima_revision TIMESTAMP,
   primera_vez_vista TIMESTAMP DEFAULT NOW()
 );
 
@@ -118,3 +129,15 @@ CREATE TABLE alerts_sent (
   canal VARCHAR(20),
   UNIQUE (user_id, codigo_externo, canal)
 );
+
+-- Catálogo de búsqueda para el picker de categorías/productos en las alertas.
+-- Mezcla nivel 3 (categoría, código termina en "00") y nivel 4 (producto específico).
+-- Se puebla con scripts/seed-categorias-unspsc.js, no con INSERTs acá.
+CREATE TABLE categorias_unspsc (
+  codigo VARCHAR(8) PRIMARY KEY,
+  titulo TEXT NOT NULL,
+  nivel VARCHAR(20)
+);
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX idx_categorias_unspsc_titulo ON categorias_unspsc USING gin (titulo gin_trgm_ops);
