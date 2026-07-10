@@ -134,7 +134,7 @@ CREATE TABLE alerts_sent (
 -- Mezcla nivel 3 (categoría, código termina en "00") y nivel 4 (producto específico).
 -- Se puebla con scripts/seed-categorias-unspsc.js, no con INSERTs acá.
 CREATE TABLE categorias_unspsc (
-  codigo VARCHAR(8) PRIMARY KEY,
+  codigo VARCHAR(10) PRIMARY KEY,
   titulo TEXT NOT NULL,
   nivel VARCHAR(20)
 );

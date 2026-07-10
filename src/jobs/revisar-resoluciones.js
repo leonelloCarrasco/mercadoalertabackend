@@ -100,6 +100,7 @@ async function revisarComprasAgiles() {
         estado: nuevoEstado,
         idOrdenCompra: detalle.id_orden_compra || null,
         proveedoresCotizando: detalle.proveedores_cotizando || [],
+        productosSolicitados: detalle.productos_solicitados || [],
         resuelta: esFinal,
       });
 
@@ -132,8 +133,12 @@ async function revisarComprasAgiles() {
  */
 async function correrRevisionResoluciones(opciones = {}) {
   console.log('[revisar-resoluciones] Iniciando...');
-  await revisarLicitaciones(opciones.limiteLicitaciones);
+  // Compra Ágil primero: no tiene delay entre llamadas, así que es rápido y
+  // siempre alcanza a correr — aunque licitaciones se corte por timeout HTTP
+  // (con el delay de 3s por licitación, una corrida grande puede tardar mucho
+  // más que cualquier timeout razonable), Compra Ágil ya quedó procesado.
   await revisarComprasAgiles();
+  await revisarLicitaciones(opciones.limiteLicitaciones);
   console.log('[revisar-resoluciones] Terminado.');
 }
 

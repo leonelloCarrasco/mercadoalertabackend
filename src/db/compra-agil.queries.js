@@ -25,9 +25,15 @@ async function obtenerCodigosCompraAgilYaVistos(codigosExternos) {
  */
 async function guardarCompraAgil(item, detalle = null) {
   // Por si el polling la descubre por primera vez cuando YA está en un estado
-  // final (proceso resuelto muy rápido, nunca la vimos "publicada") — así no
-  // queda erróneamente marcada como pendiente de revisión desde el arranque.
-  const resueltaDesdeElInicio = ESTADOS_FINALES_COMPRA_AGIL.includes(item.estado?.codigo);
+  // final (proceso resuelto muy rápido, nunca la vimos "publicada"). OJO: no
+  // basta con que el estado ya sea final — si el detalle vino incompleto en
+  // ese instante (ej. proveedores_cotizando vacío por un tema puntual de la
+  // API), es mejor dejarla como NO resuelta, para que el job de revisión
+  // diario la vuelva a intentar más tarde. Si se marca resuelta=true con datos
+  // incompletos, queda atascada así para siempre (el job de revisión solo
+  // mira registros con resuelta=false).
+  const tieneDatosCompletos = (detalle?.proveedores_cotizando?.length || 0) > 0;
+  const resueltaDesdeElInicio = ESTADOS_FINALES_COMPRA_AGIL.includes(item.estado?.codigo) && tieneDatosCompletos;
 
   await pool.query(
     `INSERT INTO compras_agiles_vistas
@@ -69,7 +75,7 @@ async function listarComprasAgilesNuevas() {
 async function listarCompraAgilSinProductos() {
   const result = await pool.query(
     `SELECT codigo_externo FROM compras_agiles_vistas
-     WHERE productos_solicitados IS NULL AND estado = 'publicada'
+     WHERE productos_solicitados IS NULL
      ORDER BY primera_vez_vista DESC`
   );
   return result.rows.map((r) => r.codigo_externo);
@@ -105,15 +111,31 @@ async function listarCompraAgilPendienteDeResolucion() {
 }
 
 async function actualizarResolucionCompraAgil(codigoExterno, {
-  estado, idOrdenCompra, proveedoresCotizando, resuelta,
+  estado, idOrdenCompra, proveedoresCotizando, productosSolicitados, resuelta,
 }) {
   await pool.query(
     `UPDATE compras_agiles_vistas
      SET estado = $1, id_orden_compra = $2, proveedores_cotizando = $3,
-         resuelta = $4, fecha_ultima_revision = NOW()
-     WHERE codigo_externo = $5`,
-    [estado, idOrdenCompra, JSON.stringify(proveedoresCotizando || []), resuelta, codigoExterno]
+         productos_solicitados = COALESCE(NULLIF($4::jsonb, '[]'::jsonb), productos_solicitados),
+         resuelta = $5, fecha_ultima_revision = NOW()
+     WHERE codigo_externo = $6`,
+    [estado, idOrdenCompra, JSON.stringify(proveedoresCotizando || []), JSON.stringify(productosSolicitados || []), resuelta, codigoExterno]
   );
+}
+
+/**
+ * Compras Ágiles marcadas resuelta=true pero con proveedores_cotizando en
+ * NULL — quedaron atascadas por un detalle incompleto al momento de marcarse
+ * como resueltas (ver guardarCompraAgil). Como el job de revisión diario solo
+ * mira resuelta=false, estas nunca se autoreparan solas.
+ */
+async function listarCompraAgilResueltaSinProveedores() {
+  const result = await pool.query(
+    `SELECT codigo_externo FROM compras_agiles_vistas
+     WHERE resuelta = true AND proveedores_cotizando IS NULL
+     ORDER BY primera_vez_vista DESC`
+  );
+  return result.rows.map((r) => r.codigo_externo);
 }
 
 module.exports = {
@@ -125,4 +147,5 @@ module.exports = {
   actualizarProductosSolicitados,
   listarCompraAgilPendienteDeResolucion,
   actualizarResolucionCompraAgil,
+  listarCompraAgilResueltaSinProveedores,
 };
