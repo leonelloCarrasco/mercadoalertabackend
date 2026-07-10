@@ -1,4 +1,5 @@
 const pool = require('./pool');
+const { ESTADOS_FINALES_COMPRA_AGIL } = require('../utils/estados-finales');
 
 async function compraAgilYaVista(codigoExterno) {
   const result = await pool.query(
@@ -23,12 +24,17 @@ async function obtenerCodigosCompraAgilYaVistos(codigosExternos) {
  * opcionalmente, su detalle completo (si ya se consultó, para incluir proveedores_cotizando).
  */
 async function guardarCompraAgil(item, detalle = null) {
+  // Por si el polling la descubre por primera vez cuando YA está en un estado
+  // final (proceso resuelto muy rápido, nunca la vimos "publicada") — así no
+  // queda erróneamente marcada como pendiente de revisión desde el arranque.
+  const resueltaDesdeElInicio = ESTADOS_FINALES_COMPRA_AGIL.includes(item.estado?.codigo);
+
   await pool.query(
     `INSERT INTO compras_agiles_vistas
        (codigo_externo, nombre, categoria, monto_estimado, region,
         rut_institucion, nombre_institucion, estado, fecha_publicacion, fecha_cierre,
-        proveedores_cotizando, productos_solicitados)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        proveedores_cotizando, productos_solicitados, resuelta)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      ON CONFLICT (codigo_externo) DO NOTHING`,
     [
       item.codigo,
@@ -43,6 +49,7 @@ async function guardarCompraAgil(item, detalle = null) {
       item.fechas?.fecha_cierre || null,
       detalle ? JSON.stringify(detalle.proveedores_cotizando || []) : null,
       detalle ? JSON.stringify(detalle.productos_solicitados || []) : null,
+      resueltaDesdeElInicio,
     ]
   );
 }
