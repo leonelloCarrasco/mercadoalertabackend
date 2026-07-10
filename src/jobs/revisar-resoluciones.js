@@ -15,11 +15,16 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Lista de valores de Estado que consideramos "definitivos" para licitaciones —
-// NO está 100% confirmada contra la documentación oficial (no la tenemos),
-// se arma con lo observado en la práctica. Si aparece un caso real con un
-// Estado fuera de esta lista que claramente ya está resuelto, hay que agregarlo acá.
-const ESTADOS_FINALES_LICITACION = ['Adjudicada', 'Desierta', 'Revocada', 'Suspendida', 'Cerrada'];
+// Solo "Adjudicada" está CONFIRMADA con datos reales como el momento en que
+// aparecen los montos de adjudicación por ítem. Los demás estados que podría
+// tomar una licitación cerrada (Desierta, Revocada, Suspendida, Cerrada...) son
+// suposiciones sin confirmar — tratarlos como finales antes de tiempo tiene un
+// costo alto (dejar de revisar para siempre una licitación que en realidad
+// todavía no se resolvió), mientras que seguir revisando de más solo cuesta
+// algunas llamadas extra a la API. Por eso acá se es conservador a propósito:
+// solo "Adjudicada" corta la revisión; todo lo demás se sigue intentando a
+// diario hasta el tope de días (ver listarLicitacionesPendientesDeResolucion).
+const ESTADOS_FINALES_LICITACION = ['Adjudicada'];
 
 function extraerItemsConAdjudicacion(detalle) {
   return (detalle.Items?.Listado || []).map((it) => ({
@@ -82,6 +87,14 @@ async function revisarLicitaciones(limite) {
   console.log(`[revisar-resoluciones] Licitaciones: ${resueltas} resueltas, ${siguenPendientes} siguen pendientes.`);
 }
 
+// Igual criterio conservador que con licitaciones: solo "proveedor_seleccionado"
+// está CONFIRMADO con datos reales como estado final con datos de adjudicación
+// completos (proveedor, precio, id_orden_compra). Cualquier otro estado que no
+// sea "publicada" PODRÍA ser un estado intermedio desconocido (ej. "en evaluación")
+// — tratarlo como final antes de tiempo tiene el mismo riesgo que tuvimos con
+// licitaciones: dejar de revisar algo que en realidad todavía no se resolvió.
+const ESTADOS_FINALES_COMPRA_AGIL = ['proveedor_seleccionado'];
+
 async function revisarComprasAgiles() {
   const codigos = await listarCompraAgilPendienteDeResolucion();
 
@@ -99,16 +112,16 @@ async function revisarComprasAgiles() {
     try {
       const detalle = await obtenerDetalleCompraAgil(codigo);
       const nuevoEstado = detalle.estado?.codigo || null;
-      const yaNoEstaPublicada = nuevoEstado !== 'publicada';
+      const esFinal = ESTADOS_FINALES_COMPRA_AGIL.includes(nuevoEstado);
 
       await actualizarResolucionCompraAgil(codigo, {
         estado: nuevoEstado,
         idOrdenCompra: detalle.id_orden_compra || null,
         proveedoresCotizando: detalle.proveedores_cotizando || [],
-        resuelta: yaNoEstaPublicada,
+        resuelta: esFinal,
       });
 
-      if (yaNoEstaPublicada) resueltas++;
+      if (esFinal) resueltas++;
       else siguenPendientes++;
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {

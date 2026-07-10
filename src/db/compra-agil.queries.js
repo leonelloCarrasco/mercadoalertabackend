@@ -78,12 +78,17 @@ async function actualizarProductosSolicitados(codigoExterno, productosSolicitado
 /**
  * Compras Ágiles cerradas que seguían "publicada" la última vez que las vimos —
  * candidatas a revisar. Igual que licitaciones, se limita a los últimos 90 días.
+ *
+ * OJO: el filtro es solo `resuelta = false`, sin importar qué diga `estado`
+ * ahora mismo — si en algún momento se guardó un estado intermedio desconocido
+ * (ni "publicada" ni "proveedor_seleccionado"), igual tiene que seguir
+ * apareciendo acá para revisarse de nuevo. Filtrar por `estado = 'publicada'`
+ * dejaría esos casos invisibles para siempre (bug real que tuvimos y corregimos).
  */
 async function listarCompraAgilPendienteDeResolucion() {
   const result = await pool.query(
     `SELECT codigo_externo FROM compras_agiles_vistas
      WHERE resuelta = false
-       AND estado = 'publicada'
        AND fecha_cierre IS NOT NULL
        AND fecha_cierre < NOW()
        AND fecha_cierre > NOW() - INTERVAL '90 days'
