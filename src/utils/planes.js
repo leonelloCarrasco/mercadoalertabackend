@@ -19,7 +19,7 @@ const PLANES = {
     limiteCategorias: 1,
     requierePago: false,
     monto: null,
-    diasTrial: 7,
+    diasTrial: 14,
   },
   basico: {
     limiteUsuarios: 2,

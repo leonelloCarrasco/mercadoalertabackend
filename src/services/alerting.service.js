@@ -143,7 +143,13 @@ async function procesarAlertasLicitaciones(licitacionesNuevas) {
 async function procesarAlertasCompraAgil(comprasAgilesNuevas) {
   if (comprasAgilesNuevas.length === 0) return;
 
-  const items = comprasAgilesNuevas.map((entrada) => entrada.item);
+  // El listado (item) no trae categoría — pero el detalle sí trae productos_solicitados
+  // (con codigo_producto por cada ítem pedido), que es lo que matchCompraAgil necesita
+  // para el filtro por categoría. Se combinan acá antes de pasar al matching.
+  const items = comprasAgilesNuevas.map((entrada) => ({
+    ...entrada.item,
+    productos_solicitados: entrada.detalle?.productos_solicitados || [],
+  }));
 
   const { porUsuarioEmail, porUsuarioTelegram } = await agruparPorUsuario(
     items,

@@ -7,6 +7,7 @@ const adminRoutes = require('./routes/admin.routes');
 const alertsRoutes = require('./routes/alerts.routes');
 const empresasRoutes = require('./routes/empresas.routes');
 const empresaGestionRoutes = require('./routes/empresa-gestion.routes');
+const analisisRoutes = require('./routes/analisis.routes');
 const pagosRoutes = require('./routes/pagos.routes');
 
 const app = express();
@@ -58,5 +59,6 @@ app.use('/api/alerts', alertsRoutes);
 app.use('/api/empresas', empresasRoutes);
 app.use('/api/empresas', empresaGestionRoutes);
 app.use('/api/pagos', pagosRoutes);
+app.use('/api/analisis', analisisRoutes);
 
 module.exports = app;

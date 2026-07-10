@@ -25,14 +25,26 @@ async function obtenerCodigosYaVistos(codigosExternos) {
 
 async function guardarLicitacion(detalle) {
   const item = detalle.Items?.Listado?.[0];
+  const todosLosItems = detalle.Items?.Listado || [];
   const tramo = obtenerTramo(detalle.Tipo);
+
+  // Se guardan TODOS los ítems (una licitación puede tener varios productos de
+  // categorías distintas — el campo categoria/codigo_categoria de arriba se
+  // mantiene solo por compatibilidad con lo ya guardado, pero el matching real
+  // usa este arreglo completo, no solo el primer ítem.
+  const itemsParaGuardar = todosLosItems.map((it) => ({
+    codigo_producto: it.CodigoProducto || null,
+    codigo_categoria: it.CodigoCategoria || null,
+    categoria: it.Categoria || null,
+    nombre_producto: it.NombreProducto || null,
+  }));
 
   await pool.query(
     `INSERT INTO licitaciones_vistas
        (codigo_externo, nombre, categoria, codigo_categoria, monto_estimado,
         region, nombre_organismo, fecha_publicacion, fecha_cierre,
-        tipo_licitacion, monto_utm_min, monto_utm_max)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        tipo_licitacion, monto_utm_min, monto_utm_max, items)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      ON CONFLICT (codigo_externo) DO NOTHING`,
     [
       detalle.CodigoExterno,
@@ -47,6 +59,7 @@ async function guardarLicitacion(detalle) {
       detalle.Tipo || null,
       tramo?.utmMinGarantizado || null,
       tramo?.utmMax || null,
+      JSON.stringify(itemsParaGuardar),
     ]
   );
 }
@@ -58,9 +71,69 @@ async function listarLicitacionesNuevas() {
   return result.rows;
 }
 
+/**
+ * Licitaciones guardadas ANTES de que empezáramos a guardar todos los ítems
+ * (migración 016) — solo las que aún no cierran, ya que una vez pasada la
+ * fecha de cierre el matching las descarta igual (ver matching.service.js),
+ * así que no vale la pena gastar llamadas (con su delay de 3s) en esas.
+ */
+async function listarLicitacionesSinItems() {
+  const result = await pool.query(
+    `SELECT codigo_externo FROM licitaciones_vistas
+     WHERE items IS NULL AND (fecha_cierre IS NULL OR fecha_cierre > NOW())
+     ORDER BY fecha_cierre ASC NULLS LAST`
+  );
+  return result.rows.map((r) => r.codigo_externo);
+}
+
+async function actualizarItemsLicitacion(codigoExterno, items) {
+  await pool.query(
+    'UPDATE licitaciones_vistas SET items = $1 WHERE codigo_externo = $2',
+    [JSON.stringify(items), codigoExterno]
+  );
+}
+
+/**
+ * Licitaciones cerradas que todavía no sabemos si se adjudicaron — candidatas
+ * a revisar. Se limita a los últimos 90 días desde el cierre: pasado ese plazo,
+ * dejamos de insistir (algunas licitaciones simplemente nunca publican resultado).
+ */
+async function listarLicitacionesPendientesDeResolucion() {
+  const result = await pool.query(
+    `SELECT codigo_externo FROM licitaciones_vistas
+     WHERE resuelta = false
+       AND fecha_cierre IS NOT NULL
+       AND fecha_cierre < NOW()
+       AND fecha_cierre > NOW() - INTERVAL '90 days'
+     ORDER BY fecha_cierre ASC`
+  );
+  return result.rows.map((r) => r.codigo_externo);
+}
+
+/**
+ * Guarda el resultado de una revisión de adjudicación. `resuelta=true` cuando
+ * el Estado es uno de los que consideramos "final" (ver ESTADOS_FINALES en el
+ * job) — de ahí en adelante no se vuelve a revisar esa licitación.
+ */
+async function actualizarResolucionLicitacion(codigoExterno, {
+  items, estado, fechaAdjudicacion, numeroOferentes, urlActa, resuelta,
+}) {
+  await pool.query(
+    `UPDATE licitaciones_vistas
+     SET items = $1, estado = $2, fecha_adjudicacion = $3, numero_oferentes = $4,
+         url_acta = $5, resuelta = $6, fecha_ultima_revision = NOW()
+     WHERE codigo_externo = $7`,
+    [JSON.stringify(items), estado, fechaAdjudicacion, numeroOferentes, urlActa, resuelta, codigoExterno]
+  );
+}
+
 module.exports = {
   licitacionYaVista,
   obtenerCodigosYaVistos,
   guardarLicitacion,
   listarLicitacionesNuevas,
+  listarLicitacionesSinItems,
+  actualizarItemsLicitacion,
+  listarLicitacionesPendientesDeResolucion,
+  actualizarResolucionLicitacion,
 };

@@ -22,7 +22,7 @@ async function requireEmpresaActiva(req, res, next) {
 
     if (usuario.plan === 'trial' && usuario.fecha_expiracion_trial && new Date(usuario.fecha_expiracion_trial) < new Date()) {
       return res.status(402).json({
-        error: 'Tu período de prueba de 7 días terminó. Actualiza tu plan para seguir usando MercadoAlerta.',
+        error: 'Tu período de prueba de 14 días terminó. Actualiza tu plan para seguir usando MercadoAlerta.',
         trialVencido: true,
       });
     }

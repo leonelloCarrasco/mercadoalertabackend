@@ -19,7 +19,7 @@ const router = express.Router();
 // su empresa dando el RUT. Se valida UNA vez contra Mercado Público acá; los
 // usuarios que se registren después bajo esta empresa no vuelven a validar.
 //
-// Trial: queda activa de inmediato, por 7 días (ver fecha_expiracion_trial).
+// Trial: queda activa de inmediato, por 14 días (ver fecha_expiracion_trial).
 // Pasado ese plazo, la empresa se bloquea hasta hacer upgrade a un plan pago
 // (ver POST /:id/upgrade y el middleware requireEmpresaActiva).
 //
@@ -101,7 +101,7 @@ router.post('/pre-registro', registerLimiter, async (req, res) => {
       estadoPago: configPlan.requierePago ? 'pendiente' : 'activo',
     });
 
-    // Plan trial: no requiere pago, la empresa ya quedó activa por 7 días.
+    // Plan trial: no requiere pago, la empresa ya quedó activa por 14 días.
     if (!configPlan.requierePago) {
       return res.status(201).json({ empresa });
     }

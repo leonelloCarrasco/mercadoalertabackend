@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const { correrPollingLicitaciones } = require('./poll-licitaciones');
 const { correrPollingCompraAgil } = require('./poll-compra-agil');
+const { correrRevisionResoluciones } = require('./revisar-resoluciones');
 
 function iniciarCronJobs() {
   // Licitaciones: cada 3 horas (el volumen de detalle a traer puede tardar varios minutos
@@ -23,7 +24,19 @@ function iniciarCronJobs() {
     }
   });
 
-  console.log('[cron] Jobs programados: licitaciones cada 3h, Compra Ágil cada 1h.');
+  // Revisión de adjudicaciones: una vez al día (03:00) — no hay apuro, la
+  // adjudicación puede tardar días o semanas en publicarse, así que no vale
+  // la pena revisar más seguido. Corre de madrugada para no competir con los
+  // otros dos jobs por la cuota/límites de las APIs.
+  cron.schedule('0 3 * * *', async () => {
+    try {
+      await correrRevisionResoluciones();
+    } catch (err) {
+      console.error('[cron] Error en revisión de resoluciones:', err);
+    }
+  });
+
+  console.log('[cron] Jobs programados: licitaciones cada 3h, Compra Ágil cada 1h, revisión de adjudicaciones diaria a las 03:00.');
 }
 
 module.exports = { iniciarCronJobs };
