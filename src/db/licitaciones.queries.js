@@ -43,8 +43,8 @@ async function guardarLicitacion(detalle) {
     `INSERT INTO licitaciones_vistas
        (codigo_externo, nombre, categoria, codigo_categoria, monto_estimado,
         region, nombre_organismo, fecha_publicacion, fecha_cierre,
-        tipo_licitacion, monto_utm_min, monto_utm_max, items)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        tipo_licitacion, monto_utm_min, monto_utm_max, items, estado)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      ON CONFLICT (codigo_externo) DO NOTHING`,
     [
       detalle.CodigoExterno,
@@ -60,6 +60,7 @@ async function guardarLicitacion(detalle) {
       tramo?.utmMinGarantizado || null,
       tramo?.utmMax || null,
       JSON.stringify(itemsParaGuardar),
+      detalle.Estado || null,
     ]
   );
 }

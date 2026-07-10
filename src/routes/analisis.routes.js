@@ -22,9 +22,13 @@ router.use((req, res, next) => {
  * GET /api/analisis/precios?codigo=XXXXXXXX
  *
  * Historial de precios de adjudicación para una categoría o producto (mismo
- * código que se usa en las alertas). Busca por PREFIJO de 6 dígitos siempre
- * (aunque el código sea de producto específico) porque para comparar precios
- * conviene ver el panorama algo más amplio, no solo un producto exacto.
+ * código que se usa en las alertas). Usa el MISMO criterio que el matching de
+ * alertas (ver algunCodigoCoincide en matching.service.js): si el código
+ * termina en "00" es de categoría → coincide por PREFIJO de 6 dígitos (varios
+ * productos relacionados). Si no, es un producto específico → coincide EXACTO,
+ * para no mezclar precios de productos distintos aunque compartan categoría
+ * (ej. "Aspiradoras" vs "Aspiradores combinados para húmedo o seco" comparten
+ * los primeros 6 dígitos, pero no tiene sentido comparar sus precios entre sí).
  *
  * Combina dos fuentes:
  * - Licitaciones adjudicadas (licitaciones_vistas.items[].adjudicacion)
@@ -39,7 +43,9 @@ router.get('/precios', async (req, res) => {
     return res.status(400).json({ error: 'codigo inválido. Debe ser un código UNSPSC de 6 a 8 dígitos.' });
   }
 
-  const prefijo = codigo.slice(0, 6) + '%';
+  const esCategoria = codigo.endsWith('00');
+  const condicionCodigo = esCategoria ? "LIKE $1" : "= $1";
+  const valorCodigo = esCategoria ? codigo.slice(0, 6) + '%' : codigo;
 
   try {
     const licitacionesResult = await pool.query(
@@ -59,10 +65,10 @@ router.get('/precios', async (req, res) => {
        FROM licitaciones_vistas l, jsonb_array_elements(l.items) AS item
        WHERE l.resuelta = true
          AND item->'adjudicacion'->>'monto_unitario' IS NOT NULL
-         AND item->>'codigo_producto' LIKE $1
+         AND item->>'codigo_producto' ${condicionCodigo}
        ORDER BY l.fecha_adjudicacion DESC
        LIMIT 200`,
-      [prefijo]
+      [valorCodigo]
     );
 
     const compraAgilResult = await pool.query(
@@ -83,10 +89,10 @@ router.get('/precios', async (req, res) => {
          jsonb_array_elements(prov->'productos_cotizados') AS prod
        WHERE c.resuelta = true
          AND prod->>'precio_unitario' IS NOT NULL
-         AND prod->>'codigo_producto' LIKE $1
+         AND prod->>'codigo_producto' ${condicionCodigo}
        ORDER BY c.fecha_cierre DESC
        LIMIT 200`,
-      [prefijo]
+      [valorCodigo]
     );
 
     const registros = [
