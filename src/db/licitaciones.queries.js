@@ -1,5 +1,6 @@
 const pool = require('./pool');
 const { obtenerTramo } = require('../utils/tramos-licitacion');
+const { ESTADOS_FINALES_LICITACION } = require('../utils/estados-finales');
 
 async function licitacionYaVista(codigoExterno) {
   const result = await pool.query(
@@ -31,20 +32,36 @@ async function guardarLicitacion(detalle) {
   // Se guardan TODOS los ítems (una licitación puede tener varios productos de
   // categorías distintas — el campo categoria/codigo_categoria de arriba se
   // mantiene solo por compatibilidad con lo ya guardado, pero el matching real
-  // usa este arreglo completo, no solo el primer ítem.
+  // usa este arreglo completo, no solo el primer ítem. También se incluye la
+  // adjudicación por ítem por si esta licitación ya llega resuelta desde la
+  // primera vez que la vemos (poco común, pero puede pasar).
   const itemsParaGuardar = todosLosItems.map((it) => ({
     codigo_producto: it.CodigoProducto || null,
     codigo_categoria: it.CodigoCategoria || null,
     categoria: it.Categoria || null,
     nombre_producto: it.NombreProducto || null,
+    adjudicacion: it.Adjudicacion
+      ? {
+          rut_proveedor: it.Adjudicacion.RutProveedor || null,
+          nombre_proveedor: it.Adjudicacion.NombreProveedor || null,
+          cantidad: it.Adjudicacion.Cantidad || null,
+          monto_unitario: it.Adjudicacion.MontoUnitario || null,
+        }
+      : null,
   }));
+
+  // Por si el polling la descubre por primera vez cuando YA está en un estado
+  // final (poco común — normalmente solo se capturan licitaciones "Publicada" —
+  // pero así queda cubierto el caso igual, sin quedar erróneamente pendiente).
+  const resueltaDesdeElInicio = ESTADOS_FINALES_LICITACION.includes(detalle.Estado);
 
   await pool.query(
     `INSERT INTO licitaciones_vistas
        (codigo_externo, nombre, categoria, codigo_categoria, monto_estimado,
         region, nombre_organismo, fecha_publicacion, fecha_cierre,
-        tipo_licitacion, monto_utm_min, monto_utm_max, items, estado)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        tipo_licitacion, monto_utm_min, monto_utm_max, items, estado,
+        fecha_adjudicacion, numero_oferentes, url_acta, resuelta)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
      ON CONFLICT (codigo_externo) DO NOTHING`,
     [
       detalle.CodigoExterno,
@@ -61,6 +78,10 @@ async function guardarLicitacion(detalle) {
       tramo?.utmMax || null,
       JSON.stringify(itemsParaGuardar),
       detalle.Estado || null,
+      detalle.Adjudicacion?.Fecha || detalle.Fechas?.FechaAdjudicacion || null,
+      detalle.Adjudicacion?.NumeroOferentes || null,
+      detalle.Adjudicacion?.UrlActa || null,
+      resueltaDesdeElInicio,
     ]
   );
 }
