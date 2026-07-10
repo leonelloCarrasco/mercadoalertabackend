@@ -21,11 +21,26 @@ function algunCodigoCoincide(codigosDisponibles, codigosSeleccionados) {
 
   return codigosSeleccionados.some((seleccionado) => {
     const cod = String(seleccionado);
-    if (cod.endsWith('00')) {
-      const prefijo = cod.slice(0, 6);
-      return codigosDisponibles.some((disponible) => disponible.startsWith(prefijo));
+
+    // Formato Obras (9 dígitos) — solo existen 3 categorías conocidas hoy
+    // (Obra, Consultoría, Obra MINVU, ver migración 022), sin sub-jerarquía
+    // real, así que acá SIEMPRE es coincidencia exacta, nunca por prefijo.
+    if (/^\d{9}$/.test(cod)) {
+      return codigosDisponibles.includes(cod);
     }
-    return codigosDisponibles.includes(cod);
+
+    // Formato UNSPSC estándar (8 dígitos) — categoría (termina en "00") por
+    // prefijo de 6 dígitos, producto específico por coincidencia exacta.
+    if (/^\d{8}$/.test(cod)) {
+      const disponiblesValidos = codigosDisponibles.filter((c) => /^\d{8}$/.test(c));
+      if (cod.endsWith('00')) {
+        const prefijo = cod.slice(0, 6);
+        return disponiblesValidos.some((disponible) => disponible.startsWith(prefijo));
+      }
+      return disponiblesValidos.includes(cod);
+    }
+
+    return false; // formato desconocido — se ignora en vez de arriesgar un match mal calculado
   });
 }
 

@@ -37,8 +37,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static('public'));
 
-// Este endpoint tiene doble propósito:
-// 1. Confirmar que el servidor Y la base de datos están realmente conectados
+// Este endpoint tiene doble propÃ³sito:
+// 1. Confirmar que el servidor Y la base de datos estÃ¡n realmente conectados
 //    (no solo que el proceso de Node responde).
 // 2. Servir de "ping" para servicios de uptime (ej. UptimeRobot) que mantienen
 //    el servicio despierto en hostings gratuitos que duermen por inactividad
@@ -48,7 +48,7 @@ app.get('/api/health', async (req, res) => {
     await pool.query('SELECT 1');
     res.json({ status: 'ok', db: 'connected', timestamp: new Date().toISOString() });
   } catch (err) {
-    console.error('[health] Error de conexión a la base de datos:', err.message);
+    console.error('[health] Error de conexiÃ³n a la base de datos:', err.message);
     res.status(503).json({ status: 'error', db: 'disconnected' });
   }
 });
