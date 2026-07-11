@@ -7,6 +7,7 @@ function sleep(ms) {
 
 /**
  * Trae el listado de licitaciones activas (resumen: CodigoExterno, Nombre, CodigoEstado, FechaCierre).
+ * La opción estados “activas”, muestra todas las licitaciones publicadas al día de realizada la consulta. 
  * Para el detalle completo de cada una, usar obtenerDetalleLicitacion.
  */
 async function obtenerLicitacionesActivas() {
