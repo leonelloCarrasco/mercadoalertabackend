@@ -6,7 +6,6 @@ const authRoutes = require('./routes/auth.routes');
 const adminRoutes = require('./routes/admin.routes');
 const alertsRoutes = require('./routes/alerts.routes');
 const empresasRoutes = require('./routes/empresas.routes');
-const empresaGestionRoutes = require('./routes/empresa-gestion.routes');
 const analisisRoutes = require('./routes/analisis.routes');
 const pagosRoutes = require('./routes/pagos.routes');
 
@@ -57,7 +56,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/alerts', alertsRoutes);
 app.use('/api/empresas', empresasRoutes);
-app.use('/api/empresas', empresaGestionRoutes);
 app.use('/api/pagos', pagosRoutes);
 app.use('/api/analisis', analisisRoutes);
 
