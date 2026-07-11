@@ -3,6 +3,10 @@ CREATE TABLE empresas (
   rut VARCHAR(20) UNIQUE NOT NULL CHECK (rut ~ '^[0-9]{7,8}-[0-9K]$'),
   nombre_empresa VARCHAR(255),
   rut_validado BOOLEAN DEFAULT false,
+  -- declara_emt y responsable_*/*_contacto quedan en desuso desde la migración
+  -- 023 (modelo 1 usuario = 1 empresa): el responsable ES el usuario de la
+  -- empresa, sus datos de contacto viven en `users`. No se eliminan las
+  -- columnas para no perder datos históricos de empresas del modelo anterior.
   declara_emt BOOLEAN DEFAULT false,
   responsable_nombre VARCHAR(100),
   responsable_apellido VARCHAR(100),
@@ -22,32 +26,30 @@ CREATE TABLE users (
   password_hash VARCHAR(255) NOT NULL,
   nombre VARCHAR(100),
   apellido VARCHAR(100),
+  telefono VARCHAR(30),
   empresa_id INTEGER NOT NULL REFERENCES empresas(id),
   telegram_chat_id VARCHAR(50),
+  -- Estado del flujo de registro (migración 023): pendiente_email -> (solo
+  -- basic/full) pendiente_pago -> activo. Los usuarios no pueden iniciar
+  -- sesión hasta llegar a 'activo'.
+  estado VARCHAR(30) NOT NULL DEFAULT 'pendiente_email',
+  acepta_terminos BOOLEAN NOT NULL DEFAULT false,
+  acepta_terminos_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Límite de usuarios por empresa según su plan (trial=1, basico=2, full=5),
--- aplicado de forma atómica vía trigger — ver migración 007 para el detalle.
+-- Límite de usuarios por empresa: 1, para todos los planes (migración 023 —
+-- antes era trial=1/basico=2/full=5, del modelo multi-usuario descartado).
+-- Aplicado de forma atómica vía trigger, como respaldo ante condiciones de
+-- carrera (ver también la verificación a nivel de aplicación en auth.routes.js).
 CREATE OR REPLACE FUNCTION verificar_limite_usuarios_por_empresa()
 RETURNS TRIGGER AS $$
 DECLARE
-  plan_empresa VARCHAR(50);
-  limite INTEGER;
   usuarios_actuales INTEGER;
 BEGIN
-  SELECT plan INTO plan_empresa FROM empresas WHERE id = NEW.empresa_id;
-
-  limite := CASE plan_empresa
-    WHEN 'trial' THEN 1
-    WHEN 'basico' THEN 2
-    WHEN 'full' THEN 5
-    ELSE 1
-  END;
-
   SELECT COUNT(*) INTO usuarios_actuales FROM users WHERE empresa_id = NEW.empresa_id;
 
-  IF usuarios_actuales >= limite THEN
+  IF usuarios_actuales >= 1 THEN
     RAISE EXCEPTION 'limite_usuarios_empresa_excedido' USING ERRCODE = 'P0001';
   END IF;
 
@@ -111,9 +113,14 @@ CREATE TABLE compras_agiles_vistas (
   primera_vez_vista TIMESTAMP DEFAULT NOW()
 );
 
+-- Tabla de tokens de un solo uso, reutilizada para varios propósitos
+-- distinguidos por `tipo`: 'reset_password' (default, recuperación de clave),
+-- 'confirmacion_cuenta' (migración 023, confirmar email al registrarse).
 CREATE TABLE password_reset_tokens (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  empresa_id INTEGER REFERENCES empresas(id) ON DELETE CASCADE,
+  tipo VARCHAR(30) NOT NULL DEFAULT 'reset_password',
   token_hash VARCHAR(64) UNIQUE NOT NULL,
   expires_at TIMESTAMPTZ NOT NULL,
   used_at TIMESTAMP,

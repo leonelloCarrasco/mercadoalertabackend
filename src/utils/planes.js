@@ -1,8 +1,10 @@
 /**
- * Fuente única de verdad para los planes. OJO: el trigger de Postgres
- * (migración 007) también hardcodea los límites de usuarios por plan —
- * si cambias algo acá, cámbialo también ahí (no hay forma automática de
- * mantenerlos sincronizados todavía).
+ * Fuente única de verdad para los planes.
+ *
+ * Desde la migración 023, el límite de usuarios por empresa es 1 para TODOS
+ * los planes (modelo "1 usuario = 1 empresa"). El trigger de Postgres
+ * (migración 023, reemplaza al de la 007) hardcodea ese mismo límite —
+ * si algún día se vuelve a un modelo multi-usuario, hay que cambiarlo también ahí.
  *
  * trial: activo por DIAS_TRIAL días, después la empresa queda bloqueada
  * hasta que se pase a un plan pago (ver requireEmpresaActiva.middleware.js).
@@ -22,7 +24,7 @@ const PLANES = {
     diasTrial: 14,
   },
   basico: {
-    limiteUsuarios: 2,
+    limiteUsuarios: 1,
     limiteAlertas: 10,
     limiteCategorias: 3,
     requierePago: true,
@@ -30,7 +32,7 @@ const PLANES = {
     montoRegular: 12990, // solo informativo, para mostrar "antes/ahora" en la landing
   },
   full: {
-    limiteUsuarios: 5,
+    limiteUsuarios: 1,
     limiteAlertas: 20,
     limiteCategorias: 5,
     requierePago: true,
