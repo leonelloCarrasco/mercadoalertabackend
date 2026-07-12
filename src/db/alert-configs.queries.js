@@ -1,11 +1,16 @@
 const pool = require('./pool');
 
-async function crearAlertConfig(userId, { categorias, montoMinimo, region }) {
+/**
+ * `regiones`: array de strings. NULL o [] significa "todas las regiones"
+ * (ver matching.service.js) — es lo que queda si el usuario no marca ningún
+ * checkbox de región en el formulario.
+ */
+async function crearAlertConfig(userId, { categorias, montoMinimo, regiones }) {
   const result = await pool.query(
-    `INSERT INTO alert_configs (user_id, categorias, monto_minimo, region)
+    `INSERT INTO alert_configs (user_id, categorias, monto_minimo, regiones)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [userId, categorias || [], montoMinimo || null, region || null]
+    [userId, categorias || [], montoMinimo || null, (regiones && regiones.length > 0) ? regiones : null]
   );
   return result.rows[0];
 }
@@ -55,16 +60,22 @@ async function obtenerAlertConfigPorId(id, userId) {
   return result.rows[0] || null;
 }
 
-async function actualizarAlertConfig(id, userId, { categorias, montoMinimo, region, activo }) {
+async function actualizarAlertConfig(id, userId, { categorias, montoMinimo, regiones, activo }) {
+  // regiones es un array "nullable a propósito": si viene undefined, no se toca
+  // (COALESCE); si viene [] explícito, se guarda como NULL ("todas las regiones").
+  const regionesAGuardar = regiones !== undefined
+    ? ((regiones && regiones.length > 0) ? regiones : null)
+    : undefined;
+
   const result = await pool.query(
     `UPDATE alert_configs
      SET categorias = COALESCE($1, categorias),
          monto_minimo = COALESCE($2, monto_minimo),
-         region = COALESCE($3, region),
-         activo = COALESCE($4, activo)
-     WHERE id = $5 AND user_id = $6
+         regiones = CASE WHEN $3::boolean THEN $4 ELSE regiones END,
+         activo = COALESCE($5, activo)
+     WHERE id = $6 AND user_id = $7
      RETURNING *`,
-    [categorias, montoMinimo, region, activo, id, userId]
+    [categorias, montoMinimo, regiones !== undefined, regionesAGuardar, activo, id, userId]
   );
   return result.rows[0] || null;
 }
