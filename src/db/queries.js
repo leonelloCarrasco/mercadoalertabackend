@@ -55,10 +55,10 @@ async function actualizarPasswordUsuario(userId, passwordHash) {
   );
 }
 
-async function actualizarNombreApellido(userId, nombre, apellido) {
+async function actualizarDatosUsuario(userId, nombre, apellido, telefono) {
   const result = await pool.query(
-    'UPDATE users SET nombre = $1, apellido = $2 WHERE id = $3 RETURNING id, email, nombre, apellido',
-    [nombre, apellido, userId]
+    'UPDATE users SET nombre = $1, apellido = $2, telefono = $3 WHERE id = $4 RETURNING id, email, nombre, apellido, telefono',
+    [nombre, apellido, telefono, userId]
   );
   return result.rows[0] || null;
 }
@@ -95,7 +95,7 @@ module.exports = {
   buscarUsuarioPorId,
   buscarUsuarioPorEmpresaId,
   actualizarPasswordUsuario,
-  actualizarNombreApellido,
+  actualizarDatosUsuario,
   obtenerPasswordHash,
   actualizarEstadoUsuario,
   eliminarUsuario,
