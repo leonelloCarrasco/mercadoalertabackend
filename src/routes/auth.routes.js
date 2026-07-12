@@ -9,7 +9,7 @@ const {
   buscarUsuarioPorId,
   buscarUsuarioPorEmpresaId,
   actualizarPasswordUsuario,
-  actualizarNombreApellido,
+  actualizarDatosUsuario,
   actualizarEstadoUsuario,
   eliminarUsuario,
   obtenerPasswordHash,
@@ -105,7 +105,7 @@ router.post('/register', registerLimiter, async (req, res) => {
 
   if (!nombre || !apellido || !email || !telefono || !rutEmpresa || !password || !passwordConfirm) {
     return res.status(400).json({
-      error: 'nombre, apellido, email, telefono, rutEmpresa, password y passwordConfirm son obligatorios',
+      error: 'Nombre, Apellido, Email, Teléfono, RUT de Empresa, Contraseña y Confirmación de Contraseña son obligatorios',
     });
   }
 
@@ -279,7 +279,7 @@ router.post('/login', loginLimiter, async (req, res) => {
   const { email, password, captchaToken } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'email y password son obligatorios' });
+    return res.status(400).json({ error: 'Email y Contraseña son obligatorios' });
   }
 
   const captchaOk = await verificarCaptcha(captchaToken, req.ip);
@@ -366,7 +366,7 @@ router.post('/reset-password', resetPasswordLimiter, async (req, res) => {
   const { token, password } = req.body;
 
   if (!token || !password) {
-    return res.status(400).json({ error: 'token y password son obligatorios' });
+    return res.status(400).json({ error: 'Token y Contraseña son obligatorios' });
   }
 
   if (password.length < 8) {
@@ -406,16 +406,16 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /auth/me — actualizar nombre y apellido (el email queda fijo, no editable)
+// PUT /auth/me — actualizar nombre, apellido y telefono (el email queda fijo, no editable)
 router.put('/me', requireAuth, async (req, res) => {
-  const { nombre, apellido } = req.body;
+  const { nombre, apellido, telefono } = req.body;
 
-  if (!nombre || !apellido) {
-    return res.status(400).json({ error: 'nombre y apellido son obligatorios' });
+  if (!nombre || !apellido || !telefono) {
+    return res.status(400).json({ error: 'Nombre, Apellido y Teléfono son obligatorios' });
   }
 
   try {
-    const usuario = await actualizarNombreApellido(req.userId, nombre.trim(), apellido.trim());
+    const usuario = await actualizarDatosUsuario(req.userId, nombre.trim(), apellido.trim(), telefono.trim());
     if (!usuario) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
@@ -431,7 +431,7 @@ router.put('/me/password', requireAuth, async (req, res) => {
   const { passwordActual, passwordNueva } = req.body;
 
   if (!passwordActual || !passwordNueva) {
-    return res.status(400).json({ error: 'passwordActual y passwordNueva son obligatorias' });
+    return res.status(400).json({ error: 'Contraseñas actual y nueva son obligatorias' });
   }
 
   if (passwordNueva.length < 8) {
