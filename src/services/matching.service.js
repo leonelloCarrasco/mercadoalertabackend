@@ -1,5 +1,6 @@
 const { obtenerTramo } = require('../utils/tramos-licitacion');
 const { obtenerValorUTM } = require('./utm.service');
+const { obtenerHijosPorCodigo } = require('../db/categorias-unspsc.queries');
 
 /**
  * Compara los códigos disponibles (de una licitación o Compra Ágil) contra las
@@ -13,20 +14,30 @@ const { obtenerValorUTM } = require('./utm.service');
  * "51101503" = Cloranfenicol) — matchea EXACTO, porque el usuario eligió ese
  * producto puntual, no toda la categoría.
  *
+ * Un código de 9 dígitos es de la sección Obras/Consultoría (migración 022),
+ * que tiene su propia numeración con jerarquía real pero SIN convención de
+ * prefijo/sufijo que permita inferir la relación padre-hijo desde el número
+ * (a diferencia de UNSPSC). Por eso se usa `hijosPorCodigo` (migración 026,
+ * precomputado desde el árbol real del Excel de origen): si el código elegido
+ * es un nodo agrupador (ej. "Obras"), matchea tanto ese código exacto como
+ * cualquiera de sus códigos hoja descendientes (ej. "Licitación Pública de
+ * Obra"). Si es un código hoja sin hijos, matchea exacto, igual que un producto.
+ *
  * codigosDisponibles: array de strings (codigo_producto u codigo_categoria de
- * los ítems del proceso). codigosSeleccionados: array de códigos elegidos en la alerta.
+ * los ítems del proceso). codigosSeleccionados: array de códigos elegidos en la
+ * alerta. hijosPorCodigo: Map código -> códigos hoja descendientes (ver
+ * obtenerHijosPorCodigo), solo tiene entradas para nodos agrupadores de 9 dígitos.
  */
-function algunCodigoCoincide(codigosDisponibles, codigosSeleccionados) {
+function algunCodigoCoincide(codigosDisponibles, codigosSeleccionados, hijosPorCodigo) {
   if (codigosDisponibles.length === 0) return false;
 
   return codigosSeleccionados.some((seleccionado) => {
     const cod = String(seleccionado);
 
-    // Formato Obras (9 dígitos) — solo existen 3 categorías conocidas hoy
-    // (Obra, Consultoría, Obra MINVU, ver migración 022), sin sub-jerarquía
-    // real, así que acá SIEMPRE es coincidencia exacta, nunca por prefijo.
     if (/^\d{9}$/.test(cod)) {
-      return codigosDisponibles.includes(cod);
+      if (codigosDisponibles.includes(cod)) return true;
+      const hijos = hijosPorCodigo.get(cod);
+      return hijos ? hijos.some((hijo) => codigosDisponibles.includes(hijo)) : false;
     }
 
     // Formato UNSPSC estándar (8 dígitos) — categoría (termina en "00") por
@@ -66,7 +77,10 @@ function algunCodigoCoincide(codigosDisponibles, codigosSeleccionados) {
  *   Si Mercado Público no publicó un MontoEstimado exacto, se usa el mínimo GARANTIZADO
  *   del tramo de la licitación (ej. tipo "LP" garantiza monto >= 1.000 UTM) convertido a
  *   pesos con el valor vigente de la UTM — no es una estimación al azar, es un piso real.
- * - region: si la config tiene región, debe coincidir con la región de la licitación.
+ * - regiones: si la config tiene regiones (una o más), la región de la licitación debe
+ *   estar incluida en esa lista. Si la config no tiene regiones (NULL o array vacío —
+ *   el usuario no marcó ningún checkbox al crear la alerta), se entiende que aplica a
+ *   TODAS las regiones, así que no filtra nada.
  */
 async function matchLicitacion(detalle, configs) {
   if (detalle.Estado !== 'Publicada') return [];
@@ -94,12 +108,14 @@ async function matchLicitacion(detalle, configs) {
     }
   }
 
+  const hijosPorCodigo = await obtenerHijosPorCodigo();
+
   return configs.filter((config) => {
     if (config.categorias && config.categorias.length > 0) {
-      if (!algunCodigoCoincide(codigosDisponibles, config.categorias)) return false;
+      if (!algunCodigoCoincide(codigosDisponibles, config.categorias, hijosPorCodigo)) return false;
     }
     if (config.monto_minimo && montoEstimado < config.monto_minimo) return false;
-    if (config.region && region && config.region.trim() !== region.trim()) return false;
+    if (config.regiones && config.regiones.length > 0 && region && !config.regiones.includes(region.trim())) return false;
     return true;
   });
 }
@@ -118,7 +134,7 @@ async function matchLicitacion(detalle, configs) {
  * categoría (solo producto), pero igual funciona: si el usuario eligió una categoría en su
  * alerta, se compara por prefijo contra estos códigos de producto (ver algunCodigoCoincide).
  */
-function matchCompraAgil(item, configs) {
+async function matchCompraAgil(item, configs) {
   if (item.estado?.codigo !== 'publicada') return [];
 
   const montoDisponible = item.montos?.monto_disponible_clp || 0;
@@ -127,12 +143,14 @@ function matchCompraAgil(item, configs) {
     .map((p) => (p.codigo_producto ? String(p.codigo_producto) : null))
     .filter(Boolean);
 
+  const hijosPorCodigo = await obtenerHijosPorCodigo();
+
   return configs.filter((config) => {
     if (config.categorias && config.categorias.length > 0) {
-      if (!algunCodigoCoincide(codigosDisponibles, config.categorias)) return false;
+      if (!algunCodigoCoincide(codigosDisponibles, config.categorias, hijosPorCodigo)) return false;
     }
     if (config.monto_minimo && montoDisponible < config.monto_minimo) return false;
-    if (config.region && region && config.region.trim() !== region.trim()) return false;
+    if (config.regiones && config.regiones.length > 0 && region && !config.regiones.includes(region.trim())) return false;
     return true;
   });
 }

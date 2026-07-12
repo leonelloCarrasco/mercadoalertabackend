@@ -66,7 +66,9 @@ CREATE TABLE alert_configs (
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
   categorias TEXT[],
   monto_minimo NUMERIC,
-  region VARCHAR(100),
+  -- Selección múltiple de regiones (migración 024). NULL o array vacío
+  -- significa "todas las regiones" — ver matching.service.js.
+  regiones TEXT[],
   activo BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -138,13 +140,23 @@ CREATE TABLE alerts_sent (
 );
 
 -- Catálogo de búsqueda para el picker de categorías/productos en las alertas.
--- Mezcla nivel 3 (categoría, código termina en "00") y nivel 4 (producto específico).
+-- Mezcla nivel 3 (categoría/"rubro", código termina en "00") y nivel 4 (producto
+-- específico). nivel1 (segmento) y nivel2 (familia) permiten armar el árbol de
+-- navegación por rubro (migración 025). `hijos` (migración 026) guarda, para
+-- los códigos de 9 dígitos de la sección Obras/Consultoría que agrupan otros
+-- códigos, la lista completa de códigos hoja descendientes — esa sección no
+-- sigue la convención de prefijo de UNSPSC, así que el matching jerárquico
+-- necesita la lista explícita en vez de poder inferirla del código.
 -- Se puebla con scripts/seed-categorias-unspsc.js, no con INSERTs acá.
 CREATE TABLE categorias_unspsc (
   codigo VARCHAR(10) PRIMARY KEY,
   titulo TEXT NOT NULL,
-  nivel VARCHAR(20)
+  nivel VARCHAR(20),
+  nivel1 VARCHAR(255),
+  nivel2 VARCHAR(255),
+  hijos TEXT[]
 );
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX idx_categorias_unspsc_titulo ON categorias_unspsc USING gin (titulo gin_trgm_ops);
+CREATE INDEX idx_categorias_unspsc_nivel1_nivel2 ON categorias_unspsc (nivel1, nivel2) WHERE nivel = 'categoria';

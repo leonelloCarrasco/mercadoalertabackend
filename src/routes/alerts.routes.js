@@ -11,14 +11,15 @@ const {
 } = require('../db/alert-configs.queries');
 const { listarHistorialUsuario } = require('../db/alerts-sent.queries');
 const { listarRegionesDisponibles } = require('../db/regiones.queries');
-const { buscarCategorias, obtenerTitulosPorCodigos } = require('../db/categorias-unspsc.queries');
+const { buscarCategorias, obtenerTitulosPorCodigos, obtenerArbolRubros } = require('../db/categorias-unspsc.queries');
 const { obtenerPlan } = require('../utils/planes');
 
 const router = express.Router();
 router.use(requireAuth);
 router.use(requireEmpresaActiva); // deja disponible req.usuarioActual (incluye .plan)
 
-// GET /api/alerts/regiones — regiones reales existentes en los datos, para poblar el <select>
+// GET /api/alerts/regiones — regiones reales existentes en los datos, para poblar
+// el desplegable de checkboxes del formulario de alertas.
 router.get('/regiones', async (req, res) => {
   try {
     const regiones = await listarRegionesDisponibles();
@@ -29,20 +30,37 @@ router.get('/regiones', async (req, res) => {
   }
 });
 
-// GET /api/alerts/categorias/buscar?q=texto — buscador para el picker de categorías
+// GET /api/alerts/categorias/buscar?q=texto&nivel=producto — buscador para el
+// picker de categorías. `nivel` es opcional ('categoria' o 'producto'): el modo
+// "Producto" del buscador lo manda para no mezclar rubros en los resultados
+// (el modo "Rubro" usa el árbol, ver /categorias/arbol más abajo).
 router.get('/categorias/buscar', async (req, res) => {
   const texto = (req.query.q || '').trim();
+  const nivel = ['categoria', 'producto'].includes(req.query.nivel) ? req.query.nivel : undefined;
 
   if (texto.length < 2) {
     return res.json({ resultados: [] });
   }
 
   try {
-    const resultados = await buscarCategorias(texto);
+    const resultados = await buscarCategorias(texto, { nivel });
     res.json({ resultados });
   } catch (err) {
     console.error('Error en /categorias/buscar:', err);
     res.status(500).json({ error: 'Error al buscar categorías' });
+  }
+});
+
+// GET /api/alerts/categorias/arbol — árbol Segmento -> Familia -> Rubro, para
+// el modo "Rubro" del buscador: el usuario navega hasta el nivel 3 y lo elige
+// directamente, sin tener que saber cómo se llama exactamente el rubro.
+router.get('/categorias/arbol', async (req, res) => {
+  try {
+    const arbol = await obtenerArbolRubros();
+    res.json({ arbol });
+  } catch (err) {
+    console.error('Error en /categorias/arbol:', err);
+    res.status(500).json({ error: 'Error al obtener el árbol de rubros' });
   }
 });
 
@@ -82,34 +100,79 @@ router.get('/config', async (req, res) => {
   }
 });
 
+// Valida los campos ahora obligatorios de una alerta: monto mínimo y
+// exactamente una categoría/producto. Se usa tanto en creación como en
+// edición (cuando el campo correspondiente viene en el body).
+function validarCamposObligatorios({ montoMinimo, categorias }) {
+  if (montoMinimo === undefined || montoMinimo === null || Number(montoMinimo) <= 0) {
+    return 'El monto mínimo es obligatorio y debe ser mayor a 0.';
+  }
+  if (!categorias || categorias.length === 0) {
+    return 'Debes elegir una categoría o producto para la alerta.';
+  }
+  if (categorias.length > 1) {
+    return 'Solo puedes elegir una categoría o producto por alerta.';
+  }
+  return null;
+}
+
+// Compara dos conjuntos de regiones sin importar el orden — [] y null se
+// tratan como equivalentes (ambos significan "todas las regiones").
+function mismasRegiones(a, b) {
+  const normA = [...new Set((a || []).map((r) => r.trim()))].sort();
+  const normB = [...new Set((b || []).map((r) => r.trim()))].sort();
+  return JSON.stringify(normA) === JSON.stringify(normB);
+}
+
+/**
+ * Una alerta es "duplicada" de otra si tiene exactamente los mismos criterios:
+ * misma categoría/producto (siempre hay como máximo 1), mismo monto mínimo y
+ * el mismo conjunto de regiones. No importa si la otra está activa o pausada —
+ * no tiene sentido dejar crear dos alertas idénticas aunque una esté en pausa.
+ */
+function buscarDuplicada(configsExistentes, { categorias, montoMinimo, regiones }, excludeId = null) {
+  const categoriaNueva = (categorias || [])[0];
+  const montoNuevo = Number(montoMinimo);
+
+  return configsExistentes.find((existente) => {
+    if (excludeId && String(existente.id) === String(excludeId)) return false;
+    const categoriaExistente = (existente.categorias || [])[0];
+    if (categoriaExistente !== categoriaNueva) return false;
+    if (Number(existente.monto_minimo) !== montoNuevo) return false;
+    if (!mismasRegiones(existente.regiones, regiones)) return false;
+    return true;
+  });
+}
+
 // POST /api/alerts/config — crea una nueva configuración
 router.post('/config', async (req, res) => {
-  const { categorias, montoMinimo, region } = req.body;
+  const { categorias, montoMinimo, regiones } = req.body;
 
-  if (!categorias && !montoMinimo && !region) {
-    return res.status(400).json({ error: 'Debes especificar al menos un criterio: categorias, montoMinimo o region' });
+  const errorCampos = validarCamposObligatorios({ montoMinimo, categorias });
+  if (errorCampos) {
+    return res.status(400).json({ error: errorCampos });
   }
 
-  const nuevasCategorias = categorias || [];
   const limites = obtenerPlan(req.usuarioActual.plan);
-  const limiteCategorias = limites?.limiteCategorias ?? 1;
-  const limiteAlertas = limites?.limiteAlertas ?? 3;
-
-  if (nuevasCategorias.length > limiteCategorias) {
-    return res.status(400).json({
-      error: `Tu plan (${req.usuarioActual.plan}) permite hasta ${limiteCategorias} categoría${limiteCategorias === 1 ? '' : 's'} por alerta. Enviaste ${nuevasCategorias.length}.`,
-    });
-  }
+  const limiteAlertas = limites?.limiteAlertas ?? 1;
 
   try {
-    const activasActuales = await contarConfigsActivasDeUsuario(req.userId);
-    if (activasActuales >= limiteAlertas) {
-      return res.status(400).json({
-        error: `Tu plan (${req.usuarioActual.plan}) permite hasta ${limiteAlertas} alertas activas. Pausa o elimina alguna antes de crear una nueva.`,
+    const configsExistentes = await listarAlertConfigsDeUsuario(req.userId);
+
+    if (buscarDuplicada(configsExistentes, { categorias, montoMinimo, regiones })) {
+      return res.status(409).json({
+        error: 'Ya tienes una alerta configurada con estos datos.',
       });
     }
 
-    const config = await crearAlertConfig(req.userId, { categorias, montoMinimo, region });
+    const activasActuales = configsExistentes.filter((c) => c.activo).length;
+    if (activasActuales >= limiteAlertas) {
+      return res.status(400).json({
+        error: `Tu plan (${req.usuarioActual.plan}) permite hasta ${limiteAlertas} alerta${limiteAlertas === 1 ? '' : 's'} activa${limiteAlertas === 1 ? '' : 's'}. Pausa o elimina alguna antes de crear una nueva.`,
+      });
+    }
+
+    const config = await crearAlertConfig(req.userId, { categorias, montoMinimo, regiones });
     res.status(201).json({ config });
   } catch (err) {
     console.error(err);
@@ -119,7 +182,7 @@ router.post('/config', async (req, res) => {
 
 // PUT /api/alerts/config/:id — actualiza una configuración existente
 router.put('/config/:id', async (req, res) => {
-  const { categorias, montoMinimo, region, activo } = req.body;
+  const { categorias, montoMinimo, regiones, activo } = req.body;
 
   try {
     const existente = await obtenerAlertConfigPorId(req.params.id, req.userId);
@@ -127,31 +190,41 @@ router.put('/config/:id', async (req, res) => {
       return res.status(404).json({ error: 'Configuración no encontrada' });
     }
 
+    // Si se está tocando monto o categorías, se validan de nuevo con el valor
+    // efectivo (el nuevo si viene, si no el que ya tenía) — no se puede dejar
+    // una alerta existente sin monto o sin categoría a través de un PUT parcial.
+    const montoEfectivo = montoMinimo !== undefined ? montoMinimo : existente.monto_minimo;
     const categoriasEfectivas = categorias !== undefined ? categorias : existente.categorias;
     const activoEfectivo = activo !== undefined ? activo : existente.activo;
 
-    const limites = obtenerPlan(req.usuarioActual.plan);
-    const limiteCategorias = limites?.limiteCategorias ?? 1;
-    const limiteAlertas = limites?.limiteAlertas ?? 3;
+    const errorCampos = validarCamposObligatorios({ montoMinimo: montoEfectivo, categorias: categoriasEfectivas });
+    if (errorCampos) {
+      return res.status(400).json({ error: errorCampos });
+    }
 
-    if (categoriasEfectivas && categoriasEfectivas.length > limiteCategorias) {
-      return res.status(400).json({
-        error: `Tu plan (${req.usuarioActual.plan}) permite hasta ${limiteCategorias} categoría${limiteCategorias === 1 ? '' : 's'} por alerta. Enviaste ${categoriasEfectivas.length}.`,
+    const regionesEfectivas = regiones !== undefined ? regiones : existente.regiones;
+    const configsExistentes = await listarAlertConfigsDeUsuario(req.userId);
+    if (buscarDuplicada(configsExistentes, { categorias: categoriasEfectivas, montoMinimo: montoEfectivo, regiones: regionesEfectivas }, req.params.id)) {
+      return res.status(409).json({
+        error: 'Ya tienes otra alerta con la misma categoría, monto mínimo y regiones.',
       });
     }
+
+    const limites = obtenerPlan(req.usuarioActual.plan);
+    const limiteAlertas = limites?.limiteAlertas ?? 1;
 
     // Si se está activando (o ya estaba activa y sigue así), validar que no supere el cupo,
     // excluyendo esta misma config del conteo para no contarla contra sí misma.
     if (activoEfectivo) {
-      const otrasActivas = await contarConfigsActivasDeUsuario(req.userId, req.params.id);
+      const otrasActivas = configsExistentes.filter((c) => c.activo && String(c.id) !== String(req.params.id)).length;
       if (otrasActivas >= limiteAlertas) {
         return res.status(400).json({
-          error: `Tu plan (${req.usuarioActual.plan}) permite hasta ${limiteAlertas} alertas activas. Pausa otra antes de activar esta.`,
+          error: `Tu plan (${req.usuarioActual.plan}) permite hasta ${limiteAlertas} alerta${limiteAlertas === 1 ? '' : 's'} activa${limiteAlertas === 1 ? '' : 's'}. Pausa otra antes de activar esta.`,
         });
       }
     }
 
-    const config = await actualizarAlertConfig(req.params.id, req.userId, { categorias, montoMinimo, region, activo });
+    const config = await actualizarAlertConfig(req.params.id, req.userId, { categorias, montoMinimo, regiones, activo });
     res.json({ config });
   } catch (err) {
     console.error(err);

@@ -1,0 +1,29 @@
+-- Migración: matching jerárquico para la sección de Obras/Consultoría
+-- (códigos de 9 dígitos).
+--
+-- Al incluir estos códigos en el catálogo (ver migración 025 y el reseed
+-- posterior con los códigos de 9 dígitos ya no excluidos), se detectó que
+-- esta sección SÍ tiene una jerarquía real con anidamiento variable — no son
+-- "solo 3 categorías planas" como se asumía en la migración 022. A diferencia
+-- de UNSPSC estándar (8 dígitos, donde el código de categoría matchea por
+-- PREFIJO de 6 dígitos), estos códigos de 9 dígitos no tienen ninguna
+-- convención de prefijo/sufijo que permita inferir la relación padre-hijo
+-- desde el número mismo — solo se puede saber leyendo la jerarquía real
+-- (IDCategoria -> CodigoProducto) del Excel de origen.
+--
+-- `hijos`: para los códigos de 9 dígitos que son nodos agrupadores (tienen
+-- descendientes), guarda la lista COMPLETA de códigos hoja descendientes
+-- (en cualquier profundidad del árbol, no solo hijos directos). El matching
+-- (matching.service.js) usa esto para que seleccionar un rubro como "Obras"
+-- efectivamente cubra todos sus códigos específicos hijos (ej. "Licitación
+-- Pública de Obra"), en vez de solo matchear el código exacto del grupo.
+-- Queda NULL para el resto (códigos UNSPSC de 8 dígitos, que ya matchean por
+-- prefijo sin necesitar esto, y códigos hoja de 9 dígitos sin hijos).
+--
+-- Después de correr esta migración, hay que re-correr el seed (que ya trae
+-- el campo `hijos` incluido en src/data/categorias-unspsc.json):
+--   node scripts/seed-categorias-unspsc.js
+--
+-- Correr esto en el SQL Editor de Supabase (una sola vez).
+
+ALTER TABLE categorias_unspsc ADD COLUMN hijos TEXT[];
