@@ -1,0 +1,5897 @@
+[
+{
+"codigo": "1809839",
+"nombre": "ACADEMIA NACIONAL DE ESTUDIOS POLITICOS Y ESTRATEGICOS",
+"sector": "Otros"
+},
+{
+"codigo": "7086",
+"nombre": "AGENCIA CHILENA DE COOPERACION INTERNACIONAL PARA EL DESARROLLO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1224636",
+"nombre": "AGENCIA CHILENA DE EFICIENCIA ENERGETICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1317960",
+"nombre": "AGENCIA DE CALIDAD DE LA EDUCACION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7193",
+"nombre": "AGENCIA DE PROMOCION DE LA INVERSION EXTRANJERA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "2007449",
+"nombre": "AGENCIA NACIONAL DE CIBERSEGURIDAD",
+"sector": null
+},
+{
+"codigo": "7212",
+"nombre": "AGENCIA NACIONAL DE INTELIGENCIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1499491",
+"nombre": "ARTESANÍAS CHILE",
+"sector": "Otros"
+},
+{
+"codigo": "1905875",
+"nombre": "ASOCIACION CULTURAL MUNICIPAL DE CERRILLOS",
+"sector": "Otros"
+},
+{
+"codigo": "1978388",
+"nombre": "ASOCIACION DE MUNICIPALIDADES BIO BIO CENTRO",
+"sector": null
+},
+{
+"codigo": "1952395",
+"nombre": "ASOCIACION DE MUNICIPALIDADES DE LA CUENCA DEL LAGO LLANQUIHUE",
+"sector": "Otros"
+},
+{
+"codigo": "1990802",
+"nombre": "ASOCIACION DE MUNICIPALIDADES DE LA REGION DE ANTOFAGASTA",
+"sector": null
+},
+{
+"codigo": "1986800",
+"nombre": "ASOCIACION DE MUNICIPALIDADES DE LA REGION DE LA ARAUCANIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1979483",
+"nombre": "ASOCIACION DE MUNICIPALIDADES DE LA REGION DEL BIO BIO (AMRBB)",
+"sector": null
+},
+{
+"codigo": "1999036",
+"nombre": "ASOCIACION DE MUNICIPALIDADES DE LA ZONA METROPOLITANA DE LA ARAUCANIA",
+"sector": null
+},
+{
+"codigo": "1978360",
+"nombre": "ASOCIACION DE MUNICIPALIDADES DEL VALLE DEL ITATA",
+"sector": null
+},
+{
+"codigo": "1999075",
+"nombre": "ASOCIACION DE MUNICIPALIDADES NAHUELBUTA",
+"sector": null
+},
+{
+"codigo": "2005072",
+"nombre": "ASOCIACION DE MUNICIPALIDADES PARA LA PRESERVACION DE LA BIODIVERSIDAD",
+"sector": null
+},
+{
+"codigo": "1971699",
+"nombre": "ASOCIACION DE MUNICIPALIDADES PARA LA SEGURIDAD CIUDADANA EN LA ZONA ORIENTE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1986812",
+"nombre": "ASOCIACION DE MUNICIPALIDADES PARQUE CORDILLERA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "2021001",
+"nombre": "ASOCIACION DE MUNICIPALIDADES TURISTICAS DE CHILE",
+"sector": null
+},
+{
+"codigo": "2003863",
+"nombre": "ASOCIACION DE MUNICIPIOS CIUDAD SUR",
+"sector": null
+},
+{
+"codigo": "1824441",
+"nombre": "ASOCIACION DE MUNICIPIOS METROPOLITANOS PARA LA SEGURIDAD CIUDADANA",
+"sector": "Otros"
+},
+{
+"codigo": "1978386",
+"nombre": "ASOCIACION DE MUNICIPIOS RURALES REGIONES DE TARAPACA Y ARICA - PARINACOTA",
+"sector": null
+},
+{
+"codigo": "1956769",
+"nombre": "ASOCIACION MUNICIPAL DE DEPORTES Y RECREACION DE TOCOPILLA",
+"sector": "Otros"
+},
+{
+"codigo": "2007447",
+"nombre": "ASOCIACION NACIONAL DE GOBERNADORES Y GOBERNADORAS REGIONALES DE CHILE",
+"sector": null
+},
+{
+"codigo": "1317359",
+"nombre": "ASOCIACIÓN CHILENA DE MUNICIPALIDADES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1872627",
+"nombre": "ASOCIACIÓN DE MUNICIPALIDADES COMUNAS COSTERAS DE PUCHUNCAVÍ- QUINTERO",
+"sector": "Otros"
+},
+{
+"codigo": "1982097",
+"nombre": "ASOCIACIÓN DE MUNICIPALIDADES CORDILLERANAS DE LA ARAUCANÍA",
+"sector": null
+},
+{
+"codigo": "1934487",
+"nombre": "ASOCIACIÓN DE MUNICIPALIDADES DE LA PROVINCIA DE LLANQUIHUE",
+"sector": "Otros"
+},
+{
+"codigo": "1952438",
+"nombre": "ASOCIACIÓN DE MUNICIPALIDADES DEL PUNILLA",
+"sector": "Otros"
+},
+{
+"codigo": "1675202",
+"nombre": "ASOCIACIÓN DE MUNICIPALIDADES RURALES DEL NORTE CHICO",
+"sector": "Otros"
+},
+{
+"codigo": "2007689",
+"nombre": "ASOCIACIÓN DE MUNICIPIOS PARA LA SEGURIDAD COMUNITARIA",
+"sector": null
+},
+{
+"codigo": "1806837",
+"nombre": "ASOCIACIÓN PARA EL DESARROLLO PRODUCTIVO DEL TURISMO ALTO DEL CARMEN",
+"sector": "Otros"
+},
+{
+"codigo": "1978401",
+"nombre": "ASOCIACIÓN PATRIMONIAL CULTURAL DE LA REGION DE LOS RIOS",
+"sector": null
+},
+{
+"codigo": "6959",
+"nombre": "BANCO DEL ESTADO DE CHILE",
+"sector": "Otros"
+},
+{
+"codigo": "7265",
+"nombre": "BIBLIOTECA DEL CONGRESO NACIONAL",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "7175",
+"nombre": "CAJA DE PREVISION DE LA DEFENSA NACIONAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7198",
+"nombre": "CASA DE MONEDA DE CHILE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6957",
+"nombre": "CENTRAL DE ABASTECIMIENTO DEL SISTEMA NACIONAL DE SERVICIO DE SALUD",
+"sector": "Salud"
+},
+{
+"codigo": "1339711",
+"nombre": "CENTRO ASISTENCIAL NORTE DE ANTOFAGASTA",
+"sector": "Salud"
+},
+{
+"codigo": "1616398",
+"nombre": "CENTRO DE ESPECIALIDAD  DE ATENCION PREHOSPITALARIA SAMU BIO BIO",
+"sector": "Salud"
+},
+{
+"codigo": "1703725",
+"nombre": "CENTRO DE FORMACION TECNICA DE LA REGION DE ANTOFAGASTA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1741046",
+"nombre": "CENTRO DE FORMACION TECNICA DE LA REGION DE ATACAMA",
+"sector": "Otros"
+},
+{
+"codigo": "1595472",
+"nombre": "CENTRO DE FORMACION TECNICA DE LA REGION DE COQUIMBO",
+"sector": "Otros"
+},
+{
+"codigo": "1577943",
+"nombre": "CENTRO DE FORMACION TECNICA DE LA REGION DE LA ARAUCANIA",
+"sector": "Otros"
+},
+{
+"codigo": "1620745",
+"nombre": "CENTRO DE FORMACION TECNICA DE LA REGION DE TARAPACA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1577422",
+"nombre": "CENTRO DE FORMACION TECNICA DE LA REGION DEL MAULE",
+"sector": "Otros"
+},
+{
+"codigo": "1696874",
+"nombre": "CENTRO DE FORMACION TECNICA DE LA REGION METROPOLITANA DE SANTIAGO",
+"sector": "Otros"
+},
+{
+"codigo": "1598310",
+"nombre": "CENTRO DE FORMACION TECNICA ESTATAL DE LA REGION DE LOS LAGOS",
+"sector": "Otros"
+},
+{
+"codigo": "1629281",
+"nombre": "CENTRO DE FORMACION TECNICA ESTATAL DE LA REGION DE LOS RIOS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1628819",
+"nombre": "CENTRO DE FORMACION TECNICA ESTATAL DE LA REGION DE VALPARAISO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1700248",
+"nombre": "CENTRO DE FORMACION TECNICA ESTATAL DE MAGALLANES Y ANTARTICA CHILENA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1771237",
+"nombre": "CENTRO DE FORMACIÓN TÉCNICA DE LA REGIÓN DE AYSÉN DEL GENERAL CARLOS I",
+"sector": "Otros"
+},
+{
+"codigo": "1796821",
+"nombre": "CENTRO DE FORMACIÓN TÉCNICA ESTATAL DE LA REGIÓN DEL BIOBÍO",
+"sector": "Otros"
+},
+{
+"codigo": "1772424",
+"nombre": "CENTRO DE FORMACIÓN TÉCNICA ESTATAL DE LA REGIÓN DEL LIBERTADOR GENERA",
+"sector": "Otros"
+},
+{
+"codigo": "1741019",
+"nombre": "CENTRO DE FORMACIÓN TÉCNICA ESTATAL REGIÓN ARICA Y PARINACOTA",
+"sector": "Otros"
+},
+{
+"codigo": "7380",
+"nombre": "CENTRO DE INFORMACION DE RECURSOS NATURALES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7317",
+"nombre": "CENTRO DE REFERENCIA DE SALUD DE MAIPU",
+"sector": "Salud"
+},
+{
+"codigo": "7136",
+"nombre": "CENTRO DE REFERENCIA DE SALUD DE PENALOLEN CORDILLERA ORIENTE",
+"sector": "Salud"
+},
+{
+"codigo": "1530575",
+"nombre": "CENTRO DE REFERENCIA DE SALUD HOSPITAL PROVINCIA CORDILLERA",
+"sector": "Salud"
+},
+{
+"codigo": "1688785",
+"nombre": "CENTRO DE SALUD FAMILIAR CESFAM LLAY LLAY",
+"sector": "Salud"
+},
+{
+"codigo": "1860306",
+"nombre": "CENTRO DE SALUD FAMILIAR PUERTO AYSÉN",
+"sector": "Otros"
+},
+{
+"codigo": "1688789",
+"nombre": "CENTRO DE SALUD MENTAL COMUNITARIA SAN FELIPE",
+"sector": "Salud"
+},
+{
+"codigo": "1900447",
+"nombre": "CENTRO IDEACTIVA",
+"sector": "Otros"
+},
+{
+"codigo": "1549752",
+"nombre": "CENTRO METROPOLITANO DE ATENCIÓN PREHOSPITALARIA",
+"sector": "Salud"
+},
+{
+"codigo": "1648816",
+"nombre": "CENTRO ONCOLOGICO DEL NORTE",
+"sector": "Salud"
+},
+{
+"codigo": "7373",
+"nombre": "CENTRO REFERENCIAL DE SALUD DR SALVADOR ALLENDE GOSSENS",
+"sector": "Salud"
+},
+{
+"codigo": "1688788",
+"nombre": "CENTRO SALUD MENTAL COMUNITARIA LOS ANDES",
+"sector": "Salud"
+},
+{
+"codigo": "1443597",
+"nombre": "CESFAM LIRQUEN",
+"sector": "Salud"
+},
+{
+"codigo": "111870",
+"nombre": "COMANDO DE APOYO A LA FUERZA",
+"sector": "Fuerzas Armadas"
+},
+{
+"codigo": "192032",
+"nombre": "COMISION ADMINISTRADORA DEL SISTEMA DE CREDITOS P. ESTUDIOS SUPERIORES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1129189",
+"nombre": "COMISION DEL SISTEMA NACIONAL DE CERTIFICACION DE COMPETENCIAS LABORALES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "262897",
+"nombre": "COMISION NACIONAL DE ACREDITACION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7186",
+"nombre": "COMISION NACIONAL DE RIEGO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1309826",
+"nombre": "COMISION PARA EL MERCADO FINANCIERO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7016",
+"nombre": "COMISION PARA EL MERCADO FINANCIERO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7219",
+"nombre": "COMISIÓN CHILENA DE ENERGÍA NUCLEAR",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7075",
+"nombre": "COMISIÓN CHILENA DEL COBRE - COCHILCO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6938",
+"nombre": "COMISIÓN NACIONAL DE ENERGÍA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7213",
+"nombre": "COMISIÓN NACIONAL DE INVESTIGACIÓN CIENTÍFICA Y TECNOLÓGICAS - CONICYT",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1999111",
+"nombre": "COMISIÓN PARA LA FIJACIÓN DE REMUNERACIONES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7043",
+"nombre": "COMITÉ DE SEGUROS DEL AGRO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7057",
+"nombre": "COMITÉ SEP",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7320",
+"nombre": "COMPLEJO ASISTENCIAL DR. SOTERO DEL RIO",
+"sector": "Salud"
+},
+{
+"codigo": "7375",
+"nombre": "COMPLEJO ASISTENCIAL DR.VICTOR RIOS RUIZ",
+"sector": "Salud"
+},
+{
+"codigo": "6933",
+"nombre": "CONSEJO DE DEFENSA DEL ESTADO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7224",
+"nombre": "CONSEJO DE RECTORES DE LAS UNIVERSIDADES CHILENAS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1692048",
+"nombre": "CONSEJO FISCAL AUTONOMO",
+"sector": "Otros"
+},
+{
+"codigo": "7082",
+"nombre": "CONSEJO NACIONAL DE EDUCACION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1606467",
+"nombre": "CONSEJO NACIONAL DE TELEVISION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1060064",
+"nombre": "CONSEJO PARA LA TRANSPARENCIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1230073",
+"nombre": "CONSEJO RESOLUTIVO DE ASIGNACIONES PARLAMENTARIA",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "1802401",
+"nombre": "CONSULTORIO EXTERNO VALDIVIA",
+"sector": "Otros"
+},
+{
+"codigo": "1688783",
+"nombre": "CONSULTORIO GENERAL N°2 DE LOS ANDES",
+"sector": "Salud"
+},
+{
+"codigo": "118627",
+"nombre": "CONSULTORIO GENERAL URBANO DR ALEJANDRO GUTIERREZ",
+"sector": "Salud"
+},
+{
+"codigo": "1688781",
+"nombre": "CONSULTORIO GENERAL URBANO SAN FELIPE",
+"sector": "Salud"
+},
+{
+"codigo": "118630",
+"nombre": "CONSULTORIO GENERAL URBANO VICTOR DOMINGO SILVA",
+"sector": "Salud"
+},
+{
+"codigo": "7144",
+"nombre": "CONSULTORIO GENERAL URBANO VIOLETA PARRA",
+"sector": "Salud"
+},
+{
+"codigo": "7133",
+"nombre": "CONSULTORIO MIRAFLORES",
+"sector": "Salud"
+},
+{
+"codigo": "7231",
+"nombre": "CONTRALORIA GENERAL DE LA REPUBLICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7342",
+"nombre": "CORP ADMINISTRATIVA DEL PODER JUDICIAL",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "1885255",
+"nombre": "CORP CULTURAL DE LA COMUNA DE LA GRANJA",
+"sector": "Otros"
+},
+{
+"codigo": "1803819",
+"nombre": "CORP CULTURAL DE LA MUNICIPALIDAD DE CURICO",
+"sector": "Otros"
+},
+{
+"codigo": "1968861",
+"nombre": "CORP CULTURAL DE LAS CONDES",
+"sector": "Otros"
+},
+{
+"codigo": "1812443",
+"nombre": "CORP CULTURAL DE OSORNO",
+"sector": "Otros"
+},
+{
+"codigo": "7235",
+"nombre": "CORP DE ASISTENCIA JUDICIAL DE LA REGION DE VALPARAISO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "272303",
+"nombre": "CORP DE ASISTENCIA JUDICIAL DE LAS REG T",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "1101613",
+"nombre": "CORP DE DESARROLLO SOCIAL DE PROVIDENCIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1799669",
+"nombre": "CORP MUNIC EDUC SALUD Y ATENCION",
+"sector": "Otros"
+},
+{
+"codigo": "1812422",
+"nombre": "CORP MUNICIP ANCUD PARA LA EDUCAC SALUD",
+"sector": "Otros"
+},
+{
+"codigo": "1088974",
+"nombre": "CORP MUNICIPAL DE CASTRO PARA LA EDUCACION SALUD Y ATENCION AL MENOR",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1801813",
+"nombre": "CORP MUNICIPAL DE CONCHALI DE EDUCACION SALUD Y ATENCION DE MENORES",
+"sector": "Otros"
+},
+{
+"codigo": "1111614",
+"nombre": "CORP MUNICIPAL DE DESARROLLO SOCIAL DE A",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1812146",
+"nombre": "CORP MUNICIPAL DE DESARROLLO SOCIAL DE CALERA DE TANGO",
+"sector": "Otros"
+},
+{
+"codigo": "1999048",
+"nombre": "CORP MUNICIPAL DE DESARROLLO SOCIAL DE IQUIQUE",
+"sector": null
+},
+{
+"codigo": "1803800",
+"nombre": "CORP MUNICIPAL DE DESARROLLO SOCIAL DE LAMPA",
+"sector": "Otros"
+},
+{
+"codigo": "1812426",
+"nombre": "CORP MUNICIPAL DE DESARROLLO SOCIAL DE NUNOA",
+"sector": "Otros"
+},
+{
+"codigo": "1800776",
+"nombre": "CORP MUNICIPAL DE DESARROLLO SOCIAL DE POZO ALMONTE",
+"sector": "Otros"
+},
+{
+"codigo": "1801848",
+"nombre": "CORP MUNICIPAL DE DESARROLLO SOCIAL DE PUDAHUEL",
+"sector": "Otros"
+},
+{
+"codigo": "1246426",
+"nombre": "CORP MUNICIPAL DE DESARROLLO SOCIAL DE SN JOAQUIN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7105",
+"nombre": "CORP MUNICIPAL DE EDUC SALUD CULTURA Y RECREACION DE LA FLORIDA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1800773",
+"nombre": "CORP MUNICIPAL DE EDUCACION Y SAL",
+"sector": "Otros"
+},
+{
+"codigo": "1971712",
+"nombre": "CORP MUNICIPAL DE EDUCACION Y SERVICIOS RAMON FREIRE",
+"sector": null
+},
+{
+"codigo": "1145766",
+"nombre": "CORP MUNICIPAL DE ISLA DE MAIPO PARA L",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7483",
+"nombre": "CORP MUNICIPAL DE PANGUIPULLI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1820891",
+"nombre": "CORP MUNICIPAL DE PUNTA ARENAS PARA LA EDUCACION SALUD Y AT AL MENOR",
+"sector": "Otros"
+},
+{
+"codigo": "2010501",
+"nombre": "CORP MUNICIPAL DE PUQUELDON PARA LA EDUC",
+"sector": null
+},
+{
+"codigo": "1954534",
+"nombre": "CORP MUNICIPAL DE QUINCHAO PARA LA EDUC SALUD Y ATENCION AL MENOR",
+"sector": "Otros"
+},
+{
+"codigo": "1820898",
+"nombre": "CORP MUNICIPAL DE RENCA",
+"sector": "Otros"
+},
+{
+"codigo": "1232694",
+"nombre": "CORP MUNICIPAL DE SAN MIGUEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1109551",
+"nombre": "CORP MUNICIPAL DE SERVICIOS PUBLICOS TRASPASADOS DE RANCAGUA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1035946",
+"nombre": "CORP MUNICIPAL DE SERVICIOS Y DESARROLLO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1396697",
+"nombre": "CORP MUNICIPAL DE VALPARAISO PARA EL DESARROLLO SOCIAL",
+"sector": "Otros"
+},
+{
+"codigo": "1818190",
+"nombre": "CORP MUNICIPAL DEL DEPORTE QUINTA NORMAL",
+"sector": "Otros"
+},
+{
+"codigo": "1244947",
+"nombre": "CORP MUNICIPAL MELIPILLA PARA LA ED SALUD",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1803814",
+"nombre": "CORP MUNICIPAL PARA EL DESARROLLO SOCIAL",
+"sector": "Otros"
+},
+{
+"codigo": "1801205",
+"nombre": "CORP MUNICIPAL SAN FERNANDO PARA LA ATENCION MENORES Y LAS A DE E Y S",
+"sector": "Otros"
+},
+{
+"codigo": "7183",
+"nombre": "CORP NACIONAL DE DESARROLLO INDIGENA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6924",
+"nombre": "CORP NACIONAL FORESTAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1344662",
+"nombre": "CORP.MUNICIPAL GABRIEL GONZALEZ VIDELA DE LA SERENA",
+"sector": "Otros"
+},
+{
+"codigo": "1824379",
+"nombre": "CORPORACION ALDEA DEL ENCUENTRO DE LA REINA",
+"sector": "Otros"
+},
+{
+"codigo": "1838115",
+"nombre": "CORPORACION CULTURA Y PATRIMONIO SAN BERNARDO",
+"sector": "Otros"
+},
+{
+"codigo": "1801803",
+"nombre": "CORPORACION CULTURAL DE LA COMUNA DE LA PINTANA",
+"sector": "Otros"
+},
+{
+"codigo": "1869227",
+"nombre": "CORPORACION CULTURAL DE LA ILUSTRE MUNICIPALIDAD DE VALDIVIA",
+"sector": "Otros"
+},
+{
+"codigo": "1890406",
+"nombre": "CORPORACION CULTURAL DE LA MUNICIPALIDAD DE PICHIDEGUA",
+"sector": "Otros"
+},
+{
+"codigo": "1824375",
+"nombre": "CORPORACION CULTURAL DE LA REINA",
+"sector": "Otros"
+},
+{
+"codigo": "1874800",
+"nombre": "CORPORACION CULTURAL DE LO BARNECHEA",
+"sector": "Otros"
+},
+{
+"codigo": "1869554",
+"nombre": "CORPORACION CULTURAL DE MOSTAZAL",
+"sector": "Otros"
+},
+{
+"codigo": "1828373",
+"nombre": "CORPORACION CULTURAL DE PADRE LAS CASAS",
+"sector": "Otros"
+},
+{
+"codigo": "1814748",
+"nombre": "CORPORACION CULTURAL DE PENALOLEN",
+"sector": "Otros"
+},
+{
+"codigo": "1821127",
+"nombre": "CORPORACION CULTURAL DE VITACURA",
+"sector": "Otros"
+},
+{
+"codigo": "1830896",
+"nombre": "CORPORACION CULTURAL ESTACION CENTRAL",
+"sector": "Otros"
+},
+{
+"codigo": "1821133",
+"nombre": "CORPORACION CULTURAL ILUSTRE MUNICIPALIDAD DE RAUCO",
+"sector": "Otros"
+},
+{
+"codigo": "1823674",
+"nombre": "CORPORACION CULTURAL MUNICIPAL DE ANCUD",
+"sector": "Otros"
+},
+{
+"codigo": "1867770",
+"nombre": "CORPORACION CULTURAL MUNICIPAL DE COYHAIQUE",
+"sector": "Otros"
+},
+{
+"codigo": "1883625",
+"nombre": "CORPORACION CULTURAL MUNICIPAL DE LA COMUNA DE CHILLAN",
+"sector": "Otros"
+},
+{
+"codigo": "1901623",
+"nombre": "CORPORACION CULTURAL MUNICIPAL DE LOS ANGELES",
+"sector": "Otros"
+},
+{
+"codigo": "1934663",
+"nombre": "CORPORACION CULTURAL MUNICIPAL DE NACIMIENTO",
+"sector": "Otros"
+},
+{
+"codigo": "1817994",
+"nombre": "CORPORACION CULTURAL MUNICIPAL DE VICUNA",
+"sector": "Otros"
+},
+{
+"codigo": "1888500",
+"nombre": "CORPORACION CULTURAL MUNICIPAL Y DE DESARROLLO SOCIO AMBIENTAL DE HUASCO",
+"sector": "Otros"
+},
+{
+"codigo": "1821131",
+"nombre": "CORPORACION CULTURAL SOCIAL Y DEPORTIVA MUNICIPAL DE QUILICURA",
+"sector": "Otros"
+},
+{
+"codigo": "1830901",
+"nombre": "CORPORACION CULTURAL Y DE EXTENSION DE LA ILUSTRE MUNICIPALIDAD DE CONSTITUCION",
+"sector": "Otros"
+},
+{
+"codigo": "1952109",
+"nombre": "CORPORACION CULTURAL Y DE TURISMO MUNICIPAL DE PELARCO",
+"sector": "Otros"
+},
+{
+"codigo": "7354",
+"nombre": "CORPORACION DE ASISTENCIA JUDICIAL DE LA REGION DEL BIO BIO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1830859",
+"nombre": "CORPORACION DE DEPORTES DE ESTACION CENTRAL",
+"sector": "Otros"
+},
+{
+"codigo": "1828257",
+"nombre": "CORPORACION DE DEPORTES DE LA ILUSTRE MUNICIPALIDAD DE TENO",
+"sector": "Otros"
+},
+{
+"codigo": "1803806",
+"nombre": "CORPORACION DE DEPORTES DE LA MUNICIPALIDAD DE CURICO",
+"sector": "Otros"
+},
+{
+"codigo": "1821135",
+"nombre": "CORPORACION DE DEPORTES DE LA MUNICIPALIDAD DE RAUCO",
+"sector": "Otros"
+},
+{
+"codigo": "1801801",
+"nombre": "CORPORACION DE DEPORTES DE PADRE HURTADO",
+"sector": "Otros"
+},
+{
+"codigo": "1842551",
+"nombre": "CORPORACION DE DESARROLLO DE LA COMUNA DE SAN VICENTE",
+"sector": "Otros"
+},
+{
+"codigo": "2007448",
+"nombre": "CORPORACION DE DESARROLLO DE MAGALLANES Y DE LA ANTARTICA CHILENA - CO",
+"sector": null
+},
+{
+"codigo": "1817964",
+"nombre": "CORPORACION DE DESARROLLO DE TALCA",
+"sector": "Otros"
+},
+{
+"codigo": "1765161",
+"nombre": "CORPORACION DE DESARROLLO E INNOVACION DE LA ILUSTRE MUNICIPALIDAD DE",
+"sector": "Otros"
+},
+{
+"codigo": "1854165",
+"nombre": "CORPORACION DE DESARROLLO SOCIAL DE BUIN",
+"sector": "Otros"
+},
+{
+"codigo": "2004025",
+"nombre": "CORPORACION DE DESARROLLO TERRITORIAL Y TURISMO DE LA REGION METROPOLITANA",
+"sector": null
+},
+{
+"codigo": "1859922",
+"nombre": "CORPORACION DE FOMENTO DE DESARROLLO COMUNAL Y PRODUCTIVO",
+"sector": "Otros"
+},
+{
+"codigo": "6942",
+"nombre": "CORPORACION DE FOMENTO DE LA PRODUCCION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1727682",
+"nombre": "CORPORACION DE LA CULTURA Y LAS ARTES DE LA ILUSTRE MUNICIPALIDAD DE R",
+"sector": "Otros"
+},
+{
+"codigo": "1824117",
+"nombre": "CORPORACION DEL DEPORTE DE LA FLORIDA",
+"sector": "Otros"
+},
+{
+"codigo": "1883882",
+"nombre": "CORPORACION DEL DEPORTE DE PICHIDEGUA",
+"sector": "Otros"
+},
+{
+"codigo": "1163882",
+"nombre": "CORPORACION MUNIC DE EDUC SALUD ATENCION",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1821972",
+"nombre": "CORPORACION MUNICIPAL  DE DEPORTES  DE SAN CLEMENTE",
+"sector": "Otros"
+},
+{
+"codigo": "1824396",
+"nombre": "CORPORACION MUNICIPAL CLUB DE LA REINA SOCIAL DEPORTIVO Y RECREACIONAL",
+"sector": "Otros"
+},
+{
+"codigo": "1914839",
+"nombre": "CORPORACION MUNICIPAL CULTURAL DE MUSEO DE BELLAS ARTES DE VALPARAISO",
+"sector": "Otros"
+},
+{
+"codigo": "1868957",
+"nombre": "CORPORACION MUNICIPAL DE CREACION Y DESARROLLO DE LOS LAGOS",
+"sector": "Otros"
+},
+{
+"codigo": "1806860",
+"nombre": "CORPORACION MUNICIPAL DE CULTURA DE SAN JOAQUIN",
+"sector": "Otros"
+},
+{
+"codigo": "1818181",
+"nombre": "CORPORACION MUNICIPAL DE CULTURA DE TALCA",
+"sector": "Otros"
+},
+{
+"codigo": "1848096",
+"nombre": "CORPORACION MUNICIPAL DE CULTURA DE TILTIL",
+"sector": "Otros"
+},
+{
+"codigo": "1867218",
+"nombre": "CORPORACION MUNICIPAL DE CULTURA TURISMO Y PATRIMONIO  DE LA COMUNA DE NATALES",
+"sector": "Otros"
+},
+{
+"codigo": "1818076",
+"nombre": "CORPORACION MUNICIPAL DE CULTURA Y ARTES DE MOLINA",
+"sector": "Otros"
+},
+{
+"codigo": "1806052",
+"nombre": "CORPORACION MUNICIPAL DE CULTURA Y TURISMO DE LA COMUNA DE QUINTERO",
+"sector": "Otros"
+},
+{
+"codigo": "1818175",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTE DE TALCA",
+"sector": "Otros"
+},
+{
+"codigo": "1897431",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES DE IQUIQUE",
+"sector": "Otros"
+},
+{
+"codigo": "1828277",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES DE LA COMUNA DE ARAUCO",
+"sector": "Otros"
+},
+{
+"codigo": "1805043",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES DE LA PINTANA",
+"sector": "Otros"
+},
+{
+"codigo": "1838326",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES DE NATALES",
+"sector": "Otros"
+},
+{
+"codigo": "1835219",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES DE PADRE LAS CASAS",
+"sector": "Otros"
+},
+{
+"codigo": "1803817",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES DE PUENTE ALTO",
+"sector": "Otros"
+},
+{
+"codigo": "1811051",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES DE RANCAGUA",
+"sector": "Otros"
+},
+{
+"codigo": "1820132",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y DESARROLLO SOCIAL DE LA COMUNA DE QUINTERO",
+"sector": "Otros"
+},
+{
+"codigo": "1898385",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACION DE ILLAPEL",
+"sector": "Otros"
+},
+{
+"codigo": "1824391",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACION DE LA REINA",
+"sector": "Otros"
+},
+{
+"codigo": "1818063",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACION DE MOLINA",
+"sector": "Otros"
+},
+{
+"codigo": "2012222",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACION DE PARRAL",
+"sector": null
+},
+{
+"codigo": "1841838",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACION DE PENALOLEN",
+"sector": "Otros"
+},
+{
+"codigo": "1812445",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACION DE TEMUCO",
+"sector": "Otros"
+},
+{
+"codigo": "1820893",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACION LOS ANDES",
+"sector": "Otros"
+},
+{
+"codigo": "1823988",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACION SAN JAVIER DE LONCOMILLA",
+"sector": "Otros"
+},
+{
+"codigo": "1821120",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACIÓN DE ANTOFAGASTA",
+"sector": "Otros"
+},
+{
+"codigo": "1872501",
+"nombre": "CORPORACION MUNICIPAL DE DEPORTES Y RECREACIÓN DE LA COMUNA DE SAN PEDRO DE ATACAMA",
+"sector": "Otros"
+},
+{
+"codigo": "1860947",
+"nombre": "CORPORACION MUNICIPAL DE DESARROLLO COMUNAL Y PRODUCTIVO DE LICANTEN",
+"sector": "Otros"
+},
+{
+"codigo": "1820894",
+"nombre": "CORPORACION MUNICIPAL DE DESARROLLO ECONOMICO CULTURA Y DEPORTES DE RE",
+"sector": "Otros"
+},
+{
+"codigo": "1856940",
+"nombre": "CORPORACION MUNICIPAL DE DESARROLLO SOCIAL DE MACUL",
+"sector": "Otros"
+},
+{
+"codigo": "1033466",
+"nombre": "CORPORACION MUNICIPAL DE EDUCACION Y SALUD DE SAN BERNARDO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1110112",
+"nombre": "CORPORACION MUNICIPAL DE EDUCACION,SALUD,CULTURA Y ATENCION AL MENOR,",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1820138",
+"nombre": "CORPORACION MUNICIPAL DE FOMENTO   PRODUCTIVO DE ARICA",
+"sector": "Otros"
+},
+{
+"codigo": "2010505",
+"nombre": "CORPORACION MUNICIPAL DE FOMENTO AL DESARROLLO COMUNAL Y PRODUCTIVO DE",
+"sector": null
+},
+{
+"codigo": "1823994",
+"nombre": "CORPORACION MUNICIPAL DE FOMENTO AL DESARROLLO COMUNAL Y PRODUCTIVO DE LA FLORIDA",
+"sector": "Otros"
+},
+{
+"codigo": "1803812",
+"nombre": "CORPORACION MUNICIPAL DE FOMENTO AL DESARROLLO ECONOMICO Y PRODUCTIVO",
+"sector": "Otros"
+},
+{
+"codigo": "1830904",
+"nombre": "CORPORACION MUNICIPAL DE INNOVACION Y DESARROLLO ECONOMICO Y SOCIAL DE SAN JOAQUIN",
+"sector": "Otros"
+},
+{
+"codigo": "1828390",
+"nombre": "CORPORACION MUNICIPAL DE ISLA DE PASCUA",
+"sector": "Otros"
+},
+{
+"codigo": "1891528",
+"nombre": "CORPORACION MUNICIPAL DE LA CULTURA Y LAS ARTES DE SAN ANTONIO",
+"sector": "Otros"
+},
+{
+"codigo": "1838550",
+"nombre": "CORPORACION MUNICIPAL DE LAS ARTES Y LA CULTURA DE RIO CLARO",
+"sector": "Otros"
+},
+{
+"codigo": "1842168",
+"nombre": "CORPORACION MUNICIPAL DE MARÍA PINTO",
+"sector": "Otros"
+},
+{
+"codigo": "1034640",
+"nombre": "CORPORACION MUNICIPAL DE PENALOLEN PARA EL DESARROLO SOCIAL CORMUP",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1871766",
+"nombre": "CORPORACION MUNICIPAL DE TURISMO DE PAIHUANO",
+"sector": "Otros"
+},
+{
+"codigo": "1820124",
+"nombre": "CORPORACION MUNICIPAL DE TURISMO VICUNA",
+"sector": "Otros"
+},
+{
+"codigo": "1920941",
+"nombre": "CORPORACION MUNICIPAL DEL ARTE Y LA CULTURA DE TALAGANTE",
+"sector": "Otros"
+},
+{
+"codigo": "1812428",
+"nombre": "CORPORACION MUNICIPAL DEL DEPORTE DE LAMPA",
+"sector": "Otros"
+},
+{
+"codigo": "1812413",
+"nombre": "CORPORACION MUNICIPAL PARA EL DESARROLLO COMUNAL SOL DE ATACAMA",
+"sector": "Otros"
+},
+{
+"codigo": "1801817",
+"nombre": "CORPORACION MUNICIPAL PARA EL DESARROLLO CULTURAL DE TEMUCO",
+"sector": "Otros"
+},
+{
+"codigo": "1128653",
+"nombre": "CORPORACION MUNICIPAL VINA DEL MAR PARA EL DESARROLLO SOCIAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1834956",
+"nombre": "CORPORACION MUNICIPALIDAD DE DEPORTES DE LA ILUSTRE MUNICIPALIDAD DE CONSTITUCION",
+"sector": "Otros"
+},
+{
+"codigo": "1848117",
+"nombre": "CORPORACION PARA EL ESTUDIO, DESARROLLO Y PROMOCION DE LA ECONOMIA",
+"sector": "Otros"
+},
+{
+"codigo": "2004018",
+"nombre": "CORPORACION REGIONAL DE DESARROLLO PRODUCTIVO DE LA REGION DE LOS RIOS",
+"sector": null
+},
+{
+"codigo": "2004021",
+"nombre": "CORPORACION REGIONAL DE DESARROLLO PRODUCTIVO DE LA REGION DEL MAULE",
+"sector": null
+},
+{
+"codigo": "2004027",
+"nombre": "CORPORACION REGIONAL DE TURISMO DE LA REGION DE VALPARAISO",
+"sector": null
+},
+{
+"codigo": "1828274",
+"nombre": "CORPORACION SOCIAL Y CULTURA DE CONCEPCION - SEMCO",
+"sector": "Otros"
+},
+{
+"codigo": "2013096",
+"nombre": "CORPORACION TEATRO REGIONAL DEL BIO-BIO",
+"sector": null
+},
+{
+"codigo": "1818194",
+"nombre": "CORPORACIÓN COMUNAL DE DESARROLLO QUINTA NORMAL",
+"sector": "Otros"
+},
+{
+"codigo": "1941868",
+"nombre": "CORPORACIÓN CULTURAL DE ANTOFAGASTA",
+"sector": "Otros"
+},
+{
+"codigo": "1860179",
+"nombre": "CORPORACIÓN CULTURAL DE CANELA",
+"sector": "Otros"
+},
+{
+"codigo": "1818198",
+"nombre": "CORPORACIÓN CULTURAL DE LA FLORIDA",
+"sector": "Otros"
+},
+{
+"codigo": "1820927",
+"nombre": "CORPORACIÓN CULTURAL DE LA I. MUNICIPALIDAD DE ROMERAL",
+"sector": "Otros"
+},
+{
+"codigo": "1820903",
+"nombre": "CORPORACIÓN CULTURAL DE LA ILUSTRE MUNICIPALIDAD DE TENO",
+"sector": "Otros"
+},
+{
+"codigo": "1860204",
+"nombre": "CORPORACIÓN CULTURAL DE LAMPA",
+"sector": "Otros"
+},
+{
+"codigo": "2012223",
+"nombre": "CORPORACIÓN CULTURAL DE ÑUÑOA",
+"sector": null
+},
+{
+"codigo": "1854693",
+"nombre": "CORPORACIÓN CULTURAL MUNICIPAL DE LONCOCHE",
+"sector": "Otros"
+},
+{
+"codigo": "1861543",
+"nombre": "CORPORACIÓN CULTURAL MUNICIPAL DE OVALLE",
+"sector": "Otros"
+},
+{
+"codigo": "1801849",
+"nombre": "CORPORACIÓN CULTURAL MUNICIPAL DE PUENTE ALTO",
+"sector": "Otros"
+},
+{
+"codigo": "1860198",
+"nombre": "CORPORACIÓN CULTURAL MUNICIPAL DE SAN JAVIER DE LONCOMILLA",
+"sector": "Otros"
+},
+{
+"codigo": "1812451",
+"nombre": "CORPORACIÓN CULTURAL MUNICIPALIDAD DEL MAULE",
+"sector": "Otros"
+},
+{
+"codigo": "7152",
+"nombre": "CORPORACIÓN DE ASISTENCIA JUDICIAL RM",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1806878",
+"nombre": "CORPORACIÓN DE CULTURA ISLA DE MAIPO",
+"sector": "Otros"
+},
+{
+"codigo": "1818099",
+"nombre": "CORPORACIÓN DE CULTURA Y PATRIMONIO DE INDEPENDENCIA",
+"sector": "Otros"
+},
+{
+"codigo": "1818015",
+"nombre": "CORPORACIÓN DE DEPORTES DE LA MUNICIPALIDAD DE LNDEPENDENCIA",
+"sector": "Otros"
+},
+{
+"codigo": "1872383",
+"nombre": "CORPORACIÓN DE DEPORTES Y RECREACIÓN DE LA MUNICIPALIDAD DE AYSÉN",
+"sector": "Otros"
+},
+{
+"codigo": "1808595",
+"nombre": "CORPORACIÓN DE DESARROLLO DE LA REINA",
+"sector": "Otros"
+},
+{
+"codigo": "1818102",
+"nombre": "CORPORACIÓN DE DESARROLLO SOCIAL DE LA MUNICIPALIDAD DE INDEPENDENCIA",
+"sector": "Otros"
+},
+{
+"codigo": "1085182",
+"nombre": "CORPORACIÓN DE ECUACIÓN, SALUD Y MENORES DE PUERTO NATALES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1122214",
+"nombre": "CORPORACIÓN DE EDUCACIÓN Y SALUD DE LAS CONDES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1820963",
+"nombre": "CORPORACIÓN DEL DEPORTE E INCLUSIÓN SOCIAL DE LA ILUSTRE MUNICIPALIDAD DE CERRO NAVIA",
+"sector": "Otros"
+},
+{
+"codigo": "1999101",
+"nombre": "CORPORACIÓN DESARROLLA BIOBÍO",
+"sector": null
+},
+{
+"codigo": "1803787",
+"nombre": "CORPORACIÓN MUNICIPAL CURACO DE VÉLEZ",
+"sector": "Otros"
+},
+{
+"codigo": "1883967",
+"nombre": "CORPORACIÓN MUNICIPAL DE ADMINISTRACIÓN SITIO PATRIMONIO MUNDIAL ÁREA",
+"sector": "Otros"
+},
+{
+"codigo": "1801799",
+"nombre": "CORPORACIÓN MUNICIPAL DE CULTURA DE PAINE",
+"sector": "Otros"
+},
+{
+"codigo": "1817980",
+"nombre": "CORPORACIÓN MUNICIPAL DE CULTURA DE SAN CLEMENTE",
+"sector": "Otros"
+},
+{
+"codigo": "1818082",
+"nombre": "CORPORACIÓN MUNICIPAL DE CULTURA Y DEPORTES DE RECOLETA",
+"sector": "Otros"
+},
+{
+"codigo": "1808599",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTE  DE VITACURA",
+"sector": "Otros"
+},
+{
+"codigo": "1820930",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTE DE ROMERAL",
+"sector": "Otros"
+},
+{
+"codigo": "1809257",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTE DE SALAMANCA",
+"sector": "Otros"
+},
+{
+"codigo": "1801806",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTE Y RECREACIÓN DE ZAPALLAR",
+"sector": "Otros"
+},
+{
+"codigo": "1818071",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES DE CALDERA",
+"sector": "Otros"
+},
+{
+"codigo": "1820205",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES DE COLINA",
+"sector": "Otros"
+},
+{
+"codigo": "1939696",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES DE LO PRADO",
+"sector": "Otros"
+},
+{
+"codigo": "1812754",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES DE MAULE",
+"sector": "Otros"
+},
+{
+"codigo": "1817947",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES DE SAN JOAQUÍN",
+"sector": "Otros"
+},
+{
+"codigo": "1873179",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES DE ÑUÑOA",
+"sector": "Otros"
+},
+{
+"codigo": "1803788",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES Y RECREACIÓN CALAMA",
+"sector": "Otros"
+},
+{
+"codigo": "1872408",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES Y RECREACIÓN COYHAIQUE",
+"sector": "Otros"
+},
+{
+"codigo": "1820967",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES Y RECREACIÓN DE RECOLETA",
+"sector": "Otros"
+},
+{
+"codigo": "1855963",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES Y RECREACIÓN PANGUIPULLI",
+"sector": "Otros"
+},
+{
+"codigo": "1801851",
+"nombre": "CORPORACIÓN MUNICIPAL DE DEPORTES Y RECREACIÓN TALCAHUANO",
+"sector": "Otros"
+},
+{
+"codigo": "1818200",
+"nombre": "CORPORACIÓN MUNICIPAL DE DESARROLLO PRODUCTIVO Y TURISMO DE MOLINA",
+"sector": "Otros"
+},
+{
+"codigo": "1818178",
+"nombre": "CORPORACIÓN MUNICIPAL DE DESARROLLO SOCIAL DE CALAMA",
+"sector": "Otros"
+},
+{
+"codigo": "17890",
+"nombre": "CORPORACIÓN MUNICIPAL DE DESARROLLO SOCIAL DE COLINA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1818087",
+"nombre": "CORPORACIÓN MUNICIPAL DE DESARROLLO SOCIAL DE LOS MUERMOS",
+"sector": "Otros"
+},
+{
+"codigo": "1860073",
+"nombre": "CORPORACIÓN MUNICIPAL DE DESARROLLO, DE LA CULTURA Y EL TURISMO DE CALBUCO",
+"sector": "Otros"
+},
+{
+"codigo": "1860541",
+"nombre": "CORPORACIÓN MUNICIPAL DE EDUCACIÓN, SALUD Y ATENCIÓN DE MENORES CHONCHI",
+"sector": "Otros"
+},
+{
+"codigo": "1820964",
+"nombre": "CORPORACIÓN MUNICIPAL DE INNOVACIÓN Y DESARROLLO ECONÓMICO Y SOCIAL DE RECOLETA",
+"sector": "Otros"
+},
+{
+"codigo": "1898391",
+"nombre": "CORPORACIÓN MUNICIPAL DE LA CULTURA Y LAS ARTES DE ILLAPEL",
+"sector": "Otros"
+},
+{
+"codigo": "1803791",
+"nombre": "CORPORACIÓN MUNICIPAL DE LO PRADO",
+"sector": "Otros"
+},
+{
+"codigo": "1881397",
+"nombre": "CORPORACIÓN MUNICIPAL DE QUELLÓN",
+"sector": "Otros"
+},
+{
+"codigo": "1870989",
+"nombre": "CORPORACIÓN MUNICIPAL DE SAN JOSÉ DE MAIPO",
+"sector": "Otros"
+},
+{
+"codigo": "1806867",
+"nombre": "CORPORACIÓN MUNICIPAL PUEBLITO DE LAS VIZCACHAS",
+"sector": "Otros"
+},
+{
+"codigo": "1817958",
+"nombre": "CORPORACIÓN PARA EL DESARROLLO DE LA PROVINCIA DE OSORNO",
+"sector": "Otros"
+},
+{
+"codigo": "1799808",
+"nombre": "CORPORACIÓN YUNUS",
+"sector": "Otros"
+},
+{
+"codigo": "1571884",
+"nombre": "CUERPO DE BOMBEROS METROPOLITANO SUR",
+"sector": "Otros"
+},
+{
+"codigo": "156657",
+"nombre": "CÁMARA DE DIPUTADOS DE CHILE",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "7129",
+"nombre": "DEFENSA CIVIL DE CHILE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1625610",
+"nombre": "DEFENSORIA DE LOS DERECHOS DE LA NIÑEZ",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7034",
+"nombre": "DEFENSORIA PENAL PUBLICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1806732",
+"nombre": "DEFENSORÍA DEL CONTRIBUYENTE",
+"sector": "Otros"
+},
+{
+"codigo": "7450",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE ARAUCO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7059",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE AYSÉN",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7134",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE CAPITÁN PRAT",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7387",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE CARDENAL CARO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7281",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE CAUQUENES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7271",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE CHACABUCO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7155",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE CHAÑARAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7499",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE CHILOÉ",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7286",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE CHOAPA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7376",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE COLCHAGUA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7284",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE CORDILLERA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7263",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE CURICÓ",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7237",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE EL LOA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7309",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE GENERAL CARRERA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7150",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE HUASCO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "135959",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE ISLA DE PASCUA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1640450",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE ITATA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7148",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE LA ANTÁRTICA CHILENA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7037",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE LIMARÍ",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7282",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE LINARES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7253",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE MAIPO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7275",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE MALLECO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1163597",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE MARGA MARGA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7056",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE MELIPILLA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7283",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE OSORNO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7252",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE PALENA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7350",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE PARINACOTA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7420",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE PETORCA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1645890",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE PUNILLA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7346",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE QUILLOTA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "111119",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE SAN ANTONIO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7495",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE SAN FELIPE DE ACONCAGUA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7055",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE TALAGANTE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7381",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE TIERRA DEL FUEGO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7063",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE TOCOPILLA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7264",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DE ÚLTIMA ESPERANZA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7140",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DEL BIOBÍO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "269793",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DEL RANCO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "275314",
+"nombre": "DELEGACIÓN PRESIDENCIAL PROVINCIAL DEL TAMARUGAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7204",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE ANTOFAGASTA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "270727",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE ARICA Y PARINACOTA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7115",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE ATACAMA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7229",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE AYSÉN DEL GENERAL CARLOS IBÁÑEZ DE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7236",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE COQUIMBO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7220",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE LA ARAUCANÍA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7215",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE LOS LAGOS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "270726",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE LOS RÍOS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7214",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE MAGALLANES Y DE LA ANTÁRTICA CHILE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7234",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE TARAPACÁ",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7196",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE VALPARAÍSO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1636371",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DE ÑUBLE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7226",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DEL BIOBÍO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7201",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DEL LIBERTADOR BERNARDO  O´HIGGINS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7225",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL DEL MAULE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7195",
+"nombre": "DELEGACIÓN PRESIDENCIAL REGIONAL METROPOLITANA DE SANTIAGO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7299",
+"nombre": "DEPARTAMENTO DE SALUD PARRAL",
+"sector": "Salud"
+},
+{
+"codigo": "111875",
+"nombre": "DIRECCION DE ABASTECIMIENTO DE LA ARMADA",
+"sector": "Fuerzas Armadas"
+},
+{
+"codigo": "6945",
+"nombre": "DIRECCION DE COMPRAS Y CONTRATACION PUBLICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1593363",
+"nombre": "DIRECCION DE EDUCACION PUBLICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "113812",
+"nombre": "DIRECCION DE LOGISTICA DE CARABINEROS",
+"sector": "Fuerzas Armadas"
+},
+{
+"codigo": "7012",
+"nombre": "DIRECCION DE PRESUPUESTOS MINISTERIO DE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7000",
+"nombre": "DIRECCION DEL TRABAJO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7202",
+"nombre": "DIRECCION GENERAL DE AERONAUTICA CIVIL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6925",
+"nombre": "DIRECCION GENERAL DE GENDARMERIA DE CHIL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7127",
+"nombre": "DIRECCION GENERAL DE MOVILIZACIONN NACIONAL",
+"sector": "Fuerzas Armadas"
+},
+{
+"codigo": "1674056",
+"nombre": "DIRECCION GENERAL DE PROMOCION DE EXPORTACIONES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7209",
+"nombre": "DIRECCION GENERAL DEL CREDITO PRENDARIO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7371",
+"nombre": "DIRECCION NACIONAL DEL SERVICIO CIVIL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6927",
+"nombre": "DIRECCION PREVISION DE CARABINEROS DE CHILE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "118628",
+"nombre": "DIRECCION SALUD RURAL",
+"sector": "Salud"
+},
+{
+"codigo": "7295",
+"nombre": "DIRECCION SERVICIO DE SALUD TALCAHUANO",
+"sector": "Salud"
+},
+{
+"codigo": "7272",
+"nombre": "DIRECCION SERVICIO SALUD METROPOLITANO O",
+"sector": "Salud"
+},
+{
+"codigo": "7010",
+"nombre": "DIRECCIÓN DE RELACIONES ECONÓMICAS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7187",
+"nombre": "DIRECCIÓN NACIONAL DE FRONTERAS Y LÍMITES DEL ESTADO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7491",
+"nombre": "DR. VICTOR HUGO MOLL DE CABILDO",
+"sector": "Salud"
+},
+{
+"codigo": "1743886",
+"nombre": "EMPRESA DE LOS FERROCARRILES DEL ESTADO",
+"sector": "Otros"
+},
+{
+"codigo": "7074",
+"nombre": "EMPRESA DE TRANSPORTE DE PASAJEROS METRO S A",
+"sector": "Otros"
+},
+{
+"codigo": "6961",
+"nombre": "EMPRESA NACIONAL DE MINERÍA",
+"sector": "Otros"
+},
+{
+"codigo": "1069779",
+"nombre": "EMPRESA PORTUARIA ANTOFAGASTA",
+"sector": "Otros"
+},
+{
+"codigo": "1902809",
+"nombre": "EMPRESA PORTUARIA COQUIMBO",
+"sector": "Otros"
+},
+{
+"codigo": "7493",
+"nombre": "EMPRESA PORTUARIA IQUIQUE",
+"sector": "Otros"
+},
+{
+"codigo": "7266",
+"nombre": "ESTADO MAYOR CONJUNTO",
+"sector": "Fuerzas Armadas"
+},
+{
+"codigo": "7076",
+"nombre": "FISCALIA NACIONAL ECONOMICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7182",
+"nombre": "FONDO DE SOLIDARIDAD E INVERSION SOCIAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "220665",
+"nombre": "FONDO HOSPITAL DE LA DIRECCION DE PREVISION DE CARABINEROS DE CHILE",
+"sector": "Fuerzas Armadas"
+},
+{
+"codigo": "6954",
+"nombre": "FONDO NACIONAL DE SALUD",
+"sector": "Salud"
+},
+{
+"codigo": "6946",
+"nombre": "FUERZA AEREA DE CHILE COMANDO LOGISTICO",
+"sector": "Fuerzas Armadas"
+},
+{
+"codigo": "1699238",
+"nombre": "FUND DE COMUNICACIONES CAPACITACION Y CULTURA DEL AGRO",
+"sector": "Otros"
+},
+{
+"codigo": "1090451",
+"nombre": "FUND NACIONAL DE ORQUESTAS JUVENILES E INFANTILES DE CHILE",
+"sector": "Otros"
+},
+{
+"codigo": "1110944",
+"nombre": "FUND PARA LA PROMOCION Y DESARROLLO DE LA MUJER",
+"sector": "Otros"
+},
+{
+"codigo": "1513502",
+"nombre": "FUND TIEMPOS NUEVOS",
+"sector": "Otros"
+},
+{
+"codigo": "1288587",
+"nombre": "FUNDACION CHILE",
+"sector": "Otros"
+},
+{
+"codigo": "2020989",
+"nombre": "FUNDACION CHILENA DEL PACIFICO",
+"sector": null
+},
+{
+"codigo": "1828266",
+"nombre": "FUNDACION CULTURAL DE SIERRA GORDA",
+"sector": "Otros"
+},
+{
+"codigo": "1172700",
+"nombre": "FUNDACION EDUCACIONAL PARA EL DESAROLLO INTEGRAL DE LA NIÑEZ",
+"sector": "Otros"
+},
+{
+"codigo": "1976169",
+"nombre": "FUNDACION IMAGEN DE CHILE",
+"sector": "Otros"
+},
+{
+"codigo": "1824423",
+"nombre": "FUNDACION MUNICIPAL DE CULTURA DE PROVIDENCIA",
+"sector": "Otros"
+},
+{
+"codigo": "1812266",
+"nombre": "FUNDACION PARA EL DESARROLLO DE LA CULTURA Y LAS ARTES DE LA COMUNA DE",
+"sector": "Otros"
+},
+{
+"codigo": "1818207",
+"nombre": "FUNDACION PARA EL DESARROLLO DEL DEPORTE Y LA RECREACION DE LA COMUNA",
+"sector": "Otros"
+},
+{
+"codigo": "1857193",
+"nombre": "FUNDACION TEATRO MUNICIPAL DE LAS CONDES",
+"sector": "Otros"
+},
+{
+"codigo": "1503663",
+"nombre": "FUNDACION TODO CHILENTER",
+"sector": "Otros"
+},
+{
+"codigo": "1094591",
+"nombre": "FUNDACIÓN DE LAS FAMILIAS",
+"sector": "Otros"
+},
+{
+"codigo": "299765",
+"nombre": "FUNDACIÓN NACIONAL PARA LA SUPERACIÓN DE LA POBREZA",
+"sector": "Otros"
+},
+{
+"codigo": "1736867",
+"nombre": "FUNDACIÓN PARA LA INNOVACIÓN AGRARIA",
+"sector": "Otros"
+},
+{
+"codigo": "7061",
+"nombre": "GOBERNACION DE CAUTIN",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7379",
+"nombre": "GOBERNACION PROVINCIAL DE CACHAPOAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7292",
+"nombre": "GOBERNACION PROVINCIAL DE COYHAIQUE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7349",
+"nombre": "GOBERNACION PROVINCIAL DE IQUIQUE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7009",
+"nombre": "GOBERNACION PROVINCIAL DE LOS ANDES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7484",
+"nombre": "GOBERNACION PROVINCIAL DE MAGALLANES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7269",
+"nombre": "GOBERNACION PROVINCIAL DE TALCA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7322",
+"nombre": "GOBERNACION PROVINCIAL DE VALDIVIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7352",
+"nombre": "GOBERNACION PROVINCIAL DE VALPARAISO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1641148",
+"nombre": "GOBERNACION PROVINCIAL DIGUILLIN",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7347",
+"nombre": "GOBERNACIÓN PROVINCIA DE ELQUI",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7357",
+"nombre": "GOBERNACIÓN PROVINCIAL DE ARICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7300",
+"nombre": "GOBERNACIÓN PROVINCIAL DE CONCEPCIÓN",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7145",
+"nombre": "GOBERNACIÓN PROVINCIAL DE COPIAPÓ",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7267",
+"nombre": "GOBERNACIÓN PROVINCIAL DE LLANQUIHUE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7142",
+"nombre": "GOBERNACIÓN PROVINCIAL DE ÑUBLE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7199",
+"nombre": "GOBIERNO REGIONAL DE ANTOFAGASTA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "267965",
+"nombre": "GOBIERNO REGIONAL DE ARICA-PARINACOTA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7077",
+"nombre": "GOBIERNO REGIONAL DE ATACAMA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7085",
+"nombre": "GOBIERNO REGIONAL DE AYSEN",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7013",
+"nombre": "GOBIERNO REGIONAL DE LA ARAUCANIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7015",
+"nombre": "GOBIERNO REGIONAL DE LA REGION DEL BIO BIO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "267799",
+"nombre": "GOBIERNO REGIONAL DE LOS RIOS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7084",
+"nombre": "GOBIERNO REGIONAL DE TARAPACA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1630141",
+"nombre": "GOBIERNO REGIONAL DE ÑUBLE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7207",
+"nombre": "GOBIERNO REGIONAL DECIMA REGION LOS LAGOS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6940",
+"nombre": "GOBIERNO REGIONAL IV REGION COQUIMBO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7222",
+"nombre": "GOBIERNO REGIONAL REGION METROPOLITANA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7172",
+"nombre": "GOBIERNO REGIONAL V REGION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7200",
+"nombre": "GOBIERNO REGIONAL VI REGION DEL LI BERTADOR B O\"HIGGINS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7223",
+"nombre": "GOBIERNO REGIONAL VII REGION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7087",
+"nombre": "GOBIERNO REGIONAL XII REGION MAGALLANES Y ANTARTICA CHILENA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "103933",
+"nombre": "HERMANAS MISIONERAS FRANCISCANAS DE PURULÓN",
+"sector": "Otros"
+},
+{
+"codigo": "7403",
+"nombre": "HOSPITAL  LONQUIMAY",
+"sector": "Salud"
+},
+{
+"codigo": "7348",
+"nombre": "HOSPITAL ADRIANA COUSINO DE QUINTERO",
+"sector": "Salud"
+},
+{
+"codigo": "7393",
+"nombre": "HOSPITAL BASE OSORNO",
+"sector": "Salud"
+},
+{
+"codigo": "7297",
+"nombre": "HOSPITAL CLINICO DE MAGALLANES DR. LAUTARO NAVARRO AVARIA",
+"sector": "Salud"
+},
+{
+"codigo": "7042",
+"nombre": "HOSPITAL CLINICO HERMINDA MARTIN",
+"sector": "Salud"
+},
+{
+"codigo": "1375151",
+"nombre": "HOSPITAL CLINICO METROPOLITANO DE LA FLORIDA DOCTORA ELOISA DIAZ",
+"sector": "Salud"
+},
+{
+"codigo": "1379869",
+"nombre": "HOSPITAL CLINICO METROPOLITANO EL CARMEN DOCTOR LUIS VALENTIN FERRADA",
+"sector": "Salud"
+},
+{
+"codigo": "1759990",
+"nombre": "HOSPITAL COMPLEJO ASISTENCIAL PADRE LAS CASAS",
+"sector": "Otros"
+},
+{
+"codigo": "7137",
+"nombre": "HOSPITAL COMUNITARIO DE SALUD FAMILIAR DE BULNES",
+"sector": "Salud"
+},
+{
+"codigo": "1934667",
+"nombre": "HOSPITAL DE ALTO HOSPICIO",
+"sector": "Otros"
+},
+{
+"codigo": "7277",
+"nombre": "HOSPITAL DE CONSTITUCIÓN",
+"sector": "Salud"
+},
+{
+"codigo": "7486",
+"nombre": "HOSPITAL DE LA FAMILIA Y LA COMUNIDAD SANTO TOMAS DE LIMACHE",
+"sector": "Salud"
+},
+{
+"codigo": "7439",
+"nombre": "HOSPITAL DE LITUECHE",
+"sector": "Salud"
+},
+{
+"codigo": "7447",
+"nombre": "HOSPITAL DE LOLOL",
+"sector": "Salud"
+},
+{
+"codigo": "7370",
+"nombre": "HOSPITAL DE MEJILLONES",
+"sector": "Salud"
+},
+{
+"codigo": "7458",
+"nombre": "HOSPITAL DE MELIPILLA",
+"sector": "Salud"
+},
+{
+"codigo": "7343",
+"nombre": "HOSPITAL DE PETORCA",
+"sector": "Salud"
+},
+{
+"codigo": "7485",
+"nombre": "HOSPITAL DE QUILPUE",
+"sector": "Salud"
+},
+{
+"codigo": "7460",
+"nombre": "HOSPITAL DE URGENCIA ASISTENCIA PUBLICA DR ALEJANDRO DEL RIO",
+"sector": "Salud"
+},
+{
+"codigo": "1238663",
+"nombre": "HOSPITAL DEL PERPETUO SOCORRO DE QUILACAHUIN",
+"sector": "Salud"
+},
+{
+"codigo": "1662264",
+"nombre": "HOSPITAL DOCTOR ERNESTO TORRES GALDAMES",
+"sector": "Salud"
+},
+{
+"codigo": "7046",
+"nombre": "HOSPITAL DOCTOR HERNAN HENRIQUEZ ARAVENA",
+"sector": "Salud"
+},
+{
+"codigo": "6936",
+"nombre": "HOSPITAL DR GUSTAVO FRICKE DE VINA DEL MAR",
+"sector": "Salud"
+},
+{
+"codigo": "7344",
+"nombre": "HOSPITAL DR MARIO SANCHEZ VERGARA LA CALERA",
+"sector": "Salud"
+},
+{
+"codigo": "1470807",
+"nombre": "HOSPITAL DR. EDUARDO PEREIRA RAMIREZ",
+"sector": "Salud"
+},
+{
+"codigo": "7386",
+"nombre": "HOSPITAL DR. MARCOS CHAMORRO IGLESIAS",
+"sector": "Salud"
+},
+{
+"codigo": "1238659",
+"nombre": "HOSPITAL FUTA SRÜKA LAWENCHE KUNKO MAPU MO",
+"sector": "Salud"
+},
+{
+"codigo": "7290",
+"nombre": "HOSPITAL GALVARINO",
+"sector": "Salud"
+},
+{
+"codigo": "7490",
+"nombre": "HOSPITAL GERIATRICO LA PAZ DE LA TARDE",
+"sector": "Salud"
+},
+{
+"codigo": "7324",
+"nombre": "HOSPITAL GUILLERMO GRANT BENAVENTE DE CO",
+"sector": "Salud"
+},
+{
+"codigo": "7401",
+"nombre": "HOSPITAL INTERCULTURAL KALLVU LLANKA.-",
+"sector": "Salud"
+},
+{
+"codigo": "1076658",
+"nombre": "HOSPITAL METROPOLITANO DE SANTIAGO",
+"sector": "Salud"
+},
+{
+"codigo": "7130",
+"nombre": "HOSPITAL ORIENTE DR LUIS TISNE BROUSSE",
+"sector": "Salud"
+},
+{
+"codigo": "7331",
+"nombre": "HOSPITAL PADRE ALBERTO HURTADO",
+"sector": "Salud"
+},
+{
+"codigo": "7412",
+"nombre": "HOSPITAL PROVINCIAL   DEL HUASCO MSR FERNANDO ARIZTIA RUIZ",
+"sector": "Salud"
+},
+{
+"codigo": "1216633",
+"nombre": "HOSPITAL PSIQUIATRICO DR. PHILIPPE PINEL PUTAENDO",
+"sector": "Salud"
+},
+{
+"codigo": "7427",
+"nombre": "HOSPITAL PSIQUIÁTRICO EL PERAL",
+"sector": "Salud"
+},
+{
+"codigo": "127018",
+"nombre": "HOSPITAL PUERTO MONTT SERVICIO DE SALUD DEL RELONCAVI",
+"sector": "Salud"
+},
+{
+"codigo": "7487",
+"nombre": "HOSPITAL SAN AGUSTIN DE LA LIGUA",
+"sector": "Salud"
+},
+{
+"codigo": "7477",
+"nombre": "HOSPITAL SANATORIO SAN JOSÉ DE MAIPO",
+"sector": "Salud"
+},
+{
+"codigo": "1546095",
+"nombre": "HOSPITAL SANTA ELISA DE SAN JOSE DE LA MARIQUINA",
+"sector": "Salud"
+},
+{
+"codigo": "7318",
+"nombre": "HOSPITAL SANTA JUANA",
+"sector": "Salud"
+},
+{
+"codigo": "7049",
+"nombre": "HOSPITAL VILCUN",
+"sector": "Salud"
+},
+{
+"codigo": "7132",
+"nombre": "HOSPITAL VILLARRICA",
+"sector": "Salud"
+},
+{
+"codigo": "7294",
+"nombre": "I MUNICIPALIDAD DE ALGARROBO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "111124",
+"nombre": "I MUNICIPALIDAD DE ALHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "98452",
+"nombre": "I MUNICIPALIDAD DE ANCUD",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119639",
+"nombre": "I MUNICIPALIDAD DE ANDACOLLO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100156",
+"nombre": "I MUNICIPALIDAD DE ANGOL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87653",
+"nombre": "I MUNICIPALIDAD DE ANTOFAGASTA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119484",
+"nombre": "I MUNICIPALIDAD DE ANTUCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7050",
+"nombre": "I MUNICIPALIDAD DE ARAUCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86624",
+"nombre": "I MUNICIPALIDAD DE ARICA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100049",
+"nombre": "I MUNICIPALIDAD DE AYSEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100090",
+"nombre": "I MUNICIPALIDAD DE BUIN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118069",
+"nombre": "I MUNICIPALIDAD DE BULNES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115459",
+"nombre": "I MUNICIPALIDAD DE CABILDO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "120186",
+"nombre": "I MUNICIPALIDAD DE CABRERO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86917",
+"nombre": "I MUNICIPALIDAD DE CALAMA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115011",
+"nombre": "I MUNICIPALIDAD DE CALBUCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7364",
+"nombre": "I MUNICIPALIDAD DE CALDERA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116219",
+"nombre": "I MUNICIPALIDAD DE CALERA DE TANGO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "121539",
+"nombre": "I MUNICIPALIDAD DE CALLE LARGA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "84473",
+"nombre": "I MUNICIPALIDAD DE CANELA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119488",
+"nombre": "I MUNICIPALIDAD DE CANETE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115186",
+"nombre": "I MUNICIPALIDAD DE CARAHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "99569",
+"nombre": "I MUNICIPALIDAD DE CARTAGENA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113614",
+"nombre": "I MUNICIPALIDAD DE CASABLANCA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100127",
+"nombre": "I MUNICIPALIDAD DE CASTRO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "129737",
+"nombre": "I MUNICIPALIDAD DE CATEMU",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7351",
+"nombre": "I MUNICIPALIDAD DE CAUQUENES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7241",
+"nombre": "I MUNICIPALIDAD DE CERRILLOS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114392",
+"nombre": "I MUNICIPALIDAD DE CHAITEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "109196",
+"nombre": "I MUNICIPALIDAD DE CHANARAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7501",
+"nombre": "I MUNICIPALIDAD DE CHANCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "92414",
+"nombre": "I MUNICIPALIDAD DE CHEPICA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100523",
+"nombre": "I MUNICIPALIDAD DE CHIGUAYANTE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "154782",
+"nombre": "I MUNICIPALIDAD DE CHILE CHICO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "88254",
+"nombre": "I MUNICIPALIDAD DE CHILLAN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116404",
+"nombre": "I MUNICIPALIDAD DE CHIMBARONGO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115168",
+"nombre": "I MUNICIPALIDAD DE CHONCHI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116747",
+"nombre": "I MUNICIPALIDAD DE CISNES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114925",
+"nombre": "I MUNICIPALIDAD DE COBQUECURA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116942",
+"nombre": "I MUNICIPALIDAD DE COCHRANE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "165106",
+"nombre": "I MUNICIPALIDAD DE CODEGUA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116742",
+"nombre": "I MUNICIPALIDAD DE COELEMU",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7146",
+"nombre": "I MUNICIPALIDAD DE COIHUECO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113254",
+"nombre": "I MUNICIPALIDAD DE COINCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1053458",
+"nombre": "I MUNICIPALIDAD DE COLCHANE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "99322",
+"nombre": "I MUNICIPALIDAD DE COLINA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113853",
+"nombre": "I MUNICIPALIDAD DE COLLIPULLI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119266",
+"nombre": "I MUNICIPALIDAD DE COLTAUCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87382",
+"nombre": "I MUNICIPALIDAD DE CONCEPCION",
+"sector": "Municipalidades"
+},
+{
+"codigo": "84958",
+"nombre": "I MUNICIPALIDAD DE CONCHALI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "94458",
+"nombre": "I MUNICIPALIDAD DE CONCON",
+"sector": "Municipalidades"
+},
+{
+"codigo": "102316",
+"nombre": "I MUNICIPALIDAD DE CONSTITUCION",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86872",
+"nombre": "I MUNICIPALIDAD DE COPIAPO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87901",
+"nombre": "I MUNICIPALIDAD DE COQUIMBO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100448",
+"nombre": "I MUNICIPALIDAD DE CORONEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7071",
+"nombre": "I MUNICIPALIDAD DE COYHAIQUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "129738",
+"nombre": "I MUNICIPALIDAD DE CUNCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "121613",
+"nombre": "I MUNICIPALIDAD DE CURACAUTIN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "125602",
+"nombre": "I MUNICIPALIDAD DE CURACAVI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114393",
+"nombre": "I MUNICIPALIDAD DE CURACO DE VELEZ",
+"sector": "Municipalidades"
+},
+{
+"codigo": "127036",
+"nombre": "I MUNICIPALIDAD DE CURANILAHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87838",
+"nombre": "I MUNICIPALIDAD DE CURICO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115165",
+"nombre": "I MUNICIPALIDAD DE DALCAHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "123788",
+"nombre": "I MUNICIPALIDAD DE DONIHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116741",
+"nombre": "I MUNICIPALIDAD DE EL MONTE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116298",
+"nombre": "I MUNICIPALIDAD DE EL QUISCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7066",
+"nombre": "I MUNICIPALIDAD DE EL TABO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116944",
+"nombre": "I MUNICIPALIDAD DE EMPEDRADO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "132741",
+"nombre": "I MUNICIPALIDAD DE ERCILLA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115285",
+"nombre": "I MUNICIPALIDAD DE FLORIDA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118089",
+"nombre": "I MUNICIPALIDAD DE FREIRE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "135567",
+"nombre": "I MUNICIPALIDAD DE FREIRINA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119651",
+"nombre": "I MUNICIPALIDAD DE FRESIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "84478",
+"nombre": "I MUNICIPALIDAD DE FRUTILLAR",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118068",
+"nombre": "I MUNICIPALIDAD DE FUTALEUFU",
+"sector": "Municipalidades"
+},
+{
+"codigo": "106880",
+"nombre": "I MUNICIPALIDAD DE FUTRONO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "148507",
+"nombre": "I MUNICIPALIDAD DE GRANEROS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116733",
+"nombre": "I MUNICIPALIDAD DE HIJUELAS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "106170",
+"nombre": "I MUNICIPALIDAD DE HUALAIHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118855",
+"nombre": "I MUNICIPALIDAD DE HUALANE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "140867",
+"nombre": "I MUNICIPALIDAD DE HUALQUI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116406",
+"nombre": "I MUNICIPALIDAD DE HUASCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115164",
+"nombre": "I MUNICIPALIDAD DE ILLAPEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "99105",
+"nombre": "I MUNICIPALIDAD DE INDEPENDENCIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87175",
+"nombre": "I MUNICIPALIDAD DE IQUIQUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117181",
+"nombre": "I MUNICIPALIDAD DE ISLA DE MAIPO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119852",
+"nombre": "I MUNICIPALIDAD DE ISLA DE PASCUA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "108932",
+"nombre": "I MUNICIPALIDAD DE JUAN FERNANDEZ",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115185",
+"nombre": "I MUNICIPALIDAD DE LA CALERA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100488",
+"nombre": "I MUNICIPALIDAD DE LA CISTERNA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7496",
+"nombre": "I MUNICIPALIDAD DE LA COMUNA DE EL BOSQUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113255",
+"nombre": "I MUNICIPALIDAD DE LA CRUZ",
+"sector": "Municipalidades"
+},
+{
+"codigo": "165285",
+"nombre": "I MUNICIPALIDAD DE LA ESTRELLA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86766",
+"nombre": "I MUNICIPALIDAD DE LA FLORIDA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "112097",
+"nombre": "I MUNICIPALIDAD DE LA GRANJA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116410",
+"nombre": "I MUNICIPALIDAD DE LA HIGUERA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100648",
+"nombre": "I MUNICIPALIDAD DE LA LIGUA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "83825",
+"nombre": "I MUNICIPALIDAD DE LA PINTANA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7366",
+"nombre": "I MUNICIPALIDAD DE LA REINA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114725",
+"nombre": "I MUNICIPALIDAD DE LA UNION",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113735",
+"nombre": "I MUNICIPALIDAD DE LAGO RANCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "123529",
+"nombre": "I MUNICIPALIDAD DE LAGO VERDE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119999",
+"nombre": "I MUNICIPALIDAD DE LAGUNA BLANCA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116405",
+"nombre": "I MUNICIPALIDAD DE LAJA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118067",
+"nombre": "I MUNICIPALIDAD DE LAMPA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "106876",
+"nombre": "I MUNICIPALIDAD DE LANCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116296",
+"nombre": "I MUNICIPALIDAD DE LAS CABRAS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86571",
+"nombre": "I MUNICIPALIDAD DE LAS CONDES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "165107",
+"nombre": "I MUNICIPALIDAD DE LAS GUAITECAS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "124577",
+"nombre": "I MUNICIPALIDAD DE LAUTARO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118096",
+"nombre": "I MUNICIPALIDAD DE LEBU",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114398",
+"nombre": "I MUNICIPALIDAD DE LICANTEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7492",
+"nombre": "I MUNICIPALIDAD DE LIMACHE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86545",
+"nombre": "I MUNICIPALIDAD DE LINARES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7365",
+"nombre": "I MUNICIPALIDAD DE LITUECHE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7064",
+"nombre": "I MUNICIPALIDAD DE LLANQUIHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118072",
+"nombre": "I MUNICIPALIDAD DE LLAY LLAY",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86518",
+"nombre": "I MUNICIPALIDAD DE LO ESPEJO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87373",
+"nombre": "I MUNICIPALIDAD DE LO PRADO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113258",
+"nombre": "I MUNICIPALIDAD DE LOLOL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113851",
+"nombre": "I MUNICIPALIDAD DE LONCOCHE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "120788",
+"nombre": "I MUNICIPALIDAD DE LONGAVI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119994",
+"nombre": "I MUNICIPALIDAD DE LONQUIMAY",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118620",
+"nombre": "I MUNICIPALIDAD DE LOS ALAMOS DEPTO COMUNAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87187",
+"nombre": "I MUNICIPALIDAD DE LOS ANGELES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7159",
+"nombre": "I MUNICIPALIDAD DE LOS LAGOS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7304",
+"nombre": "I MUNICIPALIDAD DE LOS MUERMOS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116408",
+"nombre": "I MUNICIPALIDAD DE LOS SAUCES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116401",
+"nombre": "I MUNICIPALIDAD DE LOS VILOS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113259",
+"nombre": "I MUNICIPALIDAD DE LOTA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115464",
+"nombre": "I MUNICIPALIDAD DE MAFIL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "93619",
+"nombre": "I MUNICIPALIDAD DE MAIPU",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115609",
+"nombre": "I MUNICIPALIDAD DE MALLOA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115304",
+"nombre": "I MUNICIPALIDAD DE MARCHIGUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113738",
+"nombre": "I MUNICIPALIDAD DE MARIA ELENA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "120798",
+"nombre": "I MUNICIPALIDAD DE MARIA PINTO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "120001",
+"nombre": "I MUNICIPALIDAD DE MARIQUINA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118070",
+"nombre": "I MUNICIPALIDAD DE MAULE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "120791",
+"nombre": "I MUNICIPALIDAD DE MAULLIN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117581",
+"nombre": "I MUNICIPALIDAD DE MEJILLONES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "112924",
+"nombre": "I MUNICIPALIDAD DE MONTEPATRIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "99101",
+"nombre": "I MUNICIPALIDAD DE MOSTAZAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115311",
+"nombre": "I MUNICIPALIDAD DE MULCHEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "135561",
+"nombre": "I MUNICIPALIDAD DE NACIMIENTO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116750",
+"nombre": "I MUNICIPALIDAD DE NANCAGUA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118625",
+"nombre": "I MUNICIPALIDAD DE NAVIDAD",
+"sector": "Municipalidades"
+},
+{
+"codigo": "142508",
+"nombre": "I MUNICIPALIDAD DE NEGRETE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7051",
+"nombre": "I MUNICIPALIDAD DE NINHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115468",
+"nombre": "I MUNICIPALIDAD DE NOGALES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114924",
+"nombre": "I MUNICIPALIDAD DE NUEVA IMPERIAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86764",
+"nombre": "I MUNICIPALIDAD DE NUNOA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115463",
+"nombre": "I MUNICIPALIDAD DE O HIGGINS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119273",
+"nombre": "I MUNICIPALIDAD DE OLIVAR",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119996",
+"nombre": "I MUNICIPALIDAD DE OLLAGUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114724",
+"nombre": "I MUNICIPALIDAD DE OLMUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "84959",
+"nombre": "I MUNICIPALIDAD DE OSORNO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117406",
+"nombre": "I MUNICIPALIDAD DE PADRE HURTADO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "90886",
+"nombre": "I MUNICIPALIDAD DE PADRE LAS CASAS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116744",
+"nombre": "I MUNICIPALIDAD DE PAILLACO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100728",
+"nombre": "I MUNICIPALIDAD DE PAINE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "110393",
+"nombre": "I MUNICIPALIDAD DE PALENA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "123526",
+"nombre": "I MUNICIPALIDAD DE PALMILLA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115284",
+"nombre": "I MUNICIPALIDAD DE PANGUIPULLI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113618",
+"nombre": "I MUNICIPALIDAD DE PANQUEHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115302",
+"nombre": "I MUNICIPALIDAD DE PAPUDO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118971",
+"nombre": "I MUNICIPALIDAD DE PAREDONES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "94459",
+"nombre": "I MUNICIPALIDAD DE PARRAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116729",
+"nombre": "I MUNICIPALIDAD DE PELARCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113978",
+"nombre": "I MUNICIPALIDAD DE PELLUHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117587",
+"nombre": "I MUNICIPALIDAD DE PEMUCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87172",
+"nombre": "I MUNICIPALIDAD DE PENALOLEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115166",
+"nombre": "I MUNICIPALIDAD DE PENCAHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "142575",
+"nombre": "I MUNICIPALIDAD DE PENCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118619",
+"nombre": "I MUNICIPALIDAD DE PERALILLO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "133899",
+"nombre": "I MUNICIPALIDAD DE PERQUENCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116223",
+"nombre": "I MUNICIPALIDAD DE PETORCA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118861",
+"nombre": "I MUNICIPALIDAD DE PEUMO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118077",
+"nombre": "I MUNICIPALIDAD DE PICA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118621",
+"nombre": "I MUNICIPALIDAD DE PICHIDEGUA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118071",
+"nombre": "I MUNICIPALIDAD DE PINTO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100072",
+"nombre": "I MUNICIPALIDAD DE PIRQUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116411",
+"nombre": "I MUNICIPALIDAD DE PITRUFQUEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118087",
+"nombre": "I MUNICIPALIDAD DE PLACILLA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115299",
+"nombre": "I MUNICIPALIDAD DE PORTEZUELO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117585",
+"nombre": "I MUNICIPALIDAD DE PRIMAVERA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "88102",
+"nombre": "I MUNICIPALIDAD DE PROVIDENCIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119270",
+"nombre": "I MUNICIPALIDAD DE PUCHUNCAVI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86943",
+"nombre": "I MUNICIPALIDAD DE PUCON",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87388",
+"nombre": "I MUNICIPALIDAD DE PUENTE ALTO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86507",
+"nombre": "I MUNICIPALIDAD DE PUERTO MONTT",
+"sector": "Municipalidades"
+},
+{
+"codigo": "102868",
+"nombre": "I MUNICIPALIDAD DE PUERTO VARAS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116402",
+"nombre": "I MUNICIPALIDAD DE PUMANQUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117588",
+"nombre": "I MUNICIPALIDAD DE PUNITAQUI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86580",
+"nombre": "I MUNICIPALIDAD DE PUNTA ARENAS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116403",
+"nombre": "I MUNICIPALIDAD DE PUQUELDON",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116945",
+"nombre": "I MUNICIPALIDAD DE PUREN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114916",
+"nombre": "I MUNICIPALIDAD DE PURRANQUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "98280",
+"nombre": "I MUNICIPALIDAD DE PUTAENDO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "105334",
+"nombre": "I MUNICIPALIDAD DE PUYEHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "112919",
+"nombre": "I MUNICIPALIDAD DE QUEILEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "125066",
+"nombre": "I MUNICIPALIDAD DE QUEMCHI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116940",
+"nombre": "I MUNICIPALIDAD DE QUILACO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115979",
+"nombre": "I MUNICIPALIDAD DE QUILLECO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "88203",
+"nombre": "I MUNICIPALIDAD DE QUILLOTA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116731",
+"nombre": "I MUNICIPALIDAD DE QUINCHAO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115010",
+"nombre": "I MUNICIPALIDAD DE QUINTA DE TILCOCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "138454",
+"nombre": "I MUNICIPALIDAD DE QUINTERO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87167",
+"nombre": "I MUNICIPALIDAD DE RANCAGUA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117589",
+"nombre": "I MUNICIPALIDAD DE RAUCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7325",
+"nombre": "I MUNICIPALIDAD DE RECOLETA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118073",
+"nombre": "I MUNICIPALIDAD DE RENAICO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87185",
+"nombre": "I MUNICIPALIDAD DE RENCA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100555",
+"nombre": "I MUNICIPALIDAD DE RENGO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116215",
+"nombre": "I MUNICIPALIDAD DE REQUINOA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114918",
+"nombre": "I MUNICIPALIDAD DE RINCONADA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117580",
+"nombre": "I MUNICIPALIDAD DE RIO BUENO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "89591",
+"nombre": "I MUNICIPALIDAD DE RIO CLARO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114075",
+"nombre": "I MUNICIPALIDAD DE RIO HURTADO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7367",
+"nombre": "I MUNICIPALIDAD DE RIO NEGRO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115313",
+"nombre": "I MUNICIPALIDAD DE SAAVEDRA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116295",
+"nombre": "I MUNICIPALIDAD DE SALAMANCA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100318",
+"nombre": "I MUNICIPALIDAD DE SAN ANTONIO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86548",
+"nombre": "I MUNICIPALIDAD DE SAN BERNARDO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "93774",
+"nombre": "I MUNICIPALIDAD DE SAN CLEMENTE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116226",
+"nombre": "I MUNICIPALIDAD DE SAN ESTEBAN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "128889",
+"nombre": "I MUNICIPALIDAD DE SAN FABIAN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100158",
+"nombre": "I MUNICIPALIDAD DE SAN FELIPE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7482",
+"nombre": "I MUNICIPALIDAD DE SAN FERNANDO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116409",
+"nombre": "I MUNICIPALIDAD DE SAN IGNACIO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86407",
+"nombre": "I MUNICIPALIDAD DE SAN JAVIER",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115457",
+"nombre": "I MUNICIPALIDAD DE SAN JOSE DE MAIPO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7498",
+"nombre": "I MUNICIPALIDAD DE SAN MIGUEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7158",
+"nombre": "I MUNICIPALIDAD DE SAN NICOLAS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "111960",
+"nombre": "I MUNICIPALIDAD DE SAN PABLO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "142855",
+"nombre": "I MUNICIPALIDAD DE SAN PEDRO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113428",
+"nombre": "I MUNICIPALIDAD DE SAN PEDRO DE ATACAMA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100704",
+"nombre": "I MUNICIPALIDAD DE SAN PEDRO DE LA PAZ",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113913",
+"nombre": "I MUNICIPALIDAD DE SAN RAFAEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7355",
+"nombre": "I MUNICIPALIDAD DE SAN RAMON",
+"sector": "Municipalidades"
+},
+{
+"codigo": "136421",
+"nombre": "I MUNICIPALIDAD DE SAN ROSENDO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "135559",
+"nombre": "I MUNICIPALIDAD DE SAN VICENTE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118860",
+"nombre": "I MUNICIPALIDAD DE SANTA BARBARA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117584",
+"nombre": "I MUNICIPALIDAD DE SANTA CRUZ",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118623",
+"nombre": "I MUNICIPALIDAD DE SANTA JUANA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117210",
+"nombre": "I MUNICIPALIDAD DE SANTA MARIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86568",
+"nombre": "I MUNICIPALIDAD DE SANTIAGO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113981",
+"nombre": "I MUNICIPALIDAD DE SANTO DOMINGO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117579",
+"nombre": "I MUNICIPALIDAD DE SIERRA GORDA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "99765",
+"nombre": "I MUNICIPALIDAD DE TALAGANTE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "84480",
+"nombre": "I MUNICIPALIDAD DE TALCA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86586",
+"nombre": "I MUNICIPALIDAD DE TALCAHUANO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118079",
+"nombre": "I MUNICIPALIDAD DE TALTAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7321",
+"nombre": "I MUNICIPALIDAD DE TEMUCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116299",
+"nombre": "I MUNICIPALIDAD DE TENO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7360",
+"nombre": "I MUNICIPALIDAD DE TIERRA AMARILLA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116218",
+"nombre": "I MUNICIPALIDAD DE TIL TIL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "183037",
+"nombre": "I MUNICIPALIDAD DE TIRUA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115167",
+"nombre": "I MUNICIPALIDAD DE TOCOPILLA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "98443",
+"nombre": "I MUNICIPALIDAD DE TOME",
+"sector": "Municipalidades"
+},
+{
+"codigo": "145365",
+"nombre": "I MUNICIPALIDAD DE TREHUACO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114395",
+"nombre": "I MUNICIPALIDAD DE TUCAPEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86491",
+"nombre": "I MUNICIPALIDAD DE VALLENAR",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87402",
+"nombre": "I MUNICIPALIDAD DE VALPARAISO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "114914",
+"nombre": "I MUNICIPALIDAD DE VICHUQUEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116399",
+"nombre": "I MUNICIPALIDAD DE VICTORIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115303",
+"nombre": "I MUNICIPALIDAD DE VICUNA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115009",
+"nombre": "I MUNICIPALIDAD DE VILCUN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7363",
+"nombre": "I MUNICIPALIDAD DE VILLA ALEGRE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7233",
+"nombre": "I MUNICIPALIDAD DE VILLA ALEMANA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118084",
+"nombre": "I MUNICIPALIDAD DE VILLARRICA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87399",
+"nombre": "I MUNICIPALIDAD DE VINA DEL MAR",
+"sector": "Municipalidades"
+},
+{
+"codigo": "98462",
+"nombre": "I MUNICIPALIDAD DE VITACURA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "120004",
+"nombre": "I MUNICIPALIDAD DE YUMBEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115294",
+"nombre": "I MUNICIPALIDAD DE YUNGAY",
+"sector": "Municipalidades"
+},
+{
+"codigo": "132199",
+"nombre": "I MUNICIPALIDAD DE ZAPALLAR",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87824",
+"nombre": "I MUNICIPALIDAD ESTACION CENTRAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100155",
+"nombre": "I MUNICIPALIDAD LO BARNECHEA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118075",
+"nombre": "I MUNICIPALIDAD PAIHUANO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87104",
+"nombre": "I MUNICIPALIDAD PEDRO AGUIRRE CERDA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "104899",
+"nombre": "I MUNICIPALIDAD PUERTO OCTAY",
+"sector": "Municipalidades"
+},
+{
+"codigo": "120002",
+"nombre": "I MUNICIPALIDAD RIO IBANEZ",
+"sector": "Municipalidades"
+},
+{
+"codigo": "84152",
+"nombre": "I MUNICIPALIDAD VALDIVIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87633",
+"nombre": "I. MUNICIPALIDAD DE QUILPUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "86664",
+"nombre": "I.MUNICIPALIDAD DE CERRO NAVIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115798",
+"nombre": "I.MUNICIPALIDAD DE PORVENIR",
+"sector": "Municipalidades"
+},
+{
+"codigo": "141881",
+"nombre": "I.MUNICIPALIDAD DE ROMERAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115297",
+"nombre": "ILUSTRE MINICIPALIDAD DE COMBARBALA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7356",
+"nombre": "ILUSTRE MUNICIPALIDAD  DE SAGRADA FAMILIA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "182424",
+"nombre": "ILUSTRE MUNICIPALIDAD COCHAMO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "182336",
+"nombre": "ILUSTRE MUNICIPALIDAD DE ALTO BIOBIO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7328",
+"nombre": "ILUSTRE MUNICIPALIDAD DE ALTO DEL CARMEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116407",
+"nombre": "ILUSTRE MUNICIPALIDAD DE CABO DE HORNOS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "294421",
+"nombre": "ILUSTRE MUNICIPALIDAD DE CAMARONES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119487",
+"nombre": "ILUSTRE MUNICIPALIDAD DE CAMINA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116221",
+"nombre": "ILUSTRE MUNICIPALIDAD DE CHILLAN VIEJO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "124195",
+"nombre": "ILUSTRE MUNICIPALIDAD DE COLBUN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "141884",
+"nombre": "ILUSTRE MUNICIPALIDAD DE CONTULMO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118093",
+"nombre": "ILUSTRE MUNICIPALIDAD DE CURARREHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "133311",
+"nombre": "ILUSTRE MUNICIPALIDAD DE CUREPTO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7454",
+"nombre": "ILUSTRE MUNICIPALIDAD DE DIEGO DE ALMAGRO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "123784",
+"nombre": "ILUSTRE MUNICIPALIDAD DE EL CARMEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "124203",
+"nombre": "ILUSTRE MUNICIPALIDAD DE GALVARINO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118859",
+"nombre": "ILUSTRE MUNICIPALIDAD DE GENERAL LAGOS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116946",
+"nombre": "ILUSTRE MUNICIPALIDAD DE HUARA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "87976",
+"nombre": "ILUSTRE MUNICIPALIDAD DE LA SERENA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "138211",
+"nombre": "ILUSTRE MUNICIPALIDAD DE LUMACO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113852",
+"nombre": "ILUSTRE MUNICIPALIDAD DE MACHALI",
+"sector": "Municipalidades"
+},
+{
+"codigo": "84300",
+"nombre": "ILUSTRE MUNICIPALIDAD DE MACUL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "98901",
+"nombre": "ILUSTRE MUNICIPALIDAD DE MELIPILLA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "84961",
+"nombre": "ILUSTRE MUNICIPALIDAD DE MOLINA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "98448",
+"nombre": "ILUSTRE MUNICIPALIDAD DE NATALES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117179",
+"nombre": "ILUSTRE MUNICIPALIDAD DE PICHILEMU",
+"sector": "Municipalidades"
+},
+{
+"codigo": "94315",
+"nombre": "ILUSTRE MUNICIPALIDAD DE POZO ALMONTE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119479",
+"nombre": "ILUSTRE MUNICIPALIDAD DE PUTRE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "110102",
+"nombre": "ILUSTRE MUNICIPALIDAD DE QUELLÓN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "88313",
+"nombre": "ILUSTRE MUNICIPALIDAD DE QUILICURA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "135562",
+"nombre": "ILUSTRE MUNICIPALIDAD DE QUILLON",
+"sector": "Municipalidades"
+},
+{
+"codigo": "88075",
+"nombre": "ILUSTRE MUNICIPALIDAD DE QUINTA NORMAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "124198",
+"nombre": "ILUSTRE MUNICIPALIDAD DE QUIRIHUE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7418",
+"nombre": "ILUSTRE MUNICIPALIDAD DE RANQUIL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "113252",
+"nombre": "ILUSTRE MUNICIPALIDAD DE RETIRO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115301",
+"nombre": "ILUSTRE MUNICIPALIDAD DE RIO VERDE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100107",
+"nombre": "ILUSTRE MUNICIPALIDAD DE SAN CARLOS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115795",
+"nombre": "ILUSTRE MUNICIPALIDAD DE SAN GREGORIO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7135",
+"nombre": "ILUSTRE MUNICIPALIDAD DE SAN JOAQUIN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "118085",
+"nombre": "ILUSTRE MUNICIPALIDAD DE SAN JUAN DE LA COSTA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "224045",
+"nombre": "ILUSTRE MUNICIPALIDAD DE TIMAUKEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117582",
+"nombre": "ILUSTRE MUNICIPALIDAD DE TOLTEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "106000",
+"nombre": "ILUSTRE MUNICIPALIDAD DE TORRES DEL PAIN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7301",
+"nombre": "ILUSTRE MUNICIPALIDAD DE TORTEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "116738",
+"nombre": "ILUSTRE MUNICIPALIDAD DE YERBAS BUENAS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "134356",
+"nombre": "ILUSTRE MUNICIPALIDAD DE ÑIQUEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "121617",
+"nombre": "ILUSTRE MUNICIPALIDAD MELIPEUCO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115280",
+"nombre": "ILUSTRE MUNICIPALIDAD TEODORO SCHMIDT",
+"sector": "Municipalidades"
+},
+{
+"codigo": "1378463",
+"nombre": "ILUSTRE TERCER TRIBUNAL AMBIENTAL",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "1175633",
+"nombre": "INIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7004",
+"nombre": "INSTITUTO ANTARTICO CHILENO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6937",
+"nombre": "INSTITUTO DE DESARROLLO AGROPECUARIO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7070",
+"nombre": "INSTITUTO DE FOMENTO PESQUERO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7474",
+"nombre": "INSTITUTO DE NEUROCIRUGÍA",
+"sector": "Salud"
+},
+{
+"codigo": "1090469",
+"nombre": "INSTITUTO DE PREVISION SOCIAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7177",
+"nombre": "INSTITUTO DE SALUD PUBLICA DE CHILE",
+"sector": "Salud"
+},
+{
+"codigo": "6953",
+"nombre": "INSTITUTO DE SEGURIDAD LABORAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7497",
+"nombre": "INSTITUTO FORESTAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7216",
+"nombre": "INSTITUTO NACIONAL DE DEPORTES DE CHILE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1189679",
+"nombre": "INSTITUTO NACIONAL DE DERECHOS HUMANOS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1682711",
+"nombre": "INSTITUTO NACIONAL DE DESARROLLO SUSTENTABLE DE LA PESCA ARTESANAL Y A",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6931",
+"nombre": "INSTITUTO NACIONAL DE ESTADISTICAS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7430",
+"nombre": "INSTITUTO NACIONAL DE GERIATRIA PRESIDENTE EDO FREI MONTALVA",
+"sector": "Salud"
+},
+{
+"codigo": "7176",
+"nombre": "INSTITUTO NACIONAL DE HIDRAULICA",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7197",
+"nombre": "INSTITUTO NACIONAL DE LA JUVENTUD",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1042394",
+"nombre": "INSTITUTO NACIONAL DE PROPIEDAD INDUSTRIAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7432",
+"nombre": "INSTITUTO NACIONAL DE REHABILITACION PEDRO AGUIRRE CERDA",
+"sector": "Salud"
+},
+{
+"codigo": "7276",
+"nombre": "INSTITUTO NACIONAL DEL CANCER",
+"sector": "Salud"
+},
+{
+"codigo": "7298",
+"nombre": "INSTITUTO NACIONAL DEL TORAX",
+"sector": "Salud"
+},
+{
+"codigo": "7044",
+"nombre": "INSTITUTO PSIQUIATRICO DR JOSE HORWITZ BARAK",
+"sector": "Salud"
+},
+{
+"codigo": "7014",
+"nombre": "JUNTA DE AERONAUTICA CIVIL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "2004036",
+"nombre": "JUNTA DE ALCALDES PROVIDENCIA LAS CONDES LA REINA",
+"sector": null
+},
+{
+"codigo": "7002",
+"nombre": "JUNTA NACIONAL DE AUXILIO ESCOLAR Y BECA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1079772",
+"nombre": "JUNTA NACIONAL DE CUERPOS DE BOMBEROS DE CHILE",
+"sector": "Otros"
+},
+{
+"codigo": "6928",
+"nombre": "JUNTA NACIONAL DE JARDINES         INFANTILES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1961066",
+"nombre": "LO BARNECHEA SERVICIOS",
+"sector": "Otros"
+},
+{
+"codigo": "6941",
+"nombre": "MINISTERIO DE BIENES NACIONALES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1512218",
+"nombre": "MINISTERIO DE LA MUJER Y LA EQUIDAD DE GÉNERO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7249",
+"nombre": "MINISTERIO DE OBRAS PUBLICAS DIREC CION GRAL DE OO PP DCYF",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7248",
+"nombre": "MINISTERIO DE OBRAS PUBLICAS DIREC CION GRAL DE OO PP DCYF",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "224060",
+"nombre": "MINISTERIO PUBLICO",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "6949",
+"nombre": "MINISTERIO SECRETARIA GENERAL DE LA PRESIDENCIA DE LA REPUBLICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7243",
+"nombre": "MOP - DIRECCIÓN DE AEROPUERTOS",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7245",
+"nombre": "MOP - DIRECCIÓN DE ARQUITECTURA",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7244",
+"nombre": "MOP - DIRECCIÓN DE FISCALÍA",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7242",
+"nombre": "MOP - DIRECCIÓN DE OBRAS HIDRÁULICAS",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7246",
+"nombre": "MOP - DIRECCIÓN DE OBRAS PORTUARIAS",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7068",
+"nombre": "MOP - DIRECCIÓN GENERAL CONTABILIDAD Y FINANZAS",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7247",
+"nombre": "MOP - DIRECCIÓN GENERAL DE AGUAS",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7250",
+"nombre": "MOP - DIRECCIÓN GENERAL DE OBRAS PÚBLICAS",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7067",
+"nombre": "MOP - DIRECCIÓN GENERAL PLANEAMIENTO",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7353",
+"nombre": "MOP DIRECCIÓN GENERAL DE CONCESIONES",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "114923",
+"nombre": "MUNICIPALIDAD DE ALTO HOSPICIO",
+"sector": "Municipalidades"
+},
+{
+"codigo": "165105",
+"nombre": "MUNICIPALIDAD DE CHOLCHOL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "119089",
+"nombre": "MUNICIPALIDAD DE CORRAL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "117586",
+"nombre": "MUNICIPALIDAD DE GORBEA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "123786",
+"nombre": "MUNICIPALIDAD DE HUALPEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100739",
+"nombre": "MUNICIPALIDAD DE HUECHURABA",
+"sector": "Municipalidades"
+},
+{
+"codigo": "101002",
+"nombre": "MUNICIPALIDAD DE LOS ANDES",
+"sector": "Municipalidades"
+},
+{
+"codigo": "99860",
+"nombre": "MUNICIPALIDAD DE OVALLE",
+"sector": "Municipalidades"
+},
+{
+"codigo": "100137",
+"nombre": "MUNICIPALIDAD DE PEÑAFLOR",
+"sector": "Municipalidades"
+},
+{
+"codigo": "84149",
+"nombre": "MUNICIPALIDAD DE PUDAHUEL",
+"sector": "Municipalidades"
+},
+{
+"codigo": "115163",
+"nombre": "MUNICIPALIDAD DE TRAIGUEN",
+"sector": "Municipalidades"
+},
+{
+"codigo": "7005",
+"nombre": "OFICINA DE ESTUDIOS Y POLITICAS AGRARIAS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6935",
+"nombre": "PARQUE METROPOLITANO DE SANTIAGO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "111880",
+"nombre": "POLICIA DE INVESTIGACIONES DE CHILE",
+"sector": "Fuerzas Armadas"
+},
+{
+"codigo": "7238",
+"nombre": "PRESIDENCIA DE LA REPUBLICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1592385",
+"nombre": "PRIMER TRIBUNAL AMBIENTAL CON ASIENTO EN ANTOFAGASTA",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "7194",
+"nombre": "SECRETARIA GENERAL DE GOBIERNO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1342660",
+"nombre": "SEGUNDO TRIBUNAL AMBIENTAL",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "174692",
+"nombre": "SENADO DE LA REPUBLICA",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "1214332",
+"nombre": "SERV NAC SALUD HOSPITAL DE LOS ANDES",
+"sector": "Salud"
+},
+{
+"codigo": "7008",
+"nombre": "SERV NACIONAL DE PESCA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7307",
+"nombre": "SERV SALUD ARAUC SUR HOSP DR ARTURO HILLERNS LARRANAGA DE PTO SAAVEDRA",
+"sector": "Salud"
+},
+{
+"codigo": "7326",
+"nombre": "SERV SALUD METROPOLITANO CENTRAL HOSPITAL CLINICO SAN BORJA ARRIARAN",
+"sector": "Salud"
+},
+{
+"codigo": "6919",
+"nombre": "SERVICIO AGRICOLA Y GANADERO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1359748",
+"nombre": "SERVICIO BIENESTAR PERSONAL ILUSTRE MUNICIPALIDAD DE LOS MUERMOS",
+"sector": "Municipalidades"
+},
+{
+"codigo": "302307",
+"nombre": "SERVICIO DE BIENESTAR CENTRAL DE ABAST DEL S N S S",
+"sector": "Salud"
+},
+{
+"codigo": "1968268",
+"nombre": "SERVICIO DE BIODIVERSIDAD Y ÁREAS PROTEGIDAS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6950",
+"nombre": "SERVICIO DE COOPERACION TECNICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7218",
+"nombre": "SERVICIO DE EVALUACION AMBIENTAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7113",
+"nombre": "SERVICIO DE IMPUESTOS INTERNOS DIRECCION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6960",
+"nombre": "SERVICIO DE REGISTRO CIVIL E IDENTIFICACION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7431",
+"nombre": "SERVICIO DE SALUD ACONCAGUA",
+"sector": "Salud"
+},
+{
+"codigo": "1215262",
+"nombre": "SERVICIO DE SALUD ACONCAGUA HOSPITAL DE PUTAENDO",
+"sector": "Salud"
+},
+{
+"codigo": "7185",
+"nombre": "SERVICIO DE SALUD ANTOFAGASTA DIRECCION",
+"sector": "Salud"
+},
+{
+"codigo": "7494",
+"nombre": "SERVICIO DE SALUD ANTOFAGASTA HOSP C CIS",
+"sector": "Salud"
+},
+{
+"codigo": "7391",
+"nombre": "SERVICIO DE SALUD ANTOFAGASTA HOSPITAL 21 DE MAYO TALTAL",
+"sector": "Salud"
+},
+{
+"codigo": "7451",
+"nombre": "SERVICIO DE SALUD ANTOFAGASTA HOSPITAL L",
+"sector": "Salud"
+},
+{
+"codigo": "7385",
+"nombre": "SERVICIO DE SALUD ANTOFAGASTA HOSPITAL M",
+"sector": "Salud"
+},
+{
+"codigo": "7384",
+"nombre": "SERVICIO DE SALUD ARAUCANIA HOSPITAL DE TRAIGUEN",
+"sector": "Salud"
+},
+{
+"codigo": "7302",
+"nombre": "SERVICIO DE SALUD ARAUCANIA NORTE",
+"sector": "Salud"
+},
+{
+"codigo": "7306",
+"nombre": "SERVICIO DE SALUD ARAUCANIA NORTE HOSPITAL DE ANGOL",
+"sector": "Salud"
+},
+{
+"codigo": "7102",
+"nombre": "SERVICIO DE SALUD ARAUCANIA SUR",
+"sector": "Salud"
+},
+{
+"codigo": "7131",
+"nombre": "SERVICIO DE SALUD ARAUCANIA SUR HOSPITAL CARAHUE",
+"sector": "Salud"
+},
+{
+"codigo": "7047",
+"nombre": "SERVICIO DE SALUD ARAUCANIA SUR HOSPITAL DE GORBEA",
+"sector": "Salud"
+},
+{
+"codigo": "7060",
+"nombre": "SERVICIO DE SALUD ARAUCANIA SUR HOSPITAL DE NUEVA IMPERIAL",
+"sector": "Salud"
+},
+{
+"codigo": "6976",
+"nombre": "SERVICIO DE SALUD ARAUCO",
+"sector": "Salud"
+},
+{
+"codigo": "7398",
+"nombre": "SERVICIO DE SALUD ARAUCO HOSPITAL DE ARAUCO",
+"sector": "Salud"
+},
+{
+"codigo": "1667479",
+"nombre": "SERVICIO DE SALUD ARICA HOSP DR JUAN NOE CREVANI",
+"sector": "Salud"
+},
+{
+"codigo": "7409",
+"nombre": "SERVICIO DE SALUD ATACAMA",
+"sector": "Salud"
+},
+{
+"codigo": "7411",
+"nombre": "SERVICIO DE SALUD ATACAMA HOSPITAL COPIA",
+"sector": "Salud"
+},
+{
+"codigo": "7413",
+"nombre": "SERVICIO DE SALUD ATACAMA HOSPITAL DE CHANARAL",
+"sector": "Salud"
+},
+{
+"codigo": "7415",
+"nombre": "SERVICIO DE SALUD ATACAMA HOSPITAL FLORENCIO VARGAS DIAZ",
+"sector": "Salud"
+},
+{
+"codigo": "7206",
+"nombre": "SERVICIO DE SALUD AYSEN CARLOS IBANEZ DEL CAMPO",
+"sector": "Salud"
+},
+{
+"codigo": "7308",
+"nombre": "SERVICIO DE SALUD BIO BIO",
+"sector": "Salud"
+},
+{
+"codigo": "7389",
+"nombre": "SERVICIO DE SALUD BIO BIO HOSPITAL DE HU",
+"sector": "Salud"
+},
+{
+"codigo": "7464",
+"nombre": "SERVICIO DE SALUD BIO BIO HOSPITAL DE LAJA",
+"sector": "Salud"
+},
+{
+"codigo": "7434",
+"nombre": "SERVICIO DE SALUD BIO BIO HOSPITAL DE MULCHEN",
+"sector": "Salud"
+},
+{
+"codigo": "7397",
+"nombre": "SERVICIO DE SALUD BIO BIO HOSPITAL DE YU",
+"sector": "Salud"
+},
+{
+"codigo": "7404",
+"nombre": "SERVICIO DE SALUD BIO BIO HOSPITAL SANTA BARBARA",
+"sector": "Salud"
+},
+{
+"codigo": "16223",
+"nombre": "SERVICIO DE SALUD CHILOE",
+"sector": "Salud"
+},
+{
+"codigo": "7205",
+"nombre": "SERVICIO DE SALUD CONCEPCION",
+"sector": "Salud"
+},
+{
+"codigo": "7473",
+"nombre": "SERVICIO DE SALUD CONCEPCION ARAUCO CONS",
+"sector": "Salud"
+},
+{
+"codigo": "7400",
+"nombre": "SERVICIO DE SALUD CONCEPCION ARAUCO HOSPITAL DE CONTULMO",
+"sector": "Salud"
+},
+{
+"codigo": "7052",
+"nombre": "SERVICIO DE SALUD COQUIMBO",
+"sector": "Salud"
+},
+{
+"codigo": "7330",
+"nombre": "SERVICIO DE SALUD COQUIMBO HOSPITAL COMB",
+"sector": "Salud"
+},
+{
+"codigo": "7472",
+"nombre": "SERVICIO DE SALUD COQUIMBO HOSPITAL DE ANDACOLLO",
+"sector": "Salud"
+},
+{
+"codigo": "7416",
+"nombre": "SERVICIO DE SALUD COQUIMBO HOSPITAL DE COQUIMBO",
+"sector": "Salud"
+},
+{
+"codigo": "7471",
+"nombre": "SERVICIO DE SALUD COQUIMBO HOSPITAL DE LOS VILOS",
+"sector": "Salud"
+},
+{
+"codigo": "7417",
+"nombre": "SERVICIO DE SALUD COQUIMBO HOSPITAL DE O",
+"sector": "Salud"
+},
+{
+"codigo": "7468",
+"nombre": "SERVICIO DE SALUD COQUIMBO HOSPITAL DR. HUMBERTO ELORZA CORTES",
+"sector": "Salud"
+},
+{
+"codigo": "7312",
+"nombre": "SERVICIO DE SALUD COQUIMBO HOSPITAL LA SERENA",
+"sector": "Salud"
+},
+{
+"codigo": "7329",
+"nombre": "SERVICIO DE SALUD COQUIMBO HOSPITAL VICUNA",
+"sector": "Salud"
+},
+{
+"codigo": "6926",
+"nombre": "SERVICIO DE SALUD DE ARICA Y PARINACOTA",
+"sector": "Salud"
+},
+{
+"codigo": "7156",
+"nombre": "SERVICIO DE SALUD DE LA ARAUCANIA SUR HOSPITAL LONCOCHE",
+"sector": "Salud"
+},
+{
+"codigo": "7419",
+"nombre": "SERVICIO DE SALUD DE TALCAHUANO HOSPITAL",
+"sector": "Salud"
+},
+{
+"codigo": "7374",
+"nombre": "SERVICIO DE SALUD DEL LIBERTADOR B O'HIGGINS HOSPITAL REG RANCAGUA",
+"sector": "Salud"
+},
+{
+"codigo": "7141",
+"nombre": "SERVICIO DE SALUD DEL MAULE",
+"sector": "Salud"
+},
+{
+"codigo": "7256",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE CAUQUENES",
+"sector": "Salud"
+},
+{
+"codigo": "7279",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE CHANCO",
+"sector": "Salud"
+},
+{
+"codigo": "7278",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE CUREPTO",
+"sector": "Salud"
+},
+{
+"codigo": "7452",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE CURICO",
+"sector": "Salud"
+},
+{
+"codigo": "7255",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE HUALANE",
+"sector": "Salud"
+},
+{
+"codigo": "7257",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE LICANTEN",
+"sector": "Salud"
+},
+{
+"codigo": "7258",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE LINARES",
+"sector": "Salud"
+},
+{
+"codigo": "7280",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE MOLINA",
+"sector": "Salud"
+},
+{
+"codigo": "7259",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE PARRAL",
+"sector": "Salud"
+},
+{
+"codigo": "7260",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE TALCA",
+"sector": "Salud"
+},
+{
+"codigo": "7261",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL DE TENO",
+"sector": "Salud"
+},
+{
+"codigo": "7262",
+"nombre": "SERVICIO DE SALUD DEL MAULE HOSPITAL SAN JAVIER",
+"sector": "Salud"
+},
+{
+"codigo": "7421",
+"nombre": "SERVICIO DE SALUD HOSPITAL COINCO",
+"sector": "Salud"
+},
+{
+"codigo": "7441",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE CHIMBARONGO",
+"sector": "Salud"
+},
+{
+"codigo": "7449",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE GRANEROS",
+"sector": "Salud"
+},
+{
+"codigo": "7442",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE MARCHIGUE",
+"sector": "Salud"
+},
+{
+"codigo": "7445",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE NANCAGUA",
+"sector": "Salud"
+},
+{
+"codigo": "7444",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE PEUMO",
+"sector": "Salud"
+},
+{
+"codigo": "7435",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE PICHIDEGUA",
+"sector": "Salud"
+},
+{
+"codigo": "7436",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE PICHILEMU",
+"sector": "Salud"
+},
+{
+"codigo": "7440",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE RENGO",
+"sector": "Salud"
+},
+{
+"codigo": "7448",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE SAN FERNANDO",
+"sector": "Salud"
+},
+{
+"codigo": "7443",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE SAN VICENTE DE TAGUA TAGUA",
+"sector": "Salud"
+},
+{
+"codigo": "7314",
+"nombre": "SERVICIO DE SALUD HOSPITAL DE SANTA CRUZ",
+"sector": "Salud"
+},
+{
+"codigo": "7453",
+"nombre": "SERVICIO DE SALUD IQUIQUE",
+"sector": "Salud"
+},
+{
+"codigo": "7054",
+"nombre": "SERVICIO DE SALUD LIBERTADOR BDO OHIGGINS",
+"sector": "Salud"
+},
+{
+"codigo": "7106",
+"nombre": "SERVICIO DE SALUD LOS RIOS",
+"sector": "Salud"
+},
+{
+"codigo": "7382",
+"nombre": "SERVICIO DE SALUD MAGALLANES",
+"sector": "Salud"
+},
+{
+"codigo": "7310",
+"nombre": "SERVICIO DE SALUD MAGALLANES HOSPITAL DE PTO NATALES",
+"sector": "Salud"
+},
+{
+"codigo": "7466",
+"nombre": "SERVICIO DE SALUD METROPOLI CENTRAL DIRECCION DE ATENCION PRIMARIA",
+"sector": "Salud"
+},
+{
+"codigo": "7406",
+"nombre": "SERVICIO DE SALUD METROPOLITANA NORTE HOSPITAL SAN JOSE",
+"sector": "Salud"
+},
+{
+"codigo": "7088",
+"nombre": "SERVICIO DE SALUD METROPOLITANO CENTRAL",
+"sector": "Salud"
+},
+{
+"codigo": "6963",
+"nombre": "SERVICIO DE SALUD METROPOLITANO NORTE",
+"sector": "Salud"
+},
+{
+"codigo": "7274",
+"nombre": "SERVICIO DE SALUD METROPOLITANO NORTE HOSPITAL DE TIL TIL",
+"sector": "Salud"
+},
+{
+"codigo": "7455",
+"nombre": "SERVICIO DE SALUD METROPOLITANO OCCIDENTE HOSPITAL DE CURACAVI",
+"sector": "Salud"
+},
+{
+"codigo": "7293",
+"nombre": "SERVICIO DE SALUD METROPOLITANO SUR HOSP",
+"sector": "Salud"
+},
+{
+"codigo": "7203",
+"nombre": "SERVICIO DE SALUD METROPOLITANO SUR ORIENTE",
+"sector": "Salud"
+},
+{
+"codigo": "7045",
+"nombre": "SERVICIO DE SALUD NORTE HOSPITAL ROBERTO DEL RIO",
+"sector": "Salud"
+},
+{
+"codigo": "6932",
+"nombre": "SERVICIO DE SALUD NUBLE",
+"sector": "Salud"
+},
+{
+"codigo": "7139",
+"nombre": "SERVICIO DE SALUD NUBLE HOSPITAL DE EL C",
+"sector": "Salud"
+},
+{
+"codigo": "7303",
+"nombre": "SERVICIO DE SALUD NUBLE HOSPITAL DE QUIRIHUE",
+"sector": "Salud"
+},
+{
+"codigo": "7469",
+"nombre": "SERVICIO DE SALUD NUBLE HOSPITAL DE SAN CARLOS DR BENICIO ARZOLA MEDIN",
+"sector": "Salud"
+},
+{
+"codigo": "7053",
+"nombre": "SERVICIO DE SALUD NUBLE HOSPITAL DE YUNG",
+"sector": "Salud"
+},
+{
+"codigo": "7316",
+"nombre": "SERVICIO DE SALUD OCCIDENTE HOSPITAL SAN JUAN DE DIOS",
+"sector": "Salud"
+},
+{
+"codigo": "7456",
+"nombre": "SERVICIO DE SALUD OCCIDENTE INSTITUTO TRAUMATOLOGICO DE SANTIAGO",
+"sector": "Salud"
+},
+{
+"codigo": "7428",
+"nombre": "SERVICIO DE SALUD ORIENTE HOSPITAL DEL SALVADOR",
+"sector": "Salud"
+},
+{
+"codigo": "6918",
+"nombre": "SERVICIO DE SALUD ORIENTE HOSPITAL LUIS CALVO MACKENNA",
+"sector": "Salud"
+},
+{
+"codigo": "7296",
+"nombre": "SERVICIO DE SALUD OSORNO",
+"sector": "Salud"
+},
+{
+"codigo": "7327",
+"nombre": "SERVICIO DE SALUD OSORNO HOSPITAL PURRANQUE",
+"sector": "Salud"
+},
+{
+"codigo": "7305",
+"nombre": "SERVICIO DE SALUD SUR HOSPITAL EXEQUIEL",
+"sector": "Salud"
+},
+{
+"codigo": "7311",
+"nombre": "SERVICIO DE SALUD SUR HOSPITAL LUCIO CORDOVA",
+"sector": "Salud"
+},
+{
+"codigo": "7405",
+"nombre": "SERVICIO DE SALUD SUR HOSPITAL SAN LUIS",
+"sector": "Salud"
+},
+{
+"codigo": "7390",
+"nombre": "SERVICIO DE SALUD SUR HOSPITAL SANATORIO EL PINO",
+"sector": "Salud"
+},
+{
+"codigo": "7006",
+"nombre": "SERVICIO DE SALUD SUR UNIDAD HOSPITALARI",
+"sector": "Salud"
+},
+{
+"codigo": "7315",
+"nombre": "SERVICIO DE SALUD TALCAHUANO HOSPITAL DE",
+"sector": "Salud"
+},
+{
+"codigo": "7410",
+"nombre": "SERVICIO DE SALUD VALDIVIA HOSPITAL BASE",
+"sector": "Salud"
+},
+{
+"codigo": "7426",
+"nombre": "SERVICIO DE SALUD VALDIVIA HOSPITAL DE C",
+"sector": "Salud"
+},
+{
+"codigo": "7425",
+"nombre": "SERVICIO DE SALUD VALDIVIA HOSPITAL DE L",
+"sector": "Salud"
+},
+{
+"codigo": "7422",
+"nombre": "SERVICIO DE SALUD VALDIVIA HOSPITAL DE P",
+"sector": "Salud"
+},
+{
+"codigo": "7423",
+"nombre": "SERVICIO DE SALUD VALDIVIA HOSPITAL DE R",
+"sector": "Salud"
+},
+{
+"codigo": "7429",
+"nombre": "SERVICIO DE SALUD VALDIVIA HOSPITAL LA U",
+"sector": "Salud"
+},
+{
+"codigo": "7424",
+"nombre": "SERVICIO DE SALUD VALDIVIA HOSPITAL LANC",
+"sector": "Salud"
+},
+{
+"codigo": "7239",
+"nombre": "SERVICIO DE SALUD VALPARAISO SAN ANTONIO",
+"sector": "Salud"
+},
+{
+"codigo": "7489",
+"nombre": "SERVICIO DE SALUD VIÑA DEL MAR QUILLOTA HOSPITAL DE PEÑABLANCA",
+"sector": "Salud"
+},
+{
+"codigo": "7345",
+"nombre": "SERVICIO DE SALUD VIÑA DEL MAR QUILLOTA HOSPITAL DE QUILLOTA",
+"sector": "Salud"
+},
+{
+"codigo": "6965",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION AREA METROPOLITANA",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "285964",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION DE V",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6923",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION I REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6974",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION II REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6975",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION III REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6972",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION IV REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6980",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION IX REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "1654650",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION REGION ÑUBLE",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6979",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION REGIÓN DEL BIO BIO",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6968",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION V REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6977",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION VI REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6978",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION VII REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6981",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION X REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "6982",
+"nombre": "SERVICIO DE VIVIENDA Y URBANIZACION XI REGION",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "225773",
+"nombre": "SERVICIO ELECTORAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1622818",
+"nombre": "SERVICIO LOCAL DE EDUCACION COSTA ARAUCANIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1675210",
+"nombre": "SERVICIO LOCAL DE EDUCACION DE CHINCHORRO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1593366",
+"nombre": "SERVICIO LOCAL DE EDUCACION DE PUERTO CORDILLERA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1593370",
+"nombre": "SERVICIO LOCAL DE EDUCACION LAS BARRANCAS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1675218",
+"nombre": "SERVICIO LOCAL DE EDUCACION PUBLICA ANDALIEN SUR",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1717135",
+"nombre": "SERVICIO LOCAL DE EDUCACION PUBLICA DE COLCHAGUA",
+"sector": "Otros"
+},
+{
+"codigo": "1675231",
+"nombre": "SERVICIO LOCAL DE EDUCACION PUBLICA DE GABRIELA MISTRAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1717137",
+"nombre": "SERVICIO LOCAL DE EDUCACION PUBLICA DE LLANQUIHUE",
+"sector": "Otros"
+},
+{
+"codigo": "1722523",
+"nombre": "SERVICIO LOCAL DE EDUCACION PUBLICA DE VALPARAISO",
+"sector": "Otros"
+},
+{
+"codigo": "1723291",
+"nombre": "SERVICIO LOCAL DE EDUCACION PÚBLICA DE ATACAMA",
+"sector": "Otros"
+},
+{
+"codigo": "1959820",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA ACONCAGUA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1959810",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA ANTOFAGASTA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1820914",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA AYSÉN",
+"sector": "Otros"
+},
+{
+"codigo": "1890597",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA DE ANDALIÉN COSTA",
+"sector": "Otros"
+},
+{
+"codigo": "1975701",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA DE CHILOÉ",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1890618",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA DE COSTA CENTRAL",
+"sector": "Otros"
+},
+{
+"codigo": "1622793",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA DE HUASCO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1972213",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA DE LOS ÁLAMOS",
+"sector": null
+},
+{
+"codigo": "1890635",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA DE MARGA MARGA",
+"sector": "Otros"
+},
+{
+"codigo": "1890653",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA DE VALDIVIA",
+"sector": "Otros"
+},
+{
+"codigo": "1890625",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA DEL ELQUI",
+"sector": "Otros"
+},
+{
+"codigo": "1890619",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA DEL PINO",
+"sector": "Otros"
+},
+{
+"codigo": "1820906",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA IQUIQUE",
+"sector": "Otros"
+},
+{
+"codigo": "1820922",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA LICANCABUR",
+"sector": "Otros"
+},
+{
+"codigo": "1959828",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA LOS ANDES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1890634",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA LOS LIBERTADORES",
+"sector": "Otros"
+},
+{
+"codigo": "1959829",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA LOS PARQUES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1820911",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA MAGALLANES",
+"sector": "Otros"
+},
+{
+"codigo": "1820918",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA MAULE COSTA",
+"sector": "Otros"
+},
+{
+"codigo": "1959831",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA PETORCA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1959832",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA PUELCHE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1820915",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA PUNILLA CORDILLERA",
+"sector": "Otros"
+},
+{
+"codigo": "1890637",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA SANTA CORINA",
+"sector": "Otros"
+},
+{
+"codigo": "1890640",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA SANTA ROSA",
+"sector": "Otros"
+},
+{
+"codigo": "1959833",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA SANTIAGO CENTRO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1890644",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA TAMARUGAL",
+"sector": "Otros"
+},
+{
+"codigo": "1959834",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA VALLE CACHAPOAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1959836",
+"nombre": "SERVICIO LOCAL DE EDUCACIÓN PÚBLICA VALLE DIGUILLÍN",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7179",
+"nombre": "SERVICIO MEDICO LEGAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7476",
+"nombre": "SERVICIO NAC DE SALUD HOSPITAL DE PTO CISNES",
+"sector": "Salud"
+},
+{
+"codigo": "7479",
+"nombre": "SERVICIO NAC DE SALUD HOSPITAL TRAUMATOLOGICO",
+"sector": "Salud"
+},
+{
+"codigo": "7289",
+"nombre": "SERVICIO NACIONAL ARAUCANIA SUR HOSPITAL DR ABRAHAM GODOY PENA LAUTARO",
+"sector": "Salud"
+},
+{
+"codigo": "6952",
+"nombre": "SERVICIO NACIONAL DE ADUANAS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6962",
+"nombre": "SERVICIO NACIONAL DE CAPACITACION Y EMPLEO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7210",
+"nombre": "SERVICIO NACIONAL DE GEOLOGIA Y MINERIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7184",
+"nombre": "SERVICIO NACIONAL DE LA DISCAPACIDAD",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6948",
+"nombre": "SERVICIO NACIONAL DE LA MUJER Y LA EQUIDAD DE GENERO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7017",
+"nombre": "SERVICIO NACIONAL DE MENORES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1783361",
+"nombre": "SERVICIO NACIONAL DE MIGRACIONES",
+"sector": "Otros"
+},
+{
+"codigo": "7180",
+"nombre": "SERVICIO NACIONAL DE PREVENCIÓN Y RESPUESTA ANTE DESASTRES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1765960",
+"nombre": "SERVICIO NACIONAL DE PROTECCIÓN ESPECIALIZADA A LA NIÑEZ Y ADOLESCENCI",
+"sector": "Otros"
+},
+{
+"codigo": "1887034",
+"nombre": "SERVICIO NACIONAL DE REINSERCION SOCIAL JUVENIL",
+"sector": "Otros"
+},
+{
+"codigo": "1468521",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL CARLOS VAN BUREN",
+"sector": "Salud"
+},
+{
+"codigo": "7480",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE COCHRANE",
+"sector": "Salud"
+},
+{
+"codigo": "7285",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE COELEMU",
+"sector": "Salud"
+},
+{
+"codigo": "7332",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE CORONEL",
+"sector": "Salud"
+},
+{
+"codigo": "7340",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE COYHAIQUE",
+"sector": "Salud"
+},
+{
+"codigo": "7399",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE CURANILAHUE",
+"sector": "Salud"
+},
+{
+"codigo": "7475",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE FLORIDA",
+"sector": "Salud"
+},
+{
+"codigo": "7402",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE LEBU",
+"sector": "Salud"
+},
+{
+"codigo": "1216200",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE LLAY LLAY",
+"sector": "Salud"
+},
+{
+"codigo": "7481",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE LOTA",
+"sector": "Salud"
+},
+{
+"codigo": "7459",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE P",
+"sector": "Salud"
+},
+{
+"codigo": "7335",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE PUERTO AYSEN",
+"sector": "Salud"
+},
+{
+"codigo": "7287",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE PUERTO OCTAY",
+"sector": "Salud"
+},
+{
+"codigo": "7470",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE RIO NEGRO",
+"sector": "Salud"
+},
+{
+"codigo": "7457",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL DE T",
+"sector": "Salud"
+},
+{
+"codigo": "116754",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL LEOPOLDO ORTEGA RODRÍGUEZ",
+"sector": "Salud"
+},
+{
+"codigo": "7465",
+"nombre": "SERVICIO NACIONAL DE SALUD HOSPITAL PUREN",
+"sector": "Salud"
+},
+{
+"codigo": "7190",
+"nombre": "SERVICIO NACIONAL DE TURISMO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7032",
+"nombre": "SERVICIO NACIONAL DEL ADULTO MAYOR",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7230",
+"nombre": "SERVICIO NACIONAL DEL CONSUMIDOR - SERNAC",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7011",
+"nombre": "SERVICIO NACIONAL DEL PATRIMONIO CULTURAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1264424",
+"nombre": "SERVICIO NACIONAL PARA LA PREVENCION Y REHABILITACION DEL CONSUMO DE D",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "278907",
+"nombre": "SERVICIO REGIONAL DE LA VIVIENDA Y URBAN",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7462",
+"nombre": "SERVICIO SALUD ARAUCANIA HOSPITAL DE COLLIPULLI",
+"sector": "Salud"
+},
+{
+"codigo": "7433",
+"nombre": "SERVICIO SALUD ARAUCANIA NORTE HOSPITAL CURACAUTIN",
+"sector": "Salud"
+},
+{
+"codigo": "7288",
+"nombre": "SERVICIO SALUD ARAUCANIA NORTE HOSPITAL VICTORIA",
+"sector": "Salud"
+},
+{
+"codigo": "7291",
+"nombre": "SERVICIO SALUD ARAUCANIA SUR HOSPIT DR EDUARDO GONZALEZ GALENO CUNCO",
+"sector": "Salud"
+},
+{
+"codigo": "7048",
+"nombre": "SERVICIO SALUD ARAUCANIA SUR HOSPITAL PITRUFQUEN",
+"sector": "Salud"
+},
+{
+"codigo": "7062",
+"nombre": "SERVICIO SALUD ARAUCANIA SUR HOSPITAL TOLTEN",
+"sector": "Salud"
+},
+{
+"codigo": "7414",
+"nombre": "SERVICIO SALUD ATACAMA HOSPITAL DE HUASCO",
+"sector": "Salud"
+},
+{
+"codigo": "7388",
+"nombre": "SERVICIO SALUD BIO BIO HOSPITAL NACIMIENTO",
+"sector": "Salud"
+},
+{
+"codigo": "7323",
+"nombre": "SERVICIO SALUD COQUIMBO HOSP DE SALAMANC",
+"sector": "Salud"
+},
+{
+"codigo": "7104",
+"nombre": "SERVICIO SALUD DEL RELONCAVI",
+"sector": "Salud"
+},
+{
+"codigo": "7029",
+"nombre": "SERVICIO SALUD METROPOLITANO OCCIDENTE",
+"sector": "Salud"
+},
+{
+"codigo": "7383",
+"nombre": "SERVICIO SALUD OCCIDENTE HOSPITAL DR FELIX BULNES CERDA",
+"sector": "Salud"
+},
+{
+"codigo": "1216718",
+"nombre": "SERVICIO SALUD SAN FELIPE LOS ANDES HOSP",
+"sector": "Salud"
+},
+{
+"codigo": "7446",
+"nombre": "SERVICIO SALUD TALCAHUANO HOSPITAL PENCO-LIRQUEN",
+"sector": "Salud"
+},
+{
+"codigo": "7153",
+"nombre": "SERVICIO SALUD VINA DEL MAR QUILLOTA",
+"sector": "Salud"
+},
+{
+"codigo": "6964",
+"nombre": "SERVIU REGION DE MAGALLANES Y DE LA ANTARTICA CHILENA",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "1689493",
+"nombre": "SUBSECRETARIA DE CIENCIA, TECNOLOGIA, CONOCIMIENTO E INNOVACION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1191967",
+"nombre": "SUBSECRETARIA DE DEFENSA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1550588",
+"nombre": "SUBSECRETARIA DE DERECHOS HUMANOS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7081",
+"nombre": "SUBSECRETARIA DE DESARROLLO REGIONAL Y ADMINISTRATIVO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7078",
+"nombre": "SUBSECRETARIA DE ECONOMIA Y EMPRESAS DE MENOR TAMANO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1489605",
+"nombre": "SUBSECRETARIA DE EDUCACION PARVULARIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1684746",
+"nombre": "SUBSECRETARIA DE EDUCACION SUPERIOR",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1155673",
+"nombre": "SUBSECRETARIA DE ENERGIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1329930",
+"nombre": "SUBSECRETARIA DE EVALUACION SOCIAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1659065",
+"nombre": "SUBSECRETARIA DE LA NIÑEZ",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7211",
+"nombre": "SUBSECRETARIA DE PESCA Y ACUICULTURA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1256896",
+"nombre": "SUBSECRETARIA DE PREVENCION DEL DELITO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7191",
+"nombre": "SUBSECRETARIA DE PREVISION SOCIAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1674041",
+"nombre": "SUBSECRETARIA DE RELACIONES ECONOMICAS INTERNACIONALES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7227",
+"nombre": "SUBSECRETARIA DE RELACIONES EXTERIORES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7079",
+"nombre": "SUBSECRETARIA DE SALUD PUBLICA",
+"sector": "Salud"
+},
+{
+"codigo": "2029471",
+"nombre": "SUBSECRETARIA DE SEGURIDAD PUBLICA",
+"sector": null
+},
+{
+"codigo": "6947",
+"nombre": "SUBSECRETARIA DE SERVICIOS SOCIALES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6934",
+"nombre": "SUBSECRETARIA DE TELECOMUNICACIONES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7007",
+"nombre": "SUBSECRETARIA DE TRANSPORTES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1220768",
+"nombre": "SUBSECRETARIA DE TURISMO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1396777",
+"nombre": "SUBSECRETARIA DEL DEPORTE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6944",
+"nombre": "SUBSECRETARIA DEL INTERIOR",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1198788",
+"nombre": "SUBSECRETARIA DEL MEDIO AMBIENTE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7189",
+"nombre": "SUBSECRETARIA DEL MINISTERIO DE AGRICULT",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6958",
+"nombre": "SUBSECRETARIA DEL MINISTERIO DE EDUCACION PUBLICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6943",
+"nombre": "SUBSECRETARIA DEL MINISTERIO DE HACIENDA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7080",
+"nombre": "SUBSECRETARIA DEL MINISTERIO DE JUSTICIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6951",
+"nombre": "SUBSECRETARIA DEL MINISTERIO DE LA VIVIENDA Y URBANISMO",
+"sector": "Obras Públicas"
+},
+{
+"codigo": "7018",
+"nombre": "SUBSECRETARIA DEL MINISTERIO DE MINERIA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1623817",
+"nombre": "SUBSECRETARIA DEL PATRIMONIO CULTURAL",
+"sector": "Otros"
+},
+{
+"codigo": "6939",
+"nombre": "SUBSECRETARIA DEL TRABAJO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1216382",
+"nombre": "SUBSECRETARIA PARA LAS FUERZAS ARMADAS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7359",
+"nombre": "SUBSECRETARÍA DE LAS CULTURAS Y LAS ARTES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "128260",
+"nombre": "SUPERINTENDENCIA DE CASINOS DE JUEGO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1309788",
+"nombre": "SUPERINTENDENCIA DE EDUCACION ESCOLAR",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1667469",
+"nombre": "SUPERINTENDENCIA DE EDUCACIÓN SUPERIOR",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7232",
+"nombre": "SUPERINTENDENCIA DE ELECTRICIDAD Y COMBUSTIBLES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7181",
+"nombre": "SUPERINTENDENCIA DE INSOLVENCIA Y REEMPRENDIMIENTO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "93096",
+"nombre": "SUPERINTENDENCIA DE PENSIONES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6930",
+"nombre": "SUPERINTENDENCIA DE SALUD",
+"sector": "Salud"
+},
+{
+"codigo": "7114",
+"nombre": "SUPERINTENDENCIA DE SEGURIDAD SOCIAL",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7192",
+"nombre": "SUPERINTENDENCIA DE SERVICIOS SANITARIOS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1203668",
+"nombre": "SUPERINTENDENCIA DEL MEDIO AMBIENTE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "6956",
+"nombre": "TESORERIA GENERAL DE LA REPUBLICA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "299576",
+"nombre": "TRIBUNAL CONSTITUCIONAL",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "1630701",
+"nombre": "TRIBUNAL DE DEFENSA DE LA LIBRE COMPETENCIA",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "286412",
+"nombre": "TRIBUNAL ELECTORAL REGIONAL IV REGION",
+"sector": "Legislativo y Judicial"
+},
+{
+"codigo": "1083414",
+"nombre": "UNIDAD ADMINISTRADORA DE LOS TRIBUNALES TRIBUTARIOS Y ADUANEROS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "85017",
+"nombre": "UNIDAD DE ANALISIS FINANCIERO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7254",
+"nombre": "UNIVERSIDAD ARTURO PRAT",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "130585",
+"nombre": "UNIVERSIDAD DE ANTOFAGASTA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "103916",
+"nombre": "UNIVERSIDAD DE ATACAMA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1480923",
+"nombre": "UNIVERSIDAD DE AYSEN",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7251",
+"nombre": "UNIVERSIDAD DE CHILE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "277559",
+"nombre": "UNIVERSIDAD DE LA FRONTERA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7319",
+"nombre": "UNIVERSIDAD DE LA SERENA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "266724",
+"nombre": "UNIVERSIDAD DE LOS LAGOS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "257227",
+"nombre": "UNIVERSIDAD DE MAGALLANES",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "1484134",
+"nombre": "UNIVERSIDAD DE O'HIGGINS",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "130972",
+"nombre": "UNIVERSIDAD DE PLAYA ANCHA DE CIENCIAS DE LA EDUCACION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "212299",
+"nombre": "UNIVERSIDAD DE SANTIAGO DE CHILE",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "7147",
+"nombre": "UNIVERSIDAD DE TALCA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "204439",
+"nombre": "UNIVERSIDAD DE TARAPACA",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "96996",
+"nombre": "UNIVERSIDAD DE VALPARAISO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "99805",
+"nombre": "UNIVERSIDAD DEL BIO BIO",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "164268",
+"nombre": "UNIVERSIDAD METROPOLITANA DE CIENCIAS DE LA EDUCACION",
+"sector": "Gobierno Central, Universidades"
+},
+{
+"codigo": "126109",
+"nombre": "UNIVERSIDAD TECNOLOGICA METROPOLITANA",
+"sector": "Gobierno Central, Universidades"
+}
+]
