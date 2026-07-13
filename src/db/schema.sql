@@ -177,3 +177,17 @@ CREATE TABLE categorias_unspsc (
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX idx_categorias_unspsc_titulo ON categorias_unspsc USING gin (titulo gin_trgm_ops);
 CREATE INDEX idx_categorias_unspsc_nivel1_nivel2 ON categorias_unspsc (nivel1, nivel2) WHERE nivel = 'categoria';
+
+-- Catálogo propio de organismos compradores (migración 030), poblado desde el
+-- listado oficial de ChileCompra en vez de derivarse de lo que ya se haya
+-- importado en licitaciones_vistas/compras_agiles_vistas. `codigo` es el
+-- CodigoOrganismo oficial de la API de Mercado Público — no se usa todavía
+-- para matching (que sigue siendo por nombre exacto), pero queda listo para
+-- esa mejora futura. Se puebla con scripts/seed-organismos-compradores.js.
+CREATE TABLE organismos_compradores (
+  codigo VARCHAR(20) PRIMARY KEY,
+  nombre TEXT NOT NULL,
+  sector VARCHAR(100)
+);
+
+CREATE INDEX idx_organismos_compradores_nombre ON organismos_compradores USING gin (nombre gin_trgm_ops);

@@ -1,29 +1,30 @@
 const pool = require('./pool');
 
 /**
- * Busca organismos compradores por texto, entre los que ya aparecen en datos
- * reales (licitaciones_vistas.nombre_organismo + compras_agiles_vistas.nombre_institucion),
- * igual criterio que listarRegionesDisponibles en regiones.queries.js: se usa
- * el texto tal como lo entrega Mercado Público (no una lista propia), porque el
- * matching de alertas compara el string exacto — es la única fuente confiable.
+ * Busca organismos compradores por texto, sobre el catálogo propio poblado
+ * desde el listado oficial de ChileCompra (migración 030 + seed-organismos-compradores.js)
+ * — ya NO se deriva de licitaciones_vistas/compras_agiles_vistas, así que el
+ * buscador ofrece TODO el universo de organismos registrados, no solo los que
+ * ya vimos en algún proceso importado.
  *
  * Devuelve como máximo 20 resultados, para el picker con autocompletado del
  * formulario de alertas (selección exacta, no texto libre).
+ *
+ * OJO — el matching de alertas (matching.service.js) sigue comparando por
+ * NOMBRE exacto contra lo que reporta cada licitación/Compra Ágil (no por
+ * `codigo`, que es el CodigoOrganismo oficial de Mercado Público) — ver la
+ * nota en la migración 030 sobre por qué, y la mejora pendiente de guardar
+ * ese código en licitaciones_vistas para matchear por código en vez de texto.
  */
 async function buscarOrganismos(texto) {
   const result = await pool.query(
-    `SELECT DISTINCT TRIM(organismo) AS organismo
-     FROM (
-       SELECT nombre_organismo AS organismo FROM licitaciones_vistas WHERE nombre_organismo IS NOT NULL
-       UNION
-       SELECT nombre_institucion AS organismo FROM compras_agiles_vistas WHERE nombre_institucion IS NOT NULL
-     ) AS todos_los_organismos
-     WHERE TRIM(organismo) != '' AND organismo ILIKE '%' || $1 || '%'
-     ORDER BY organismo
+    `SELECT nombre FROM organismos_compradores
+     WHERE nombre ILIKE '%' || $1 || '%'
+     ORDER BY nombre
      LIMIT 20`,
     [texto]
   );
-  return result.rows.map((r) => r.organismo);
+  return result.rows.map((r) => r.nombre);
 }
 
 module.exports = { buscarOrganismos };
