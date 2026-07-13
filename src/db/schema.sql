@@ -35,6 +35,9 @@ CREATE TABLE users (
   estado VARCHAR(30) NOT NULL DEFAULT 'pendiente_email',
   acepta_terminos BOOLEAN NOT NULL DEFAULT false,
   acepta_terminos_at TIMESTAMP,
+  -- Acceso al panel de administrador interno (migración 028) — se activa a
+  -- mano en la base de datos, no hay flujo de auto-registro para esto.
+  es_admin BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -64,11 +67,21 @@ CREATE TRIGGER trigger_limite_usuarios_empresa
 CREATE TABLE alert_configs (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  -- Único campo obligatorio (migración 029): producto o rubro, máximo 1.
   categorias TEXT[],
+  -- Opcionales — NULL o array vacío significa "sin filtrar por esto" en todos
+  -- los casos (ver matching.service.js):
   monto_minimo NUMERIC,
+  -- monto_minimo/monto_maximo (migración 029) son un criterio EXCLUSIVO de
+  -- Compra Ágil — para Licitaciones el rango de monto se cubre con
+  -- tramos_licitacion (un tramo YA define un rango de monto por definición).
+  monto_maximo NUMERIC,
   -- Selección múltiple de regiones (migración 024). NULL o array vacío
   -- significa "todas las regiones" — ver matching.service.js.
   regiones TEXT[],
+  tipos_proceso TEXT[],           -- 'licitacion' y/o 'compra_agil' (migración 029); vacío = ambos
+  tramos_licitacion TEXT[],       -- códigos de TRAMOS_LICITACION (migración 029); solo aplica a licitaciones
+  organismos TEXT[],              -- nombres exactos de organismo comprador (migración 029)
   activo BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -132,6 +145,10 @@ CREATE TABLE password_reset_tokens (
 CREATE TABLE alerts_sent (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  -- Qué alerta específica del usuario generó este envío (migración 027) — un
+  -- usuario puede tener varias alertas activas a la vez. SET NULL en vez de
+  -- CASCADE: si se borra la alerta, el historial de envíos ya hechos se conserva.
+  alert_config_id INTEGER REFERENCES alert_configs(id) ON DELETE SET NULL,
   codigo_externo VARCHAR(100),
   tipo_proceso VARCHAR(20),
   sent_at TIMESTAMP DEFAULT NOW(),

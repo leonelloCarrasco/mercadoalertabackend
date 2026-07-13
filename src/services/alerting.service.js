@@ -28,7 +28,7 @@ async function agruparPorUsuario(items, matchFn, tipoProceso, extraerCodigo) {
     const codigoExterno = extraerCodigo(item);
 
     for (const config of matches) {
-      const reservaEmailId = await intentarReservarEnvio(config.user_id, codigoExterno, tipoProceso, 'email');
+      const reservaEmailId = await intentarReservarEnvio(config.user_id, codigoExterno, tipoProceso, 'email', config.id);
       if (reservaEmailId) {
         if (!porUsuarioEmail.has(config.user_id)) {
           porUsuarioEmail.set(config.user_id, { config, items: [], reservaIds: [] });
@@ -39,7 +39,7 @@ async function agruparPorUsuario(items, matchFn, tipoProceso, extraerCodigo) {
       }
 
       if (config.telegram_chat_id) {
-        const reservaTelegramId = await intentarReservarEnvio(config.user_id, codigoExterno, tipoProceso, 'telegram');
+        const reservaTelegramId = await intentarReservarEnvio(config.user_id, codigoExterno, tipoProceso, 'telegram', config.id);
         if (reservaTelegramId) {
           if (!porUsuarioTelegram.has(config.user_id)) {
             porUsuarioTelegram.set(config.user_id, { config, items: [], reservaIds: [] });

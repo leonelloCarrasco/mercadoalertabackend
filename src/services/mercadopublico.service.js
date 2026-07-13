@@ -61,8 +61,31 @@ async function obtenerDetallesConDelay(codigosExternos) {
   return detalles;
 }
 
+/**
+ * Trae el listado de licitaciones PUBLICADAS en una fecha puntual (no es un
+ * filtro de rango — la API de Mercado Público solo acepta un día exacto por
+ * consulta). Usado por el panel de administrador para buscar licitaciones
+ * históricas que el polling automático pudo haberse perdido.
+ *
+ * fecha: string en formato DDMMYYYY (ej. "05072026" para el 5 de julio de 2026).
+ */
+async function obtenerLicitacionesPorFecha(fecha) {
+  const ticket = process.env.MERCADOPUBLICO_TICKET;
+  const url = `${BASE_URL}?fecha=${encodeURIComponent(fecha)}&ticket=${ticket}`;
+
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+
+  if (!response.ok) {
+    throw new Error(`Error consultando licitaciones por fecha: HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.Listado || [];
+}
+
 module.exports = {
   obtenerLicitacionesActivas,
+  obtenerLicitacionesPorFecha,
   obtenerDetalleLicitacion,
   obtenerDetallesConDelay,
 };
