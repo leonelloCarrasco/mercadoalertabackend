@@ -81,7 +81,12 @@ CREATE TABLE alert_configs (
   regiones TEXT[],
   tipos_proceso TEXT[],           -- 'licitacion' y/o 'compra_agil' (migración 029); vacío = ambos
   tramos_licitacion TEXT[],       -- códigos de TRAMOS_LICITACION (migración 029); solo aplica a licitaciones
-  organismos TEXT[],              -- nombres exactos de organismo comprador (migración 029)
+  -- codigo_organismo (migración 032, antes guardaba nombre — migración 029): el
+  -- picker del formulario sigue siendo por nombre (no cambia el frontend), pero
+  -- el backend traduce a codigo_organismo al guardar (ver alerts.routes.js /
+  -- traducirOrganismosACodigos) — el matching (matching.service.js) compara por
+  -- código, no por texto.
+  organismos TEXT[],
   activo BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()
 );

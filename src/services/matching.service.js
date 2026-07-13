@@ -84,14 +84,13 @@ function algunCodigoCoincide(codigosDisponibles, codigosSeleccionados, hijosPorC
  *   licitaciones (migración 029) — monto_minimo/monto_maximo son exclusivos de Compra
  *   Ágil (ver matchCompraAgil) porque un tramo YA define un rango de monto por sí solo;
  *   pedir ambos criterios a la vez para el mismo proceso sería redundante y confuso.
- * - organismos (migración 031): si la config tiene organismos elegidos (guardados como
- *   NOMBRE, porque el picker del formulario sigue siendo por nombre), el match ahora se
- *   hace por CÓDIGO, no por texto: se traducen los nombres elegidos a su codigo_organismo
- *   (vía obtenerMapaNombreCodigo) y se comparan contra el CodigoOrganismo que trae la
- *   licitación — mucho más robusto que comparar strings (mayúsculas/espacios/variaciones
- *   de un mismo organismo ya no rompen el match). Si por algún motivo puntual la API no
- *   trae CodigoOrganismo en esta licitación, se cae de vuelta a comparar por nombre exacto
- *   (comportamiento anterior), en vez de descartar el criterio silenciosamente.
+ * - organismos (migración 032): alert_configs.organismos guarda CÓDIGO (no nombre —
+ *   el picker del formulario sigue siendo por nombre, pero el backend traduce al
+ *   guardar, ver alerts.routes.js). Acá el match es una comparación DIRECTA de
+ *   código: se usa el CodigoOrganismo que trae la licitación (campo documentado de
+ *   la API) contra config.organismos. Si por algún motivo puntual la API no trae
+ *   CodigoOrganismo, se cae a resolverlo desde NombreOrganismo vía obtenerMapaNombreCodigo
+ *   (mismo catálogo), en vez de descartar el criterio silenciosamente.
  */
 async function matchLicitacion(detalle, configs) {
   if (detalle.Estado !== 'Publicada') return [];
@@ -112,6 +111,9 @@ async function matchLicitacion(detalle, configs) {
 
   const hijosPorCodigo = await obtenerHijosPorCodigo();
   const mapaNombreCodigo = await obtenerMapaNombreCodigo();
+  // Fallback (raro): si la API no trae CodigoOrganismo en esta licitación puntual,
+  // se resuelve el código a partir del nombre, usando el mismo catálogo.
+  const codigoOrganismoEfectivo = codigoOrganismo || (organismo ? mapaNombreCodigo.get(organismo.trim()) : null);
 
   return configs.filter((config) => {
     if (config.categorias && config.categorias.length > 0) {
@@ -120,14 +122,7 @@ async function matchLicitacion(detalle, configs) {
     if (config.regiones && config.regiones.length > 0 && region && !config.regiones.includes(region.trim())) return false;
     if (config.tipos_proceso && config.tipos_proceso.length > 0 && !config.tipos_proceso.includes('licitacion')) return false;
     if (config.tramos_licitacion && config.tramos_licitacion.length > 0 && tipoLicitacion && !config.tramos_licitacion.includes(tipoLicitacion)) return false;
-    if (config.organismos && config.organismos.length > 0) {
-      if (codigoOrganismo) {
-        const codigosSeleccionados = config.organismos.map((nombre) => mapaNombreCodigo.get(nombre)).filter(Boolean);
-        if (!codigosSeleccionados.includes(codigoOrganismo)) return false;
-      } else if (organismo && !config.organismos.includes(organismo.trim())) {
-        return false;
-      }
-    }
+    if (config.organismos && config.organismos.length > 0 && codigoOrganismoEfectivo && !config.organismos.includes(codigoOrganismoEfectivo)) return false;
     return true;
   });
 }
@@ -150,7 +145,12 @@ async function matchLicitacion(detalle, configs) {
  * tramos_licitacion: NO aplica acá — Compra Ágil no tiene el concepto de tramo UTM.
  * monto_minimo / monto_maximo (migración 029): criterio EXCLUSIVO de Compra Ágil — para
  * Licitaciones el rango de monto se cubre con tramos_licitacion (ver matchLicitacion).
- * organismos: mismo criterio que en licitaciones, comparando contra nombre_institucion.
+ * organismos (migración 032): alert_configs.organismos guarda CÓDIGO (ver
+ * matchLicitacion). La API de Compra Ágil, a diferencia de Licitaciones, NO
+ * expone un codigo_organismo directo — solo el nombre (organismo_comprador) —
+ * así que acá se traduce ese nombre a código vía obtenerMapaNombreCodigo antes
+ * de comparar. Si el nombre no calza con el catálogo, el criterio simplemente
+ * no filtra (mismo criterio conservador que el resto de estos filtros).
  */
 async function matchCompraAgil(item, configs) {
   if (item.estado?.codigo !== 'publicada') return [];
@@ -163,6 +163,8 @@ async function matchCompraAgil(item, configs) {
     .filter(Boolean);
 
   const hijosPorCodigo = await obtenerHijosPorCodigo();
+  const mapaNombreCodigo = await obtenerMapaNombreCodigo();
+  const codigoOrganismo = organismo ? mapaNombreCodigo.get(organismo.trim()) : null;
 
   return configs.filter((config) => {
     if (config.categorias && config.categorias.length > 0) {
@@ -172,7 +174,7 @@ async function matchCompraAgil(item, configs) {
     if (config.monto_maximo && montoDisponible > config.monto_maximo) return false;
     if (config.regiones && config.regiones.length > 0 && region && !config.regiones.includes(region.trim())) return false;
     if (config.tipos_proceso && config.tipos_proceso.length > 0 && !config.tipos_proceso.includes('compra_agil')) return false;
-    if (config.organismos && config.organismos.length > 0 && organismo && !config.organismos.includes(organismo.trim())) return false;
+    if (config.organismos && config.organismos.length > 0 && codigoOrganismo && !config.organismos.includes(codigoOrganismo)) return false;
     return true;
   });
 }
