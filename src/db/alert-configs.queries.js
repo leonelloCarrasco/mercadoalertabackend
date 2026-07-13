@@ -1,16 +1,34 @@
 const pool = require('./pool');
 
 /**
- * `regiones`: array de strings. NULL o [] significa "todas las regiones"
- * (ver matching.service.js) — es lo que queda si el usuario no marca ningún
- * checkbox de región en el formulario.
+ * Normaliza un array "opcional": [] o undefined -> null (significa "sin
+ * filtrar por esto" — mismo criterio para regiones, tipos_proceso,
+ * tramos_licitacion y organismos, ver matching.service.js).
  */
-async function crearAlertConfig(userId, { categorias, montoMinimo, regiones }) {
+function normalizarArrayOpcional(valores) {
+  return (valores && valores.length > 0) ? valores : null;
+}
+
+/**
+ * Único campo obligatorio: categorias (producto/rubro, máximo 1 — ver
+ * validarCamposObligatorios en alerts.routes.js). El resto son criterios
+ * opcionales que "no filtran" si vienen vacíos.
+ */
+async function crearAlertConfig(userId, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos }) {
   const result = await pool.query(
-    `INSERT INTO alert_configs (user_id, categorias, monto_minimo, regiones)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO alert_configs (user_id, categorias, monto_minimo, monto_maximo, regiones, tipos_proceso, tramos_licitacion, organismos)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
-    [userId, categorias || [], montoMinimo || null, (regiones && regiones.length > 0) ? regiones : null]
+    [
+      userId,
+      categorias || [],
+      montoMinimo || null,
+      montoMaximo || null,
+      normalizarArrayOpcional(regiones),
+      normalizarArrayOpcional(tiposProceso),
+      normalizarArrayOpcional(tramosLicitacion),
+      normalizarArrayOpcional(organismos),
+    ]
   );
   return result.rows[0];
 }
@@ -60,22 +78,38 @@ async function obtenerAlertConfigPorId(id, userId) {
   return result.rows[0] || null;
 }
 
-async function actualizarAlertConfig(id, userId, { categorias, montoMinimo, regiones, activo }) {
-  // regiones es un array "nullable a propósito": si viene undefined, no se toca
-  // (COALESCE); si viene [] explícito, se guarda como NULL ("todas las regiones").
-  const regionesAGuardar = regiones !== undefined
-    ? ((regiones && regiones.length > 0) ? regiones : null)
-    : undefined;
+/**
+ * Cada array opcional sigue el mismo patrón "nullable a propósito": si viene
+ * undefined, no se toca (COALESCE deja lo que ya había); si viene [] explícito,
+ * se guarda como NULL ("sin filtrar por esto"). montoMinimo/montoMaximo usan
+ * COALESCE simple porque no tienen ese matiz (o se manda un número, o no se toca).
+ */
+async function actualizarAlertConfig(id, userId, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos, activo }) {
+  const regionesAGuardar = regiones !== undefined ? normalizarArrayOpcional(regiones) : undefined;
+  const tiposProcesoAGuardar = tiposProceso !== undefined ? normalizarArrayOpcional(tiposProceso) : undefined;
+  const tramosLicitacionAGuardar = tramosLicitacion !== undefined ? normalizarArrayOpcional(tramosLicitacion) : undefined;
+  const organismosAGuardar = organismos !== undefined ? normalizarArrayOpcional(organismos) : undefined;
 
   const result = await pool.query(
     `UPDATE alert_configs
      SET categorias = COALESCE($1, categorias),
          monto_minimo = COALESCE($2, monto_minimo),
-         regiones = CASE WHEN $3::boolean THEN $4 ELSE regiones END,
-         activo = COALESCE($5, activo)
-     WHERE id = $6 AND user_id = $7
+         monto_maximo = COALESCE($3, monto_maximo),
+         regiones = CASE WHEN $4::boolean THEN $5 ELSE regiones END,
+         tipos_proceso = CASE WHEN $6::boolean THEN $7 ELSE tipos_proceso END,
+         tramos_licitacion = CASE WHEN $8::boolean THEN $9 ELSE tramos_licitacion END,
+         organismos = CASE WHEN $10::boolean THEN $11 ELSE organismos END,
+         activo = COALESCE($12, activo)
+     WHERE id = $13 AND user_id = $14
      RETURNING *`,
-    [categorias, montoMinimo, regiones !== undefined, regionesAGuardar, activo, id, userId]
+    [
+      categorias, montoMinimo, montoMaximo,
+      regiones !== undefined, regionesAGuardar,
+      tiposProceso !== undefined, tiposProcesoAGuardar,
+      tramosLicitacion !== undefined, tramosLicitacionAGuardar,
+      organismos !== undefined, organismosAGuardar,
+      activo, id, userId,
+    ]
   );
   return result.rows[0] || null;
 }

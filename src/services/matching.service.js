@@ -1,5 +1,3 @@
-const { obtenerTramo } = require('../utils/tramos-licitacion');
-const { obtenerValorUTM } = require('./utm.service');
 const { obtenerHijosPorCodigo } = require('../db/categorias-unspsc.queries');
 
 /**
@@ -73,14 +71,21 @@ function algunCodigoCoincide(codigosDisponibles, codigosSeleccionados, hijosPorC
  *   codigo_producto y codigo_categoria — antes solo mirábamos el primer ítem, lo que hacía
  *   perder matches reales. Ahora se revisan TODOS los ítems, comparando tanto por código de
  *   producto como de categoría contra lo elegido en la alerta (ver algunCodigoCoincide).
- * - montoMinimo: el monto estimado de la licitación debe ser >= al mínimo de la config.
- *   Si Mercado Público no publicó un MontoEstimado exacto, se usa el mínimo GARANTIZADO
- *   del tramo de la licitación (ej. tipo "LP" garantiza monto >= 1.000 UTM) convertido a
- *   pesos con el valor vigente de la UTM — no es una estimación al azar, es un piso real.
  * - regiones: si la config tiene regiones (una o más), la región de la licitación debe
  *   estar incluida en esa lista. Si la config no tiene regiones (NULL o array vacío —
  *   el usuario no marcó ningún checkbox al crear la alerta), se entiende que aplica a
  *   TODAS las regiones, así que no filtra nada.
+ * - tipos_proceso: si la config especifica 'licitacion' y/o 'compra_agil', debe incluir
+ *   'licitacion' para que una LICITACIÓN matchee (ver la función simétrica para Compra
+ *   Ágil más abajo). Vacío = aplica a ambos tipos.
+ * - tramos_licitacion: si la config tiene tramos elegidos (L1, LE, LP, ...), el campo
+ *   Tipo de la licitación debe estar entre ellos. Es el ÚNICO criterio de monto para
+ *   licitaciones (migración 029) — monto_minimo/monto_maximo son exclusivos de Compra
+ *   Ágil (ver matchCompraAgil) porque un tramo YA define un rango de monto por sí solo;
+ *   pedir ambos criterios a la vez para el mismo proceso sería redundante y confuso.
+ * - organismos: si la config tiene organismos elegidos, el organismo comprador de la
+ *   licitación debe estar EXACTO entre ellos (se eligen desde un autocompletado sobre
+ *   organismos reales, no texto libre — por eso alcanza con comparación exacta).
  */
 async function matchLicitacion(detalle, configs) {
   if (detalle.Estado !== 'Publicada') return [];
@@ -95,18 +100,8 @@ async function matchLicitacion(detalle, configs) {
   ]).filter(Boolean);
 
   const region = detalle.Comprador?.RegionUnidad || null;
-
-  let montoEstimado = detalle.MontoEstimado || 0;
-
-  if (!montoEstimado) {
-    const tramo = obtenerTramo(detalle.Tipo);
-    if (tramo?.utmMinGarantizado) {
-      const valorUtm = await obtenerValorUTM();
-      if (valorUtm) {
-        montoEstimado = tramo.utmMinGarantizado * valorUtm;
-      }
-    }
-  }
+  const organismo = detalle.Comprador?.NombreOrganismo || null;
+  const tipoLicitacion = detalle.Tipo || null;
 
   const hijosPorCodigo = await obtenerHijosPorCodigo();
 
@@ -114,8 +109,10 @@ async function matchLicitacion(detalle, configs) {
     if (config.categorias && config.categorias.length > 0) {
       if (!algunCodigoCoincide(codigosDisponibles, config.categorias, hijosPorCodigo)) return false;
     }
-    if (config.monto_minimo && montoEstimado < config.monto_minimo) return false;
     if (config.regiones && config.regiones.length > 0 && region && !config.regiones.includes(region.trim())) return false;
+    if (config.tipos_proceso && config.tipos_proceso.length > 0 && !config.tipos_proceso.includes('licitacion')) return false;
+    if (config.tramos_licitacion && config.tramos_licitacion.length > 0 && tipoLicitacion && !config.tramos_licitacion.includes(tipoLicitacion)) return false;
+    if (config.organismos && config.organismos.length > 0 && organismo && !config.organismos.includes(organismo.trim())) return false;
     return true;
   });
 }
@@ -133,12 +130,19 @@ async function matchLicitacion(detalle, configs) {
  * cada uno con su propio codigo_producto (8 dígitos). La API de Compra Ágil NO expone
  * categoría (solo producto), pero igual funciona: si el usuario eligió una categoría en su
  * alerta, se compara por prefijo contra estos códigos de producto (ver algunCodigoCoincide).
+ *
+ * tipos_proceso: análogo a matchLicitacion, pero exige incluir 'compra_agil'.
+ * tramos_licitacion: NO aplica acá — Compra Ágil no tiene el concepto de tramo UTM.
+ * monto_minimo / monto_maximo (migración 029): criterio EXCLUSIVO de Compra Ágil — para
+ * Licitaciones el rango de monto se cubre con tramos_licitacion (ver matchLicitacion).
+ * organismos: mismo criterio que en licitaciones, comparando contra nombre_institucion.
  */
 async function matchCompraAgil(item, configs) {
   if (item.estado?.codigo !== 'publicada') return [];
 
   const montoDisponible = item.montos?.monto_disponible_clp || 0;
   const region = item.institucion?.nombre_region || null;
+  const organismo = item.institucion?.organismo_comprador || null;
   const codigosDisponibles = (item.productos_solicitados || [])
     .map((p) => (p.codigo_producto ? String(p.codigo_producto) : null))
     .filter(Boolean);
@@ -150,7 +154,10 @@ async function matchCompraAgil(item, configs) {
       if (!algunCodigoCoincide(codigosDisponibles, config.categorias, hijosPorCodigo)) return false;
     }
     if (config.monto_minimo && montoDisponible < config.monto_minimo) return false;
+    if (config.monto_maximo && montoDisponible > config.monto_maximo) return false;
     if (config.regiones && config.regiones.length > 0 && region && !config.regiones.includes(region.trim())) return false;
+    if (config.tipos_proceso && config.tipos_proceso.length > 0 && !config.tipos_proceso.includes('compra_agil')) return false;
+    if (config.organismos && config.organismos.length > 0 && organismo && !config.organismos.includes(organismo.trim())) return false;
     return true;
   });
 }

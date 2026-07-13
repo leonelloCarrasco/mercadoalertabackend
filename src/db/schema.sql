@@ -67,11 +67,21 @@ CREATE TRIGGER trigger_limite_usuarios_empresa
 CREATE TABLE alert_configs (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  -- Único campo obligatorio (migración 029): producto o rubro, máximo 1.
   categorias TEXT[],
+  -- Opcionales — NULL o array vacío significa "sin filtrar por esto" en todos
+  -- los casos (ver matching.service.js):
   monto_minimo NUMERIC,
+  -- monto_minimo/monto_maximo (migración 029) son un criterio EXCLUSIVO de
+  -- Compra Ágil — para Licitaciones el rango de monto se cubre con
+  -- tramos_licitacion (un tramo YA define un rango de monto por definición).
+  monto_maximo NUMERIC,
   -- Selección múltiple de regiones (migración 024). NULL o array vacío
   -- significa "todas las regiones" — ver matching.service.js.
   regiones TEXT[],
+  tipos_proceso TEXT[],           -- 'licitacion' y/o 'compra_agil' (migración 029); vacío = ambos
+  tramos_licitacion TEXT[],       -- códigos de TRAMOS_LICITACION (migración 029); solo aplica a licitaciones
+  organismos TEXT[],              -- nombres exactos de organismo comprador (migración 029)
   activo BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()
 );
