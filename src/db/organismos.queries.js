@@ -27,4 +27,30 @@ async function buscarOrganismos(texto) {
   return result.rows.map((r) => r.nombre);
 }
 
-module.exports = { buscarOrganismos };
+// Dato estático que solo cambia al re-sembrar el catálogo (mismo patrón de
+// caché que el árbol de rubros / hijosPorCodigo en categorias-unspsc.queries.js).
+let cacheMapaNombreCodigo = null;
+
+/**
+ * Mapa nombre -> codigo de TODO el catálogo de organismos_compradores.
+ *
+ * Se usa para traducir los organismos elegidos en una alerta (guardados como
+ * nombre en alert_configs.organismos, porque el picker del formulario sigue
+ * siendo por nombre — ver buscarOrganismos arriba) al codigo_organismo real
+ * que trae cada licitación, para que matching.service.js pueda comparar por
+ * CÓDIGO en vez de por nombre de texto (ver migración 031). El filtro que ve
+ * el usuario no cambia — nombre; el match interno sí.
+ *
+ * Como los nombres en alert_configs.organismos vienen exactamente del picker
+ * (autocompletado sobre esta misma tabla, no texto libre), no hace falta
+ * normalizar acá — el cruce es por igualdad exacta.
+ */
+async function obtenerMapaNombreCodigo() {
+  if (cacheMapaNombreCodigo) return cacheMapaNombreCodigo;
+
+  const result = await pool.query('SELECT codigo, nombre FROM organismos_compradores');
+  cacheMapaNombreCodigo = new Map(result.rows.map((r) => [r.nombre, r.codigo]));
+  return cacheMapaNombreCodigo;
+}
+
+module.exports = { buscarOrganismos, obtenerMapaNombreCodigo };

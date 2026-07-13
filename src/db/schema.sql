@@ -94,6 +94,12 @@ CREATE TABLE licitaciones_vistas (
   monto_estimado NUMERIC,
   region VARCHAR(100),
   nombre_organismo VARCHAR(255),
+  -- codigo_organismo (migración 031): CodigoOrganismo oficial de la API de Mercado
+  -- Público, mismo identificador que organismos_compradores.codigo. Permite que el
+  -- matching de alertas compare por código en vez de por nombre_organismo (texto) —
+  -- ver matching.service.js. Filas guardadas antes de la 031 se completan con el
+  -- backfill 031a_backfill_codigo_organismo.sql.
+  codigo_organismo VARCHAR(20),
   fecha_publicacion TIMESTAMP,
   fecha_cierre TIMESTAMP,
   tipo_licitacion VARCHAR(10),
@@ -108,6 +114,8 @@ CREATE TABLE licitaciones_vistas (
   fecha_ultima_revision TIMESTAMP,
   primera_vez_vista TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX idx_licitaciones_vistas_codigo_organismo ON licitaciones_vistas (codigo_organismo);
 
 CREATE TABLE compras_agiles_vistas (
   codigo_externo VARCHAR(100) PRIMARY KEY,

@@ -1,4 +1,5 @@
 const { obtenerHijosPorCodigo } = require('../db/categorias-unspsc.queries');
+const { obtenerMapaNombreCodigo } = require('../db/organismos.queries');
 
 /**
  * Compara los códigos disponibles (de una licitación o Compra Ágil) contra las
@@ -83,9 +84,14 @@ function algunCodigoCoincide(codigosDisponibles, codigosSeleccionados, hijosPorC
  *   licitaciones (migración 029) — monto_minimo/monto_maximo son exclusivos de Compra
  *   Ágil (ver matchCompraAgil) porque un tramo YA define un rango de monto por sí solo;
  *   pedir ambos criterios a la vez para el mismo proceso sería redundante y confuso.
- * - organismos: si la config tiene organismos elegidos, el organismo comprador de la
- *   licitación debe estar EXACTO entre ellos (se eligen desde un autocompletado sobre
- *   organismos reales, no texto libre — por eso alcanza con comparación exacta).
+ * - organismos (migración 031): si la config tiene organismos elegidos (guardados como
+ *   NOMBRE, porque el picker del formulario sigue siendo por nombre), el match ahora se
+ *   hace por CÓDIGO, no por texto: se traducen los nombres elegidos a su codigo_organismo
+ *   (vía obtenerMapaNombreCodigo) y se comparan contra el CodigoOrganismo que trae la
+ *   licitación — mucho más robusto que comparar strings (mayúsculas/espacios/variaciones
+ *   de un mismo organismo ya no rompen el match). Si por algún motivo puntual la API no
+ *   trae CodigoOrganismo en esta licitación, se cae de vuelta a comparar por nombre exacto
+ *   (comportamiento anterior), en vez de descartar el criterio silenciosamente.
  */
 async function matchLicitacion(detalle, configs) {
   if (detalle.Estado !== 'Publicada') return [];
@@ -101,9 +107,11 @@ async function matchLicitacion(detalle, configs) {
 
   const region = detalle.Comprador?.RegionUnidad || null;
   const organismo = detalle.Comprador?.NombreOrganismo || null;
+  const codigoOrganismo = detalle.Comprador?.CodigoOrganismo ? String(detalle.Comprador.CodigoOrganismo) : null;
   const tipoLicitacion = detalle.Tipo || null;
 
   const hijosPorCodigo = await obtenerHijosPorCodigo();
+  const mapaNombreCodigo = await obtenerMapaNombreCodigo();
 
   return configs.filter((config) => {
     if (config.categorias && config.categorias.length > 0) {
@@ -112,7 +120,14 @@ async function matchLicitacion(detalle, configs) {
     if (config.regiones && config.regiones.length > 0 && region && !config.regiones.includes(region.trim())) return false;
     if (config.tipos_proceso && config.tipos_proceso.length > 0 && !config.tipos_proceso.includes('licitacion')) return false;
     if (config.tramos_licitacion && config.tramos_licitacion.length > 0 && tipoLicitacion && !config.tramos_licitacion.includes(tipoLicitacion)) return false;
-    if (config.organismos && config.organismos.length > 0 && organismo && !config.organismos.includes(organismo.trim())) return false;
+    if (config.organismos && config.organismos.length > 0) {
+      if (codigoOrganismo) {
+        const codigosSeleccionados = config.organismos.map((nombre) => mapaNombreCodigo.get(nombre)).filter(Boolean);
+        if (!codigosSeleccionados.includes(codigoOrganismo)) return false;
+      } else if (organismo && !config.organismos.includes(organismo.trim())) {
+        return false;
+      }
+    }
     return true;
   });
 }

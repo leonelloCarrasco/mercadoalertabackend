@@ -58,10 +58,10 @@ async function guardarLicitacion(detalle) {
   await pool.query(
     `INSERT INTO licitaciones_vistas
        (codigo_externo, nombre, categoria, codigo_categoria, monto_estimado,
-        region, nombre_organismo, fecha_publicacion, fecha_cierre,
+        region, nombre_organismo, codigo_organismo, fecha_publicacion, fecha_cierre,
         tipo_licitacion, monto_utm_min, monto_utm_max, items, estado,
         fecha_adjudicacion, numero_oferentes, url_acta, resuelta)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
      ON CONFLICT (codigo_externo) DO NOTHING`,
     [
       detalle.CodigoExterno,
@@ -71,6 +71,12 @@ async function guardarLicitacion(detalle) {
       detalle.MontoEstimado || null,
       detalle.Comprador?.RegionUnidad || null,
       detalle.Comprador?.NombreOrganismo || null,
+      // CodigoOrganismo: campo documentado de la API (Listado/Comprador/CodigoOrganismo),
+      // el mismo que ya usa organismos_compradores (migración 030). Guardarlo acá permite
+      // que el matching de alertas compare por código en vez de por nombre de texto (ver
+      // matching.service.js) — ver migración 031. Para licitaciones guardadas ANTES de
+      // este cambio, se completa vía el backfill 031a_backfill_codigo_organismo.sql.
+      detalle.Comprador?.CodigoOrganismo ? String(detalle.Comprador.CodigoOrganismo) : null,
       detalle.Fechas?.FechaPublicacion || null,
       detalle.Fechas?.FechaCierre || null,
       detalle.Tipo || null,
