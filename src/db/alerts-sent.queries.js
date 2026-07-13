@@ -6,16 +6,21 @@ const pool = require('./pool');
  * compiten por la misma licitación/canal al mismo tiempo (ej. el cron automático
  * y una corrida manual), solo uno de los dos va a ganar la reserva.
  *
+ * alertConfigId: qué alerta específica del usuario generó este envío (migración
+ * 027) — un usuario puede tener varias activas a la vez. Es solo informativo
+ * (para historial/depuración), no participa en la lógica de deduplicación
+ * (el UNIQUE sigue siendo por user_id+codigo_externo+canal, no por alerta).
+ *
  * Devuelve el id del registro si la reserva fue exitosa (→ hay que enviar),
  * o null si ya estaba reservada/enviada antes (→ no enviar, evitar duplicado).
  */
-async function intentarReservarEnvio(userId, codigoExterno, tipoProceso, canal) {
+async function intentarReservarEnvio(userId, codigoExterno, tipoProceso, canal, alertConfigId = null) {
   const result = await pool.query(
-    `INSERT INTO alerts_sent (user_id, codigo_externo, tipo_proceso, canal)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO alerts_sent (user_id, codigo_externo, tipo_proceso, canal, alert_config_id)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (user_id, codigo_externo, canal) DO NOTHING
      RETURNING id`,
-    [userId, codigoExterno, tipoProceso, canal]
+    [userId, codigoExterno, tipoProceso, canal, alertConfigId]
   );
   return result.rows[0]?.id || null;
 }
@@ -37,6 +42,7 @@ async function listarHistorialUsuario(userId) {
   const result = await pool.query(
     `SELECT
        a.id,
+       a.alert_config_id,
        a.codigo_externo,
        a.tipo_proceso,
        a.canal,

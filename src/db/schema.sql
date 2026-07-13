@@ -35,6 +35,9 @@ CREATE TABLE users (
   estado VARCHAR(30) NOT NULL DEFAULT 'pendiente_email',
   acepta_terminos BOOLEAN NOT NULL DEFAULT false,
   acepta_terminos_at TIMESTAMP,
+  -- Acceso al panel de administrador interno (migración 028) — se activa a
+  -- mano en la base de datos, no hay flujo de auto-registro para esto.
+  es_admin BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -132,6 +135,10 @@ CREATE TABLE password_reset_tokens (
 CREATE TABLE alerts_sent (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  -- Qué alerta específica del usuario generó este envío (migración 027) — un
+  -- usuario puede tener varias alertas activas a la vez. SET NULL en vez de
+  -- CASCADE: si se borra la alerta, el historial de envíos ya hechos se conserva.
+  alert_config_id INTEGER REFERENCES alert_configs(id) ON DELETE SET NULL,
   codigo_externo VARCHAR(100),
   tipo_proceso VARCHAR(20),
   sent_at TIMESTAMP DEFAULT NOW(),

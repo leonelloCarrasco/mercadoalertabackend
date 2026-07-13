@@ -155,4 +155,4 @@ async function matchCompraAgil(item, configs) {
   });
 }
 
-module.exports = { matchLicitacion, matchCompraAgil };
+module.exports = { matchLicitacion, matchCompraAgil, algunCodigoCoincide };
