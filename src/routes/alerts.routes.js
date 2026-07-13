@@ -10,7 +10,7 @@ const {
 } = require('../db/alert-configs.queries');
 const { listarHistorialUsuario } = require('../db/alerts-sent.queries');
 const { listarRegionesDisponibles } = require('../db/regiones.queries');
-const { buscarOrganismos } = require('../db/organismos.queries');
+const { buscarOrganismos, obtenerMapaNombreCodigo, obtenerMapaCodigoNombre } = require('../db/organismos.queries');
 const { buscarCategorias, obtenerTitulosPorCodigos, obtenerArbolRubros } = require('../db/categorias-unspsc.queries');
 const { obtenerPlan } = require('../utils/planes');
 const { TRAMOS_LICITACION } = require('../utils/tramos-licitacion');
@@ -21,6 +21,41 @@ router.use(requireEmpresaActiva); // deja disponible req.usuarioActual (incluye 
 
 const TIPOS_PROCESO_VALIDOS = ['licitacion', 'compra_agil'];
 const TRAMOS_VALIDOS = Object.keys(TRAMOS_LICITACION);
+
+/**
+ * Traduce los nombres de organismo que llegan del picker del formulario
+ * (autocompletado sobre organismos_compradores.nombre, ver buscarOrganismos)
+ * a su codigo_organismo real — alert_configs.organismos guarda CÓDIGO, no
+ * nombre (migración 032), para que el matching (matching.service.js) compare
+ * por código en vez de por texto.
+ *
+ * undefined se devuelve tal cual (el PUT distingue "no tocar este campo" de
+ * "vaciarlo"). Un nombre que no calce con el catálogo se descarta en
+ * silencio — no debería pasar, porque el picker solo ofrece nombres que
+ * vienen de esta misma tabla.
+ */
+async function traducirOrganismosACodigos(nombres) {
+  if (nombres === undefined) return undefined;
+  if (!nombres || nombres.length === 0) return nombres;
+  const mapa = await obtenerMapaNombreCodigo();
+  return nombres.map((nombre) => mapa.get(nombre)).filter(Boolean);
+}
+
+/**
+ * Inverso de traducirOrganismosACodigos: para las respuestas al frontend, que
+ * sigue mostrando el NOMBRE del organismo (el picker no cambia) aunque
+ * puertas adentro se guarde el código. Se aplica sobre uno o varios configs
+ * antes de responder (ver GET/POST/PUT /config más abajo).
+ */
+async function adjuntarNombresOrganismos(configs) {
+  const mapaInverso = await obtenerMapaCodigoNombre();
+  const traducirUno = (config) => (
+    config && config.organismos && config.organismos.length > 0
+      ? { ...config, organismos: config.organismos.map((codigo) => mapaInverso.get(codigo) || codigo) }
+      : config
+  );
+  return Array.isArray(configs) ? configs.map(traducirUno) : traducirUno(configs);
+}
 
 // GET /api/alerts/regiones — regiones reales existentes en los datos, para poblar
 // el desplegable de checkboxes del formulario de alertas.
@@ -126,7 +161,7 @@ router.get('/history', async (req, res) => {
 router.get('/config', async (req, res) => {
   try {
     const configs = await listarAlertConfigsDeUsuario(req.userId);
-    res.json({ configs });
+    res.json({ configs: await adjuntarNombresOrganismos(configs) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al listar configuraciones' });
@@ -206,7 +241,7 @@ function buscarDuplicada(configsExistentes, { categorias, montoMinimo, montoMaxi
 
 // POST /api/alerts/config — crea una nueva configuración
 router.post('/config', async (req, res) => {
-  const { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos } = req.body;
+  const { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos: organismosNombres } = req.body;
 
   const errorCampos = validarCamposObligatorios({ categorias });
   if (errorCampos) {
@@ -222,6 +257,10 @@ router.post('/config', async (req, res) => {
   const limiteAlertas = limites?.limiteAlertas ?? 1;
 
   try {
+    // El picker manda NOMBRES (no cambia el frontend) — se traducen a código acá,
+    // porque alert_configs.organismos guarda código (migración 032).
+    const organismos = await traducirOrganismosACodigos(organismosNombres);
+
     const configsExistentes = await listarAlertConfigsDeUsuario(req.userId);
 
     if (buscarDuplicada(configsExistentes, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos })) {
@@ -238,7 +277,7 @@ router.post('/config', async (req, res) => {
     }
 
     const config = await crearAlertConfig(req.userId, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos });
-    res.status(201).json({ config });
+    res.status(201).json({ config: await adjuntarNombresOrganismos(config) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al crear la configuración' });
@@ -247,13 +286,18 @@ router.post('/config', async (req, res) => {
 
 // PUT /api/alerts/config/:id — actualiza una configuración existente
 router.put('/config/:id', async (req, res) => {
-  const { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos, activo } = req.body;
+  const { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos: organismosNombres, activo } = req.body;
 
   try {
     const existente = await obtenerAlertConfigPorId(req.params.id, req.userId);
     if (!existente) {
       return res.status(404).json({ error: 'Configuración no encontrada' });
     }
+
+    // El picker manda NOMBRES (no cambia el frontend) — se traducen a código acá,
+    // porque alert_configs.organismos guarda código (migración 032). existente.organismos
+    // ya viene en código desde la base, así que no hace falta traducirlo de nuevo.
+    const organismos = await traducirOrganismosACodigos(organismosNombres);
 
     // Si se está tocando categorías, se valida de nuevo con el valor efectivo
     // (el nuevo si viene, si no el que ya tenía) — no se puede dejar una
@@ -303,7 +347,7 @@ router.put('/config/:id', async (req, res) => {
     }
 
     const config = await actualizarAlertConfig(req.params.id, req.userId, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos, activo });
-    res.json({ config });
+    res.json({ config: await adjuntarNombresOrganismos(config) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar la configuración' });

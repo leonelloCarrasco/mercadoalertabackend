@@ -10,11 +10,9 @@ const pool = require('./pool');
  * Devuelve como máximo 20 resultados, para el picker con autocompletado del
  * formulario de alertas (selección exacta, no texto libre).
  *
- * OJO — el matching de alertas (matching.service.js) sigue comparando por
- * NOMBRE exacto contra lo que reporta cada licitación/Compra Ágil (no por
- * `codigo`, que es el CodigoOrganismo oficial de Mercado Público) — ver la
- * nota en la migración 030 sobre por qué, y la mejora pendiente de guardar
- * ese código en licitaciones_vistas para matchear por código en vez de texto.
+ * El picker sigue siendo por NOMBRE (no cambia el frontend), pero lo que
+ * finalmente se guarda en alert_configs.organismos es el CÓDIGO — ver
+ * traducirOrganismosACodigos en alerts.routes.js y la migración 032.
  */
 async function buscarOrganismos(texto) {
   const result = await pool.query(
@@ -34,16 +32,18 @@ let cacheMapaNombreCodigo = null;
 /**
  * Mapa nombre -> codigo de TODO el catálogo de organismos_compradores.
  *
- * Se usa para traducir los organismos elegidos en una alerta (guardados como
- * nombre en alert_configs.organismos, porque el picker del formulario sigue
- * siendo por nombre — ver buscarOrganismos arriba) al codigo_organismo real
- * que trae cada licitación, para que matching.service.js pueda comparar por
- * CÓDIGO en vez de por nombre de texto (ver migración 031). El filtro que ve
- * el usuario no cambia — nombre; el match interno sí.
+ * Se usa en dos lugares:
+ * - alerts.routes.js (traducirOrganismosACodigos): al guardar una alerta, para
+ *   traducir los nombres que llegan del picker del formulario al código real
+ *   que se guarda en alert_configs.organismos (ver migración 032).
+ * - matching.service.js: para resolver el codigo_organismo de un proceso a
+ *   partir del NOMBRE que reporta la API, en los casos donde no hay código
+ *   directo disponible (Compra Ágil no lo expone) o como fallback si la API
+ *   de Licitaciones no lo trajera en un caso puntual.
  *
- * Como los nombres en alert_configs.organismos vienen exactamente del picker
- * (autocompletado sobre esta misma tabla, no texto libre), no hace falta
- * normalizar acá — el cruce es por igualdad exacta.
+ * Como los nombres que llegan en ambos casos vienen exactamente del picker o
+ * de la API (no texto libre), no hace falta normalizar acá — el cruce es por
+ * igualdad exacta.
  */
 async function obtenerMapaNombreCodigo() {
   if (cacheMapaNombreCodigo) return cacheMapaNombreCodigo;
@@ -53,4 +53,23 @@ async function obtenerMapaNombreCodigo() {
   return cacheMapaNombreCodigo;
 }
 
-module.exports = { buscarOrganismos, obtenerMapaNombreCodigo };
+// Dato estático que solo cambia al re-sembrar el catálogo.
+let cacheMapaCodigoNombre = null;
+
+/**
+ * Mapa codigo -> nombre de TODO el catálogo — el inverso de obtenerMapaNombreCodigo.
+ *
+ * Se usa para mostrarle al usuario el NOMBRE del organismo en las respuestas
+ * de la API (listar/crear/actualizar alert_configs), aunque puertas adentro
+ * ahora se guarde el CÓDIGO (ver migración 032) — el frontend no cambia,
+ * sigue esperando nombres.
+ */
+async function obtenerMapaCodigoNombre() {
+  if (cacheMapaCodigoNombre) return cacheMapaCodigoNombre;
+
+  const result = await pool.query('SELECT codigo, nombre FROM organismos_compradores');
+  cacheMapaCodigoNombre = new Map(result.rows.map((r) => [r.codigo, r.nombre]));
+  return cacheMapaCodigoNombre;
+}
+
+module.exports = { buscarOrganismos, obtenerMapaNombreCodigo, obtenerMapaCodigoNombre };
