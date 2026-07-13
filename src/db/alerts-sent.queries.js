@@ -36,7 +36,8 @@ async function liberarReserva(id) {
 
 /**
  * Trae el historial de alertas enviadas a un usuario, con el detalle del proceso
- * (nombre, monto, fecha de cierre) sacado de la tabla que corresponda según tipo_proceso.
+ * (nombre, monto, fecha de cierre, región y organismo comprador) sacado de la
+ * tabla que corresponda según tipo_proceso.
  */
 async function listarHistorialUsuario(userId) {
   const result = await pool.query(
@@ -52,7 +53,8 @@ async function listarHistorialUsuario(userId) {
        l.monto_utm_min,
        l.monto_utm_max,
        COALESCE(l.fecha_cierre, c.fecha_cierre) AS fecha_cierre,
-       COALESCE(l.region, c.region) AS region
+       COALESCE(l.region, c.region) AS region,
+       COALESCE(l.nombre_organismo, c.nombre_institucion) AS organismo
      FROM alerts_sent a
      LEFT JOIN licitaciones_vistas l ON a.tipo_proceso = 'licitacion' AND a.codigo_externo = l.codigo_externo
      LEFT JOIN compras_agiles_vistas c ON a.tipo_proceso = 'compra_agil' AND a.codigo_externo = c.codigo_externo
