@@ -36,8 +36,8 @@ async function liberarReserva(id) {
 
 /**
  * Trae el historial de alertas enviadas a un usuario, con el detalle del proceso
- * (nombre, monto, fecha de cierre, región y organismo comprador) sacado de la
- * tabla que corresponda según tipo_proceso.
+ * (nombre, monto, fecha de cierre, región, organismo comprador y rubro/producto)
+ * sacado de la tabla que corresponda según tipo_proceso.
  */
 async function listarHistorialUsuario(userId) {
   const result = await pool.query(
@@ -54,7 +54,14 @@ async function listarHistorialUsuario(userId) {
        l.monto_utm_max,
        COALESCE(l.fecha_cierre, c.fecha_cierre) AS fecha_cierre,
        COALESCE(l.region, c.region) AS region,
-       COALESCE(l.nombre_organismo, c.nombre_institucion) AS organismo
+       COALESCE(l.nombre_organismo, c.nombre_institucion) AS organismo,
+       -- codigo_categoria: en licitaciones_vistas es un campo directo (código del
+       -- primer item). compras_agiles_vistas no tiene un campo equivalente a nivel
+       -- de cabecera — se aproxima con el codigo_producto del primer elemento de
+       -- productos_solicitados (JSONB). Es una aproximación (representa solo el
+       -- primer producto de la cotización), suficiente para el filtro de
+       -- "Rubro o Producto" en Notificaciones, ver dashboard.js.
+       COALESCE(l.codigo_categoria, c.productos_solicitados->0->>'codigo_producto') AS codigo_categoria
      FROM alerts_sent a
      LEFT JOIN licitaciones_vistas l ON a.tipo_proceso = 'licitacion' AND a.codigo_externo = l.codigo_externo
      LEFT JOIN compras_agiles_vistas c ON a.tipo_proceso = 'compra_agil' AND a.codigo_externo = c.codigo_externo
