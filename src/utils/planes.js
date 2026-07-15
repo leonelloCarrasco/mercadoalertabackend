@@ -11,6 +11,9 @@
  * limiteCategorias: cuántas categorías/productos puede elegir por alerta —
  * ahora es 1 para todos los planes (antes variaba); además, desde este cambio
  * la categoría/producto es OBLIGATORIA (no puede quedar vacía), ver alerts.routes.js.
+ * limiteBusquedas (migración 033): cuántas búsquedas guardadas puede tener el
+ * usuario en total (no hay concepto de "activa/pausada" acá, a diferencia de
+ * las alertas — todas las guardadas cuentan contra el límite).
  *
  * trial: activo por DIAS_TRIAL días, después la empresa queda bloqueada
  * hasta que se pase a un plan pago (ver requireEmpresaActiva.middleware.js).
@@ -25,6 +28,7 @@ const PLANES = {
     limiteUsuarios: 1,
     limiteAlertas: 1,
     limiteCategorias: 1,
+    limiteBusquedas: 5,
     requierePago: false,
     monto: null,
     diasTrial: 14,
@@ -33,6 +37,7 @@ const PLANES = {
     limiteUsuarios: 1,
     limiteAlertas: 10,
     limiteCategorias: 1,
+    limiteBusquedas: 10,
     requierePago: true,
     monto: 8990,
     montoRegular: 12990, // solo informativo, para mostrar "antes/ahora" en la landing
@@ -41,6 +46,7 @@ const PLANES = {
     limiteUsuarios: 1,
     limiteAlertas: 15,
     limiteCategorias: 1,
+    limiteBusquedas: 20,
     requierePago: true,
     monto: 14990,
     montoRegular: 18990,
