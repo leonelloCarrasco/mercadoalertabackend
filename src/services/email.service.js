@@ -132,10 +132,70 @@ function armarEmailConfirmacionCuenta(link, nombre) {
   return { subject: 'Confirma tu cuenta — MercadoAlerta', html };
 }
 
+/**
+ * Recordatorio de cierre (sección "Oportunidades") — una licitación o Compra
+ * Ágil puntual, con la cantidad de horas que faltaban cuando se armó.
+ */
+function armarEmailRecordatorio(r) {
+  const monto = r.monto ? `$${Number(r.monto).toLocaleString('es-CL')}` : 'No especificado';
+  const emoji = r.tipo_proceso === 'compra_agil' ? '⚡' : '📋';
+  const tipoTexto = r.tipo_proceso === 'compra_agil' ? 'Compra Ágil' : 'Licitación';
+
+  const subject = `⏰ Cierra pronto: ${r.nombre}`;
+  const html = `
+    <h2>${emoji} Recordatorio de cierre</h2>
+    <p>Esta ${tipoTexto.toLowerCase()} que marcaste para recordatorio cierra dentro de las próximas ${r.horas_antes} horas:</p>
+    <ul style="padding-left: 20px;">
+      <li style="margin-bottom: 8px;">
+        <strong>${r.nombre}</strong><br>
+        Código: ${r.codigo_externo}<br>
+        Organismo: ${r.organismo || 'No especificado'}<br>
+        Monto: ${monto}<br>
+        Cierra: ${r.fecha_cierre}
+      </li>
+    </ul>
+  `;
+  return { subject, html };
+}
+
+/**
+ * Cambio de estado de una licitación seguida (sección "Oportunidades") —
+ * incluye el detalle de adjudicación cuando el nuevo estado es "Adjudicada"
+ * (mismo parseo que usa revisar-resoluciones.js, ver utils/adjudicacion.js).
+ */
+function armarEmailSeguimiento({ nombre, codigoExterno, estadoAnterior, estadoNuevo, items }) {
+  const subject = `📋 ${nombre}: cambió a "${estadoNuevo}"`;
+
+  let detalleAdjudicacion = '';
+  if (estadoNuevo === 'Adjudicada' && items && items.length > 0) {
+    const adjudicados = items.filter((it) => it.adjudicacion);
+    if (adjudicados.length > 0) {
+      const filas = adjudicados.map((it) => `
+        <li style="margin-bottom: 8px;">
+          ${it.nombre_producto || it.categoria || 'Ítem'}<br>
+          Ganador: ${it.adjudicacion.nombre_proveedor || 'No especificado'} (${it.adjudicacion.rut_proveedor || 'RUT no especificado'})<br>
+          Cantidad: ${it.adjudicacion.cantidad ?? '—'} · Monto unitario: ${it.adjudicacion.monto_unitario ? `$${Number(it.adjudicacion.monto_unitario).toLocaleString('es-CL')}` : 'No especificado'}
+        </li>
+      `).join('');
+      detalleAdjudicacion = `<p><strong>Detalle de adjudicación:</strong></p><ul style="padding-left: 20px;">${filas}</ul>`;
+    }
+  }
+
+  const html = `
+    <h2>📋 Cambio de estado en una licitación que sigues</h2>
+    <p><strong>${nombre}</strong> (código ${codigoExterno})</p>
+    <p>Pasó de <strong>${estadoAnterior}</strong> a <strong>${estadoNuevo}</strong>.</p>
+    ${detalleAdjudicacion}
+  `;
+  return { subject, html };
+}
+
 module.exports = {
   enviarEmailAlerta,
   armarResumenLicitaciones,
   armarResumenCompraAgil,
   armarEmailRecuperacion,
   armarEmailConfirmacionCuenta,
+  armarEmailRecordatorio,
+  armarEmailSeguimiento,
 };

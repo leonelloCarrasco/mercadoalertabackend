@@ -11,6 +11,19 @@ async function licitacionYaVista(codigoExterno) {
 }
 
 /**
+ * Trae el estado actual guardado localmente — usado al crear un seguimiento
+ * (sección "Oportunidades") para inicializar ultimo_estado_notificado con el
+ * estado que tiene la licitación EN ESE MOMENTO, no null (ver migración 035).
+ */
+async function obtenerEstadoLicitacion(codigoExterno) {
+  const result = await pool.query(
+    'SELECT estado FROM licitaciones_vistas WHERE codigo_externo = $1',
+    [codigoExterno]
+  );
+  return result.rows[0]?.estado || null;
+}
+
+/**
  * Verifica en una sola consulta cuáles de los códigos dados ya están guardados.
  * Mucho más rápido que consultar de a uno cuando hay miles de licitaciones activas.
  */
@@ -157,6 +170,7 @@ async function actualizarResolucionLicitacion(codigoExterno, {
 
 module.exports = {
   licitacionYaVista,
+  obtenerEstadoLicitacion,
   obtenerCodigosYaVistos,
   guardarLicitacion,
   listarLicitacionesNuevas,

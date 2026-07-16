@@ -31,8 +31,6 @@ async function obtenerDetalleLicitacion(codigoExterno) {
   const ticket = process.env.MERCADOPUBLICO_TICKET;
   const url = `${BASE_URL}?codigo=${encodeURIComponent(codigoExterno)}&ticket=${ticket}`;
 
-  console.log('[busqueda-licitacion] Ejecutando búsqueda por codigo: ', `${BASE_URL}?codigo=${encodeURIComponent(codigoExterno)}&ticket={ticket}`); // Loguea la URL para depuración
-
   const response = await fetch(url, { headers: { Accept: 'application/json' } });
   
   if (!response.ok) {
@@ -93,7 +91,6 @@ async function obtenerLicitacionesPorFecha(fecha) {
  * solo permite las combinaciones documentadas, no cualquier mezcla).
  */
 async function buscarLicitacionesConParametros(params) {
-  console.log('[busqueda-licitacion] Ejecutando búsqueda con parámetros: ', params); 
 
   const ticket = process.env.MERCADOPUBLICO_TICKET;
   const query = new URLSearchParams({ ...params, ticket }).toString();

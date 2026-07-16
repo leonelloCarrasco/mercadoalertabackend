@@ -2,6 +2,8 @@ const cron = require('node-cron');
 const { correrPollingLicitaciones } = require('./poll-licitaciones');
 const { correrPollingCompraAgil } = require('./poll-compra-agil');
 const { correrRevisionResoluciones } = require('./revisar-resoluciones');
+const { correrRecordatorioCierre } = require('./recordatorio-cierre');
+const { correrSeguimientoEstado } = require('./seguimiento-estado');
 
 function iniciarCronJobs() {
   // Licitaciones: cada 3 horas (el volumen de detalle a traer puede tardar varios minutos
@@ -36,7 +38,30 @@ function iniciarCronJobs() {
     }
   });
 
-  console.log('[cron] Jobs programados: licitaciones cada 3h, Compra Ágil cada 1h, revisión de adjudicaciones diaria a las 03:00.');
+  // Recordatorios de cierre (Oportunidades): cada 15 min. Es barato — solo
+  // lee datos ya sincronizados localmente, no pega contra ninguna API — así
+  // que puede correr seguido sin costo, para que el aviso llegue con
+  // precisión razonable respecto a la hora elegida por el usuario.
+  cron.schedule('*/15 * * * *', async () => {
+    try {
+      await correrRecordatorioCierre();
+    } catch (err) {
+      console.error('[cron] Error en recordatorio de cierre:', err);
+    }
+  });
+
+  // Seguimiento de estado (Oportunidades): cada 3 horas, corrido 30 min
+  // después del polling de licitaciones (minuto 30 en vez de 0) para no
+  // competir por la misma API rate-limited al mismo tiempo.
+  cron.schedule('30 */3 * * *', async () => {
+    try {
+      await correrSeguimientoEstado();
+    } catch (err) {
+      console.error('[cron] Error en seguimiento de estado:', err);
+    }
+  });
+
+  console.log('[cron] Jobs programados: licitaciones cada 3h, Compra Ágil cada 1h, revisión de adjudicaciones diaria a las 03:00, recordatorios cada 15 min, seguimiento de estado cada 3h (min 30).');
 }
 
 module.exports = { iniciarCronJobs };
