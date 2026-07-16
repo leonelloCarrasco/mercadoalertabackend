@@ -72,4 +72,45 @@ async function obtenerMapaCodigoNombre() {
   return cacheMapaCodigoNombre;
 }
 
-module.exports = { buscarOrganismos, obtenerMapaNombreCodigo, obtenerMapaCodigoNombre };
+/**
+ * Traduce los nombres de organismo que llegan del picker del formulario
+ * (autocompletado sobre organismos_compradores.nombre, ver buscarOrganismos)
+ * a su codigo_organismo real — tanto alert_configs.organismos (migración 032)
+ * como busquedas_guardadas.organismos (migración 033) guardan CÓDIGO, no
+ * nombre, para que el matching/búsqueda compare por código en vez de por texto.
+ *
+ * undefined se devuelve tal cual (permite distinguir "no tocar este campo" de
+ * "vaciarlo" en un PUT parcial). Un nombre que no calce con el catálogo se
+ * descarta en silencio — no debería pasar, porque el picker solo ofrece
+ * nombres que vienen de esta misma tabla.
+ */
+async function traducirOrganismosACodigos(nombres) {
+  if (nombres === undefined) return undefined;
+  if (!nombres || nombres.length === 0) return nombres;
+  const mapa = await obtenerMapaNombreCodigo();
+  return nombres.map((nombre) => mapa.get(nombre)).filter(Boolean);
+}
+
+/**
+ * Inverso de traducirOrganismosACodigos: para las respuestas al frontend, que
+ * sigue mostrando el NOMBRE del organismo (el picker no cambia) aunque
+ * puertas adentro se guarde el código. Se aplica sobre uno o varios registros
+ * (alert_configs o busquedas_guardadas) antes de responder.
+ */
+async function adjuntarNombresOrganismos(registros) {
+  const mapaInverso = await obtenerMapaCodigoNombre();
+  const traducirUno = (registro) => (
+    registro && registro.organismos && registro.organismos.length > 0
+      ? { ...registro, organismos: registro.organismos.map((codigo) => mapaInverso.get(codigo) || codigo) }
+      : registro
+  );
+  return Array.isArray(registros) ? registros.map(traducirUno) : traducirUno(registros);
+}
+
+module.exports = {
+  buscarOrganismos,
+  obtenerMapaNombreCodigo,
+  obtenerMapaCodigoNombre,
+  traducirOrganismosACodigos,
+  adjuntarNombresOrganismos,
+};

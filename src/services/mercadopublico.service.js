@@ -31,8 +31,10 @@ async function obtenerDetalleLicitacion(codigoExterno) {
   const ticket = process.env.MERCADOPUBLICO_TICKET;
   const url = `${BASE_URL}?codigo=${encodeURIComponent(codigoExterno)}&ticket=${ticket}`;
 
-  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+  console.log('[busqueda-licitacion] Ejecutando búsqueda por codigo: ', `${BASE_URL}?codigo=${encodeURIComponent(codigoExterno)}&ticket={ticket}`); // Loguea la URL para depuración
 
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+  
   if (!response.ok) {
     throw new Error(`Error consultando detalle de ${codigoExterno}: HTTP ${response.status}`);
   }
@@ -83,9 +85,70 @@ async function obtenerLicitacionesPorFecha(fecha) {
   return data.Listado || [];
 }
 
+/**
+ * Genérica: arma la URL de licitaciones.json con los parámetros que se le
+ * pasen (fecha, estado, CodigoOrganismo, CodigoProveedor, codigo) y trae el
+ * listado. Usada por busqueda-ejecutor.service.js — ahí cada "modo" de
+ * búsqueda de Licitaciones arma su propia combinación de parámetros (la API
+ * solo permite las combinaciones documentadas, no cualquier mezcla).
+ */
+async function buscarLicitacionesConParametros(params) {
+  console.log('[busqueda-licitacion] Ejecutando búsqueda con parámetros: ', params); 
+
+  const ticket = process.env.MERCADOPUBLICO_TICKET;
+  const query = new URLSearchParams({ ...params, ticket }).toString();
+  const url = `${BASE_URL}?${query}`;
+
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+
+  if (!response.ok) {
+    throw new Error(`Error consultando licitaciones: HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.Listado || [];
+}
+
+/**
+ * Busca el código de un proveedor a partir de su RUT (con puntos, guión y
+ * dígito verificador, ej. "70.017.820-k") — paso previo obligatorio para
+ * buscar licitaciones por CodigoProveedor (la API de Licitaciones no acepta
+ * el RUT directo, solo el CodigoEmpresa que devuelve este otro servicio).
+ * Devuelve { codigo, nombre } o null si el RUT no está registrado como
+ * proveedor en Mercado Público.
+ */
+async function buscarProveedorPorRut(rut) {
+  const ticket = process.env.MERCADOPUBLICO_TICKET;
+  const url = `https://api.mercadopublico.cl/servicios/v1/Publico/Empresas/BuscarProveedor?rutempresaproveedor=${encodeURIComponent(rut)}&ticket=${ticket}`;
+
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+
+  if (!response.ok) {
+    throw new Error(`Error buscando proveedor por RUT: HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  // La API documenta las claves como "Código Empresa"/"Nombre Empresa" (con
+  // acento y espacio), pero las respuestas reales de APIs .NET de Mercado
+  // Público vienen sin acento/espacio (CodigoEmpresa/NombreEmpresa) — se
+  // revisan ambas variantes por seguridad, y también un posible envoltorio
+  // en "Listado" (mismo patrón que licitaciones.json).
+  const resultados = Array.isArray(data) ? data : (data.Listado || [data]);
+  const primero = resultados[0];
+  if (!primero) return null;
+
+  const codigo = primero.CodigoEmpresa ?? primero['Código Empresa'] ?? primero.codigoEmpresa;
+  const nombre = primero.NombreEmpresa ?? primero['Nombre Empresa'] ?? primero.nombreEmpresa;
+  if (!codigo) return null;
+
+  return { codigo: String(codigo), nombre: nombre || null };
+}
+
 module.exports = {
   obtenerLicitacionesActivas,
   obtenerLicitacionesPorFecha,
   obtenerDetalleLicitacion,
   obtenerDetallesConDelay,
+  buscarLicitacionesConParametros,
+  buscarProveedorPorRut,
 };
