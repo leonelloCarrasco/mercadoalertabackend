@@ -14,6 +14,12 @@
  * limiteBusquedas (migración 033): cuántas búsquedas guardadas puede tener el
  * usuario en total (no hay concepto de "activa/pausada" acá, a diferencia de
  * las alertas — todas las guardadas cuentan contra el límite).
+ * limiteRecordatorios / limiteSeguimientos (migración 035, sección
+ * "Oportunidades"): mismo criterio que limiteBusquedas (todos cuentan, sin
+ * "activo/pausado"). limiteSeguimientos es más chico a propósito — cada
+ * licitación seguida le cuesta una llamada a la API rate-limited al job de
+ * seguimiento cada vez que corre, mientras que un recordatorio es
+ * prácticamente gratis (solo lee datos ya locales).
  *
  * trial: activo por DIAS_TRIAL días, después la empresa queda bloqueada
  * hasta que se pase a un plan pago (ver requireEmpresaActiva.middleware.js).
@@ -29,6 +35,8 @@ const PLANES = {
     limiteAlertas: 1,
     limiteCategorias: 1,
     limiteBusquedas: 5,
+    limiteRecordatorios: 3,
+    limiteSeguimientos: 2,
     requierePago: false,
     monto: null,
     diasTrial: 14,
@@ -38,6 +46,8 @@ const PLANES = {
     limiteAlertas: 10,
     limiteCategorias: 1,
     limiteBusquedas: 10,
+    limiteRecordatorios: 15,
+    limiteSeguimientos: 8,
     requierePago: true,
     monto: 8990,
     montoRegular: 12990, // solo informativo, para mostrar "antes/ahora" en la landing
@@ -47,6 +57,8 @@ const PLANES = {
     limiteAlertas: 15,
     limiteCategorias: 1,
     limiteBusquedas: 20,
+    limiteRecordatorios: 30,
+    limiteSeguimientos: 15,
     requierePago: true,
     monto: 14990,
     montoRegular: 18990,

@@ -9,28 +9,12 @@ const {
   actualizarResolucionCompraAgil,
 } = require('../db/compra-agil.queries');
 const { ESTADOS_FINALES_LICITACION, ESTADOS_FINALES_COMPRA_AGIL } = require('../utils/estados-finales');
+const { extraerItemsConAdjudicacion } = require('../utils/adjudicacion');
 
 const DELAY_LICITACIONES_MS = 3100; // mismo mínimo que exige la API de licitaciones
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function extraerItemsConAdjudicacion(detalle) {
-  return (detalle.Items?.Listado || []).map((it) => ({
-    codigo_producto: it.CodigoProducto || null,
-    codigo_categoria: it.CodigoCategoria || null,
-    categoria: it.Categoria || null,
-    nombre_producto: it.NombreProducto || null,
-    adjudicacion: it.Adjudicacion
-      ? {
-          rut_proveedor: it.Adjudicacion.RutProveedor || null,
-          nombre_proveedor: it.Adjudicacion.NombreProveedor || null,
-          cantidad: it.Adjudicacion.Cantidad || null,
-          monto_unitario: it.Adjudicacion.MontoUnitario || null,
-        }
-      : null,
-  }));
 }
 
 async function revisarLicitaciones(limite) {

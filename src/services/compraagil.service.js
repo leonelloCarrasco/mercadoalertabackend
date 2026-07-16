@@ -23,8 +23,6 @@ async function llamarApi(path, params = {}) {
   }
   const url = `${BASE_URL}${path}${query.toString() ? `?${query.toString()}` : ''}`;
 
-  console.log('[busqueda-compra-agil] Ejecutando búsqueda con url: '+ url);
-
   const response = await fetch(url, {
     headers: { ticket },
   });
@@ -107,8 +105,6 @@ async function obtenerDetalleCompraAgil(codigo) {
  * (ttl_cambio_ms).
  */
 async function buscarComprasAgiles({ texto, codigoRegion, estados, horasRecientes, numeroPagina, tamanoPagina }) {
-  console.log('[busqueda-compra-agil] Ejecutando búsqueda por parámetros: ', { texto, codigoRegion, estados, horasRecientes, numeroPagina, tamanoPagina });
-
   return llamarApi('/v2/compra-agil', {
     q: texto || undefined,
     region: codigoRegion || undefined,

@@ -113,10 +113,7 @@ async function buscarLicitaciones(busqueda) {
  *                usuario efectivamente avanza el paginador (ver dashboard.js).
  */
 async function buscarComprasAgiles(busqueda, numeroPagina) {
-  
-
   if (busqueda.modo === 'codigo') {
-    console.log('[busqueda-compra-agil] Ejecutando búsqueda por código: '+ busqueda.codigo_externo);
     const detalle = await obtenerDetalleCompraAgil(busqueda.codigo_externo);
     const resultados = detalle ? [mapearItemCompraAgil(detalle)] : [];
     return { resultados, paginacion: { numero_pagina: 1, total_paginas: 1, total_resultados: resultados.length } };
@@ -126,7 +123,6 @@ async function buscarComprasAgiles(busqueda, numeroPagina) {
     ? obtenerCodigoRegion(busqueda.regiones[0])
     : null;
 
-    
   const payload = await buscarComprasAgilesEnApi({
     texto: busqueda.texto_libre || undefined,
     codigoRegion: codigoRegion || undefined,
