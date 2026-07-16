@@ -9,8 +9,21 @@ class CuotaAgotadaError extends Error {
 
 async function llamarApi(path, params = {}) {
   const ticket = process.env.COMPRAAGIL_TICKET;
-  const query = new URLSearchParams(params).toString();
-  const url = `${BASE_URL}${path}${query ? `?${query}` : ''}`;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === '') continue;
+    // estado (y cualquier otro filtro futuro) puede venir como array — la API
+    // acepta "1 o más" repitiendo la misma key (?estado=publicada&estado=cerrada),
+    // URLSearchParams no soporta arrays en un objeto plano, así que se arma a mano.
+    if (Array.isArray(value)) {
+      value.forEach((v) => query.append(key, v));
+    } else {
+      query.append(key, value);
+    }
+  }
+  const url = `${BASE_URL}${path}${query.toString() ? `?${query.toString()}` : ''}`;
+
+  console.log('[busqueda-compra-agil] Ejecutando búsqueda con url: '+ url);
 
   const response = await fetch(url, {
     headers: { ticket },
@@ -78,10 +91,32 @@ async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
 }
 
 /**
- * Trae el detalle completo de una Compra Ágil (productos, proveedores cotizando, montos, etc.).
+ * Trae el detalle completo de una Compra Ágil (productos, proveedores cotizando, precios, etc.).
  */
 async function obtenerDetalleCompraAgil(codigo) {
   return llamarApi(`/v2/compra-agil/${encodeURIComponent(codigo)}`);
+}
+
+/**
+ * Búsqueda de UNA sola página (a diferencia de listarTodosLosCambiosRecientes,
+ * que recorre TODAS las páginas para el polling) — usada por la sección
+ * "Búsquedas" del dashboard, donde el usuario pagina de a una página real de
+ * la API por vez (ver busqueda-ejecutor.service.js). Combina los filtros que
+ * la API sí soporta libremente entre sí: texto libre (q), región (código
+ * numérico INE), estado (uno o más) y "nuevas en las últimas N horas"
+ * (ttl_cambio_ms).
+ */
+async function buscarComprasAgiles({ texto, codigoRegion, estados, horasRecientes, numeroPagina, tamanoPagina }) {
+  console.log('[busqueda-compra-agil] Ejecutando búsqueda por parámetros: ', { texto, codigoRegion, estados, horasRecientes, numeroPagina, tamanoPagina });
+
+  return llamarApi('/v2/compra-agil', {
+    q: texto || undefined,
+    region: codigoRegion || undefined,
+    estado: (estados && estados.length > 0) ? estados : undefined,
+    ttl_cambio_ms: horasRecientes ? horasRecientes * 60 * 60 * 1000 : undefined,
+    tamano_pagina: tamanoPagina || 50,
+    numero_pagina: numeroPagina || 1,
+  });
 }
 
 module.exports = {
@@ -89,4 +124,5 @@ module.exports = {
   listarCambiosRecientes,
   listarTodosLosCambiosRecientes,
   obtenerDetalleCompraAgil,
+  buscarComprasAgiles,
 };

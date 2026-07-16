@@ -3,12 +3,15 @@ const {
   buscarLicitacionesConParametros,
   buscarProveedorPorRut,
 } = require('./mercadopublico.service');
-const { listarTodosLosCambiosRecientes } = require('./compraagil.service');
-const { obtenerMapaNombreCodigo } = require('../db/organismos.queries');
+const {
+  obtenerDetalleCompraAgil,
+  buscarComprasAgiles: buscarComprasAgilesEnApi,
+} = require('./compraagil.service');
 const { traducirEstadoLicitacion } = require('../utils/estados-licitacion');
+const { obtenerCodigoRegion } = require('../utils/regiones-compra-agil');
 
 const LIMITE_RESULTADOS = 300;
-const TTL_COMPRA_AGIL_MS = 30 * 24 * 60 * 60 * 1000; // 30 días — búsqueda exploratoria, no polling
+const TAMANO_PAGINA_COMPRA_AGIL = 10; // misma cantidad que ya usaba el polling (Grupo 1)
 
 function formatearFechaDDMMYYYY(fecha) {
   const d = String(fecha.getDate()).padStart(2, '0');
@@ -36,14 +39,16 @@ function obtenerFechaParaConsulta(fechaGuardada) {
  * Público — no hay base local de por medio. Cada búsqueda guardada es de UN
  * solo tipo (licitacion o compra_agil, ver busquedas.routes.js), porque los
  * filtros que cada API realmente soporta son muy distintos entre sí.
+ *
+ * `numeroPagina` solo aplica a Compra Ágil en modo 'listado' — es la única de
+ * las dos APIs que pagina de verdad (ver POST /api/busquedas/:id/ejecutar).
  */
-async function ejecutarBusqueda(busqueda) {
-
+async function ejecutarBusqueda(busqueda, { numeroPagina } = {}) {
   console.log('[busqueda] Ejecutando tipo búsqueda: ', busqueda.tipo);
   if (busqueda.tipo === 'licitacion') {
     return { tipo: 'licitacion', modo: busqueda.modo, resultados: await buscarLicitaciones(busqueda) };
   }
-  return { tipo: 'compra_agil', resultados: await buscarComprasAgiles(busqueda) };
+  return { tipo: 'compra_agil', modo: busqueda.modo, ...(await buscarComprasAgiles(busqueda, numeroPagina || 1)) };
 }
 
 /**
@@ -93,45 +98,63 @@ async function buscarLicitaciones(busqueda) {
 }
 
 /**
- * Compra Ágil: el listado de cambios recientes SÍ trae monto, región y
- * organismo por item (sin necesitar detalle), así que esos tres se filtran
- * en memoria sin costo extra. El rubro/producto NO (requeriría el detalle de
- * cada proceso candidato), así que no se ofrece para este tipo.
+ * Compra Ágil: DOS modos (a diferencia de Licitaciones, acá la API v2 SÍ deja
+ * combinar libremente texto libre / región / estado(s) / "recientes" entre
+ * sí — no son combinaciones rígidas, así que no hace falta un modo por cada
+ * combinación documentada).
+ *
+ *   'codigo'  -> detalle completo por código (GET /v2/compra-agil/{codigo}),
+ *                ignora cualquier otro filtro.
+ *   'listado' -> texto_libre (q) + regiones (traducido a código numérico
+ *                INE, la API no acepta el nombre) + estados (uno o más) +
+ *                horas_recientes (ttl_cambio_ms) — todos opcionales y
+ *                combinables. Pagina de a TAMANO_PAGINA_COMPRA_AGIL por vez;
+ *                el frontend pide la página siguiente recién cuando el
+ *                usuario efectivamente avanza el paginador (ver dashboard.js).
  */
-async function buscarComprasAgiles({ regiones, monto_minimo, monto_maximo, organismos }) {
-  // La API solo acepta UNA región por consulta — si hay más de una elegida,
-  // se trae sin filtrar por región (se filtran todas en memoria más abajo).
-  const regionParaApi = regiones && regiones.length === 1 ? regiones[0] : undefined;
+async function buscarComprasAgiles(busqueda, numeroPagina) {
+  
 
-  const items = await listarTodosLosCambiosRecientes(TTL_COMPRA_AGIL_MS, { estado: 'publicada', region: regionParaApi });
-  const mapaNombreCodigo = organismos && organismos.length > 0 ? await obtenerMapaNombreCodigo() : null;
+  if (busqueda.modo === 'codigo') {
+    console.log('[busqueda-compra-agil] Ejecutando búsqueda por código: '+ busqueda.codigo_externo);
+    const detalle = await obtenerDetalleCompraAgil(busqueda.codigo_externo);
+    const resultados = detalle ? [mapearItemCompraAgil(detalle)] : [];
+    return { resultados, paginacion: { numero_pagina: 1, total_paginas: 1, total_resultados: resultados.length } };
+  }
 
-  return items
-    .filter((item) => {
-      const monto = item.montos?.monto_disponible_clp || 0;
-      if (monto_minimo && monto < monto_minimo) return false;
-      if (monto_maximo && monto > monto_maximo) return false;
+  const codigoRegion = (busqueda.regiones && busqueda.regiones.length > 0)
+    ? obtenerCodigoRegion(busqueda.regiones[0])
+    : null;
 
-      const region = item.institucion?.nombre_region || null;
-      if (regiones && regiones.length > 0 && region && !regiones.includes(region.trim())) return false;
+    
+  const payload = await buscarComprasAgilesEnApi({
+    texto: busqueda.texto_libre || undefined,
+    codigoRegion: codigoRegion || undefined,
+    estados: busqueda.estados || undefined,
+    horasRecientes: busqueda.horas_recientes || undefined,
+    numeroPagina,
+    tamanoPagina: TAMANO_PAGINA_COMPRA_AGIL,
+  });
 
-      if (organismos && organismos.length > 0) {
-        const organismo = item.institucion?.organismo_comprador || null;
-        const codigo = organismo ? mapaNombreCodigo.get(organismo.trim()) : null;
-        if (!codigo || !organismos.includes(codigo)) return false;
-      }
-      return true;
-    })
-    .slice(0, LIMITE_RESULTADOS)
-    .map((item) => ({
-      codigo_externo: item.codigo,
-      nombre: item.nombre,
-      monto_estimado: item.montos?.monto_disponible_clp || null,
-      region: item.institucion?.nombre_region || null,
-      organismo: item.institucion?.organismo_comprador || null,
-      fecha_publicacion: item.fechas?.fecha_publicacion || null,
-      fecha_cierre: item.fechas?.fecha_cierre || null,
-    }));
+  return {
+    resultados: (payload.items || []).slice(0, LIMITE_RESULTADOS).map(mapearItemCompraAgil),
+    paginacion: {
+      numero_pagina: payload.paginacion.numero_pagina,
+      total_paginas: payload.paginacion.total_paginas,
+      total_resultados: payload.paginacion.total_resultados,
+    },
+  };
+}
+
+function mapearItemCompraAgil(item) {
+  return {
+    codigo_externo: item.codigo,
+    nombre: item.nombre,
+    // La API entrega directo la glosa (texto legible del estado) — a
+    // diferencia de Licitaciones, acá no hace falta traducir ningún código.
+    estado: item.estado?.glosa || item.estado?.codigo || 'Desconocido',
+    fecha_cierre: item.fechas?.fecha_cierre || null,
+  };
 }
 
 module.exports = { ejecutarBusqueda };

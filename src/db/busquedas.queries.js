@@ -6,13 +6,13 @@ function normalizarArrayOpcional(valores) {
 
 async function crearBusqueda(userId, {
   nombre, tipo, modo, codigoExterno, estado, fecha, rutProveedor,
-  montoMinimo, montoMaximo, regiones, organismos,
+  textoLibre, estados, horasRecientes, regiones, organismos,
 }) {
   const result = await pool.query(
     `INSERT INTO busquedas_guardadas
        (user_id, nombre, tipo, modo, codigo_externo, estado, fecha, rut_proveedor,
-        monto_minimo, monto_maximo, regiones, organismos)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        texto_libre, estados, horas_recientes, regiones, organismos)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
     [
       userId,
@@ -23,8 +23,9 @@ async function crearBusqueda(userId, {
       estado || null,
       fecha || null,
       rutProveedor || null,
-      montoMinimo || null,
-      montoMaximo || null,
+      textoLibre || null,
+      normalizarArrayOpcional(estados),
+      horasRecientes || null,
       normalizarArrayOpcional(regiones),
       normalizarArrayOpcional(organismos),
     ]
