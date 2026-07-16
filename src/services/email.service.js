@@ -40,12 +40,109 @@ async function enviarEmailAlerta({ to, subject, html }) {
   return response.json();
 }
 
+/**
+ * Plantilla de email con la identidad de marca de MercadoAlerta — header con
+ * degradé + logo, tarjeta de contenido blanca, caja destacada, botón de
+ * acción, footer con disclaimer — con la paleta real del producto (fondo
+ * oscuro #12172B, dorado #D4A72C — ver :root en css/dashboard.css) en vez
+ * de un genérico celeste. Envuelve TODOS los emails transaccionales del
+ * sistema (ver funciones armarEmail... / armarResumen... más abajo), así que
+ * cualquier ajuste de estilo de marca se hace en un solo lugar.
+ */
+function envolverPlantillaEmail({ contenidoHtml }) {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MercadoAlerta</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f5f9; }
+    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+    .header { background: linear-gradient(135deg, #12172B 0%, #1B2140 100%); padding: 40px 30px; text-align: center; }
+    .header h1 { color: #EDEEF5; margin: 0; font-size: 24px; font-weight: 700; }
+    .header h1 .acento { color: #EDEEF5; font-family: 'IBM Plex Mono', monospace; }
+    .content { padding: 40px 30px; }
+    .content h2 { color: #12172B; font-size: 20px; margin: 0 0 16px 0; }
+    .content p { color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 16px 0; }
+    .highlight-box { background-color: #D4A72C15; border: 1px solid #D4A72C55; border-radius: 8px; padding: 20px; margin: 24px 0; }
+    .highlight-box h3 { color: #92720f; margin: 0 0 8px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .highlight-box p { color: #12172B; font-size: 18px; font-weight: 700; margin: 0; }
+    .button { display: inline-block; background-color: #D4A72C; color: #12172B !important; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 14px; margin: 16px 0; }
+    .footer { background: linear-gradient(135deg, #12172B 0%, #1B2140 100%); padding: 30px; text-align: center; border-top: 1px solid #e2e8f0; }
+    .footer p { color: #94a3b8; font-size: 12px; margin: 0 0 8px 0; }
+    .divider { height: 1px; background-color: #e2e8f0; margin: 24px 0; }
+    .feature-list { list-style: none; padding: 0; margin: 16px 0; }
+    .feature-list li { padding: 8px 0 8px 28px; position: relative; color: #475569; font-size: 14px; }
+    .feature-list li::before { content: "✓"; position: absolute; left: 0; color: #3ECF8E; font-weight: bold; }
+    .warning-box { background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px 20px; margin: 24px 0; }
+    .warning-box p { color: #92400e; margin: 0; font-size: 13px; }
+    .item-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; margin-bottom: 14px; }
+    .item-card a.item-title { color: #12172B; text-decoration: none; font-size: 15px; font-weight: 700; }
+    .item-card .item-meta { margin: 8px 0 0 0; font-size: 13px; color: #475569; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><span class="acento">🔔 MercadoAlerta</span></h1>
+    </div>
+    <div class="content">
+      ${contenidoHtml}
+    </div>
+    <div class="footer">
+      <p>MercadoAlerta - Monitor de publicaciones en Mercado Público</p>
+      <p>¿Tienes preguntas? No dudes en escribirnos a contacto@mercadoalerta.cl</p>
+      <p style="margin-top: 16px; color: #cbd5e1; font-size: 11px;">
+        Este correo fue enviado a esta dirección porque estás registrado en MercadoAlerta.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Tarjeta de un proceso puntual (licitación o Compra Ágil) — mismo bloque
+ * visual reutilizado en el resumen de alertas y en el recordatorio de
+ * cierre, para no repetir el mismo layout de "nombre + código + organismo +
+ * monto + cierre" en tres lugares distintos.
+ */
+function tarjetaProceso({ nombre, link, codigo, organismo, monto, cierre }) {
+  return `
+    <div class="item-card">
+      <a href="${link}" class="item-title" target="_blank" rel="noopener">${nombre} ↗</a>
+      <p class="item-meta">
+        Código: ${codigo}<br>
+        Organismo: ${organismo || 'No especificado'}<br>
+        Monto: ${monto}<br>
+        Cierra: ${cierre || 'No especificada'}
+      </p>
+    </div>
+  `;
+}
+
+function urlFichaLicitacion(codigoExterno) {
+  return `http://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?idlicitacion=${encodeURIComponent(codigoExterno)}`;
+}
+
+function urlFichaCompraAgil(codigoExterno) {
+  return `https://buscador.mercadopublico.cl/ficha?code=${encodeURIComponent(codigoExterno)}`;
+}
+
+/**
+ * Resumen de licitaciones nuevas que matchearon una o más alertas — se arma
+ * a partir del detalle crudo de la API (mismo shape que devuelve
+ * mercadopublico.service.js), no del registro ya guardado en licitaciones_vistas.
+ */
 function armarResumenLicitaciones(items) {
   const subject = items.length === 1
-    ? `Nueva licitación: ${items[0].Nombre}`
-    : `${items.length} nuevas licitaciones que coinciden con tus alertas`;
+    ? `📋 Nueva licitación: ${items[0].Nombre}`
+    : `📋 ${items.length} nuevas licitaciones que coinciden con tus alertas`;
 
-  const filas = items.map((d) => {
+  const tarjetas = items.map((d) => {
     let monto = 'No especificado';
     if (d.MontoEstimado) {
       monto = `$${Number(d.MontoEstimado).toLocaleString('es-CL')}`;
@@ -58,63 +155,77 @@ function armarResumenLicitaciones(items) {
       }
     }
 
-    return `
-      <li style="margin-bottom: 18px;">
-        <strong>${d.Nombre}</strong><br>
-        Código: ${d.CodigoExterno}<br>
-        Organismo: ${d.Comprador?.NombreOrganismo || 'No especificado'}<br>
-        Monto estimado: ${monto}<br>
-        Cierra: ${d.Fechas?.FechaCierre || 'No especificada'}
-      </li>
-    `;
+    return tarjetaProceso({
+      nombre: d.Nombre,
+      link: urlFichaLicitacion(d.CodigoExterno),
+      codigo: d.CodigoExterno,
+      organismo: d.Comprador?.NombreOrganismo,
+      monto,
+      cierre: d.Fechas?.FechaCierre,
+    });
   }).join('');
 
-  const html = `
-    <h2>${items.length} nueva${items.length === 1 ? '' : 's'} licitaci${items.length === 1 ? 'ón' : 'ones'} que coincide${items.length === 1 ? '' : 'n'} con tus alertas</h2>
-    <ul style="padding-left: 20px;">${filas}</ul>
+  const contenidoHtml = `
+    <h2>📋 ${items.length} nueva${items.length === 1 ? '' : 's'} licitaci${items.length === 1 ? 'ón' : 'ones'} que coincide${items.length === 1 ? '' : 'n'} con tus alertas</h2>
+    ${tarjetas}
+    <div class="divider"></div>
+    <p style="font-size: 13px; color: #64748b;">Gestiona tus alertas o revisa el detalle completo desde tu dashboard.</p>
   `;
 
-  return { subject, html };
+  return { subject, html: envolverPlantillaEmail({ contenidoHtml }) };
 }
 
+/**
+ * Resumen de Compras Ágiles nuevas que matchearon una o más alertas — a
+ * diferencia de Licitaciones, estas pueden cerrar en menos de 24 horas, así
+ * que el aviso lleva una caja de advertencia visible.
+ */
 function armarResumenCompraAgil(items) {
   const subject = items.length === 1
-    ? `Nueva Compra Ágil: ${items[0].nombre}`
-    : `${items.length} nuevas Compras Ágiles que coinciden con tus alertas`;
+    ? `⚡ Nueva Compra Ágil: ${items[0].nombre}`
+    : `⚡ ${items.length} nuevas Compras Ágiles que coinciden con tus alertas`;
 
-  const filas = items.map((item) => {
+  const tarjetas = items.map((item) => {
     const monto = item.montos?.monto_disponible_clp
       ? `$${Number(item.montos.monto_disponible_clp).toLocaleString('es-CL')}`
       : 'No especificado';
 
-    return `
-      <li style="margin-bottom: 18px;">
-        <strong>${item.nombre}</strong><br>
-        Código: ${item.codigo}<br>
-        Organismo: ${item.institucion?.organismo_comprador || 'No especificado'}<br>
-        Monto disponible: ${monto}<br>
-        ⚠️ Cierra: ${item.fechas?.fecha_cierre || 'No especificada'}
-      </li>
-    `;
+    return tarjetaProceso({
+      nombre: item.nombre,
+      link: urlFichaCompraAgil(item.codigo),
+      codigo: item.codigo,
+      organismo: item.institucion?.organismo_comprador,
+      monto,
+      cierre: item.fechas?.fecha_cierre,
+    });
   }).join('');
 
-  const html = `
-    <h2>${items.length} nueva${items.length === 1 ? '' : 's'} Compra${items.length === 1 ? '' : 's'} Ágil${items.length === 1 ? '' : 'es'} que coincide${items.length === 1 ? '' : 'n'} con tus alertas</h2>
-    <p>⚠️ Recuerda que estas pueden cerrar en menos de 24 horas.</p>
-    <ul style="padding-left: 20px;">${filas}</ul>
+  const contenidoHtml = `
+    <h2>⚡ ${items.length} nueva${items.length === 1 ? '' : 's'} Compra${items.length === 1 ? '' : 's'} Ágil${items.length === 1 ? '' : 'es'} que coincide${items.length === 1 ? '' : 'n'} con tus alertas</h2>
+    <div class="warning-box">
+      <p>⚠️ Recuerda que estas pueden cerrar en menos de 24 horas — conviene revisarlas cuanto antes.</p>
+    </div>
+    ${tarjetas}
   `;
 
-  return { subject, html };
+  return { subject, html: envolverPlantillaEmail({ contenidoHtml }) };
 }
 
+/**
+ * Recuperación de contraseña, enviado desde POST /auth/olvide-password.
+ */
 function armarEmailRecuperacion(link) {
-  const html = `
-    <h2>Recupera tu contraseña</h2>
+  const contenidoHtml = `
+    <h2>🔐 Recupera tu contraseña</h2>
     <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en MercadoAlerta.</p>
-    <p><a href="${link}">Haz clic aquí para elegir una nueva contraseña</a></p>
-    <p>Este link vence en 1 hora. Si no fuiste tú quien lo solicitó, puedes ignorar este correo.</p>
+
+    <a href="${link}" class="button">Elegir nueva contraseña →</a>
+
+    <div class="warning-box">
+      <p>⏰ Este link vence en 1 hora. Si no fuiste tú quien lo solicitó, puedes ignorar este correo — tu contraseña actual sigue funcionando.</p>
+    </div>
   `;
-  return { subject: 'Recupera tu contraseña — MercadoAlerta', html };
+  return { subject: '🔐 Recupera tu contraseña — MercadoAlerta', html: envolverPlantillaEmail({ contenidoHtml }) };
 }
 
 /**
@@ -123,13 +234,33 @@ function armarEmailRecuperacion(link) {
  * vez llama a POST /auth/confirmar-cuenta con el token.
  */
 function armarEmailConfirmacionCuenta(link, nombre) {
-  const html = `
-    <h2>Confirma tu cuenta</h2>
-    <p>Hola${nombre ? ` ${nombre}` : ''}, gracias por registrarte en MercadoAlerta.</p>
-    <p><a href="${link}">Haz clic aquí para confirmar tu cuenta</a></p>
-    <p>Este link vence en 48 horas. Si no fuiste tú quien se registró, puedes ignorar este correo.</p>
+  const contenidoHtml = `
+    <h2>¡Bienvenido/a a MercadoAlerta! 🎉</h2>
+    <p>Hola${nombre ? ` ${nombre}` : ''}, gracias por registrarte. Con tu cuenta confirmada vas a poder:</p>
+
+    <ul class="feature-list">
+      <li>✅ Configurar alertas por rubro, región y organismo comprador</li>
+      <li>✅ Recibir avisos por email o Telegram apenas aparezca algo que calza</li>
+      <li>✅ Guardar búsquedas y recordatorios de cierre, sin perder ninguna oportunidad</li>
+    </ul>
+
+    <a href="${link}" class="button">Confirmar mi cuenta →</a>
+
+    <div class="warning-box">
+      <p>⏰ Este link vence en 48 horas. Si no fuiste tú quien se registró, puedes ignorar este correo.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <p style="font-size: 13px; color: #64748b;">
+      Si tienes alguna duda, responde a este correo y te ayudaremos con gusto.
+    </p>
   `;
-  return { subject: 'Confirma tu cuenta — MercadoAlerta', html };
+
+  return {
+    subject: '🎉 Bienvenido a MercadoAlerta — Confirma tu cuenta',
+    html: envolverPlantillaEmail({ contenidoHtml }),
+  };
 }
 
 /**
@@ -140,22 +271,15 @@ function armarEmailRecordatorio(r) {
   const monto = r.monto ? `$${Number(r.monto).toLocaleString('es-CL')}` : 'No especificado';
   const emoji = r.tipo_proceso === 'compra_agil' ? '⚡' : '📋';
   const tipoTexto = r.tipo_proceso === 'compra_agil' ? 'Compra Ágil' : 'Licitación';
+  const link = r.tipo_proceso === 'compra_agil' ? urlFichaCompraAgil(r.codigo_externo) : urlFichaLicitacion(r.codigo_externo);
 
   const subject = `⏰ Cierra pronto: ${r.nombre}`;
-  const html = `
+  const contenidoHtml = `
     <h2>${emoji} Recordatorio de cierre</h2>
     <p>Esta ${tipoTexto.toLowerCase()} que marcaste para recordatorio cierra dentro de las próximas ${r.horas_antes} horas:</p>
-    <ul style="padding-left: 20px;">
-      <li style="margin-bottom: 8px;">
-        <strong>${r.nombre}</strong><br>
-        Código: ${r.codigo_externo}<br>
-        Organismo: ${r.organismo || 'No especificado'}<br>
-        Monto: ${monto}<br>
-        Cierra: ${r.fecha_cierre}
-      </li>
-    </ul>
+    ${tarjetaProceso({ nombre: r.nombre, link, codigo: r.codigo_externo, organismo: r.organismo, monto, cierre: r.fecha_cierre })}
   `;
-  return { subject, html };
+  return { subject, html: envolverPlantillaEmail({ contenidoHtml }) };
 }
 
 /**
@@ -165,29 +289,39 @@ function armarEmailRecordatorio(r) {
  */
 function armarEmailSeguimiento({ nombre, codigoExterno, estadoAnterior, estadoNuevo, items }) {
   const subject = `📋 ${nombre}: cambió a "${estadoNuevo}"`;
+  const link = urlFichaLicitacion(codigoExterno);
 
   let detalleAdjudicacion = '';
   if (estadoNuevo === 'Adjudicada' && items && items.length > 0) {
     const adjudicados = items.filter((it) => it.adjudicacion);
     if (adjudicados.length > 0) {
       const filas = adjudicados.map((it) => `
-        <li style="margin-bottom: 8px;">
+        <li style="margin-bottom: 10px;">
           ${it.nombre_producto || it.categoria || 'Ítem'}<br>
           Ganador: ${it.adjudicacion.nombre_proveedor || 'No especificado'} (${it.adjudicacion.rut_proveedor || 'RUT no especificado'})<br>
           Cantidad: ${it.adjudicacion.cantidad ?? '—'} · Monto unitario: ${it.adjudicacion.monto_unitario ? `$${Number(it.adjudicacion.monto_unitario).toLocaleString('es-CL')}` : 'No especificado'}
         </li>
       `).join('');
-      detalleAdjudicacion = `<p><strong>Detalle de adjudicación:</strong></p><ul style="padding-left: 20px;">${filas}</ul>`;
+      detalleAdjudicacion = `
+        <p style="font-weight: 700; color: #12172B; margin: 24px 0 8px 0;">Detalle de adjudicación:</p>
+        <ul style="padding-left: 20px; margin: 0; color: #475569; font-size: 14px;">${filas}</ul>
+      `;
     }
   }
 
-  const html = `
+  const contenidoHtml = `
     <h2>📋 Cambio de estado en una licitación que sigues</h2>
-    <p><strong>${nombre}</strong> (código ${codigoExterno})</p>
-    <p>Pasó de <strong>${estadoAnterior}</strong> a <strong>${estadoNuevo}</strong>.</p>
+    <p><a href="${link}" style="color: #12172B; font-weight: 700; text-decoration: none;" target="_blank" rel="noopener">${nombre} ↗</a><br>
+    <span style="font-size: 13px; color: #64748b;">Código: ${codigoExterno}</span></p>
+
+    <div class="highlight-box">
+      <h3>Cambio de estado</h3>
+      <p>${estadoAnterior} → ${estadoNuevo}</p>
+    </div>
+
     ${detalleAdjudicacion}
   `;
-  return { subject, html };
+  return { subject, html: envolverPlantillaEmail({ contenidoHtml }) };
 }
 
 module.exports = {
@@ -198,4 +332,5 @@ module.exports = {
   armarEmailConfirmacionCuenta,
   armarEmailRecordatorio,
   armarEmailSeguimiento,
+  envolverPlantillaEmail,
 };
