@@ -5,8 +5,11 @@ const {
   listarSeguidoresPorCodigo,
   actualizarUltimoEstadoNotificado,
 } = require('../db/seguimientos.queries');
+const { obtenerItemPipelinePorCodigo, actualizarEstadoPipeline } = require('../db/pipeline.queries');
+const { obtenerRutDeUsuario } = require('../db/empresas.queries');
 const { ESTADOS_FINALES_LICITACION } = require('../utils/estados-finales');
 const { extraerItemsConAdjudicacion } = require('../utils/adjudicacion');
+const { normalizarRut } = require('../utils/rut');
 const { enviarEmailAlerta, armarEmailSeguimiento } = require('../services/email.service');
 const { enviarTelegramAlerta } = require('../services/telegram.service');
 
@@ -18,6 +21,41 @@ function sleep(ms) {
 
 function armarTextoTelegramSeguimiento({ nombre, codigoExterno, estadoAnterior, estadoNuevo }) {
   return `📋 Cambio de estado\n\n${nombre}\nCódigo: ${codigoExterno}\n${estadoAnterior} → ${estadoNuevo}`;
+}
+
+/**
+ * Mini-CRM (migración 036): si este usuario tiene la licitación en su
+ * pipeline, compara el RUT de cada proveedor adjudicado contra el RUT de su
+ * propia empresa (empresas.rut) — normalizando ambos, porque el formato que
+ * trae la API en Adjudicacion.RutProveedor no está 100% garantizado.
+ *
+ * - Si coincide con algún ítem → mueve la tarjeta sola a 'ganada'.
+ * - Si no coincide con ninguno Y la tarjeta ya estaba en 'oferta_enviada' →
+ *   la mueve a 'perdida' (evita marcar "perdida" a algo que el usuario ni
+ *   siquiera había llegado a postular — ahí se deja para que la revise a mano).
+ * - Cualquier otro caso (no está en pipeline, o está en un estado anterior a
+ *   'oferta_enviada' y no ganó) no se toca — el usuario decide.
+ */
+async function intentarActualizarPipelinePorAdjudicacion(userId, codigoExterno, items) {
+  try {
+    const itemPipeline = await obtenerItemPipelinePorCodigo(userId, codigoExterno);
+    if (!itemPipeline) return;
+
+    const rutEmpresa = await obtenerRutDeUsuario(userId);
+    const rutEmpresaNorm = rutEmpresa ? normalizarRut(rutEmpresa) : null;
+
+    const gano = !!rutEmpresaNorm && items.some((it) => (
+      it.adjudicacion && normalizarRut(it.adjudicacion.rut_proveedor) === rutEmpresaNorm
+    ));
+
+    if (gano) {
+      await actualizarEstadoPipeline(itemPipeline.id, userId, 'ganada');
+    } else if (itemPipeline.estado_personal === 'oferta_enviada') {
+      await actualizarEstadoPipeline(itemPipeline.id, userId, 'perdida');
+    }
+  } catch (err) {
+    console.error(`[seguimiento-estado] Error en detección de pipeline para user ${userId} / ${codigoExterno}:`, err.message);
+  }
 }
 
 /**
@@ -95,6 +133,13 @@ async function correrSeguimientoEstado() {
 
           await actualizarUltimoEstadoNotificado(s.id, nuevoEstado);
           notificaciones++;
+
+          // Detección automática de ganado/perdido en el pipeline (mini-CRM,
+          // migración 036) — solo tiene sentido en el estado final Adjudicada,
+          // y solo si este usuario tiene esta licitación en su pipeline.
+          if (nuevoEstado === 'Adjudicada') {
+            await intentarActualizarPipelinePorAdjudicacion(s.user_id, codigo, items);
+          }
         } catch (err) {
           console.error(`[seguimiento-estado] Error notificando a user ${s.user_id} sobre ${codigo}:`, err.message);
         }

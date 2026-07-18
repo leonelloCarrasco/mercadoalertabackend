@@ -70,6 +70,20 @@ async function buscarEmpresaPorRut(rut) {
   return result.rows[0] || null;
 }
 
+/**
+ * RUT de la empresa de un usuario puntual (join users -> empresas) — usado
+ * por la detección automática de ganado/perdido del pipeline
+ * (seguimiento-estado.js): se compara este RUT contra el del proveedor
+ * ganador que trae la adjudicación.
+ */
+async function obtenerRutDeUsuario(userId) {
+  const result = await pool.query(
+    `SELECT e.rut FROM users u JOIN empresas e ON e.id = u.empresa_id WHERE u.id = $1`,
+    [userId]
+  );
+  return result.rows[0]?.rut || null;
+}
+
 async function contarUsuariosDeEmpresa(empresaId) {
   const result = await pool.query(
     'SELECT COUNT(*)::int AS total FROM users WHERE empresa_id = $1',
@@ -92,6 +106,7 @@ module.exports = {
   buscarEmpresaPorRut,
   buscarEmpresaPorId,
   buscarEmpresaPorSuscripcion,
+  obtenerRutDeUsuario,
   contarUsuariosDeEmpresa,
   guardarSuscripcionMercadoPago,
   activarPagoEmpresa,
