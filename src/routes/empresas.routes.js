@@ -48,7 +48,7 @@ router.post('/:id/upgrade', requireAuth, async (req, res) => {
       emailPagador: usuario.email,
       monto: configPlan.monto,
       referenciaExterna: `empresa-${empresa.id}`,
-      motivo: `MercadoAlerta — Plan ${plan} (${empresa.nombre_empresa || empresa.rut})`,
+      motivo: `Plan ${plan} — ${empresa.nombre_empresa || empresa.rut}`,
     });
 
     await guardarSuscripcionMercadoPago(empresa.id, suscripcion.id);

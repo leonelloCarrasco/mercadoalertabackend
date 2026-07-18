@@ -258,7 +258,7 @@ router.post('/confirmar-cuenta', async (req, res) => {
       emailPagador: usuario.email,
       monto: configPlan.monto,
       referenciaExterna: `empresa-${usuario.empresa_id}`,
-      motivo: `MercadoAlerta — Plan ${usuario.plan} (${usuario.nombre_empresa || usuario.rut_empresa})`,
+      motivo: `Plan ${usuario.plan} — ${usuario.nombre_empresa || usuario.rut_empresa}`,
     });
 
     await guardarSuscripcionMercadoPago(usuario.empresa_id, suscripcion.id);

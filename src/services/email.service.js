@@ -324,6 +324,74 @@ function armarEmailSeguimiento({ nombre, codigoExterno, estadoAnterior, estadoNu
   return { subject, html: envolverPlantillaEmail({ contenidoHtml }) };
 }
 
+/**
+ * Aviso de trial por vencer — "te quedan ~2 días" (mismo umbral que
+ * mostrarBannerPlan en dashboard.js). Enviado por avisos-trial.js.
+ */
+function armarEmailAviso2Dias({ nombre, fechaExpiracionTrial }) {
+  const fechaTexto = new Date(fechaExpiracionTrial).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
+  const contenidoHtml = `
+    <h2>⏰ Tu período de prueba está por terminar</h2>
+    <p>Hola${nombre ? ` ${nombre}` : ''}, tu prueba gratuita de MercadoAlerta vence el <strong>${fechaTexto}</strong>.</p>
+    <p>Si quieres seguir recibiendo tus alertas sin interrupción, elige un plan antes de esa fecha — tus alertas, búsquedas guardadas y todo lo que configuraste durante la prueba se mantienen intactos, no se pierde nada.</p>
+    <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Elegir mi plan →</a>
+  `;
+  return { subject: '⏰ Tu prueba gratuita de MercadoAlerta termina pronto', html: envolverPlantillaEmail({ contenidoHtml }) };
+}
+
+/**
+ * Aviso de trial YA vencido. Enviado por avisos-trial.js — es el único aviso
+ * proactivo de esto: si el usuario no vuelve a abrir la app, este correo es
+ * la única forma en que se entera de que venció (ver requireEmpresaActiva.middleware.js,
+ * que bloquea el acceso pero no avisa nada por su cuenta).
+ */
+function armarEmailTrialVencido({ nombre }) {
+  const contenidoHtml = `
+    <h2>Tu período de prueba terminó</h2>
+    <p>Hola${nombre ? ` ${nombre}` : ''}, tus 14 días de prueba gratuita de MercadoAlerta ya terminaron.</p>
+
+    <div class="warning-box">
+      <p>⚠️ Tus alertas dejaron de monitorear Mercado Público hasta que elijas un plan — pero no te preocupes, toda tu configuración (alertas, búsquedas guardadas, recordatorios, pipeline) sigue guardada tal cual la dejaste.</p>
+    </div>
+
+    <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Elegir mi plan →</a>
+  `;
+  return { subject: 'Tu prueba gratuita de MercadoAlerta terminó', html: envolverPlantillaEmail({ contenidoHtml }) };
+}
+
+/**
+ * Confirmación de suscripción activada — enviado desde el webhook
+ * (POST /api/pagos/webhook) apenas se confirma el pago. `tarjeta` es
+ * opcional (puede venir null si no se pudo conseguir el detalle del pago,
+ * ver consultarUltimoPagoAutorizado en mercadopago.service.js) — si no está,
+ * simplemente se omite esa línea, no se inventa nada.
+ */
+function armarEmailConfirmacionSuscripcion({ nombre, plan, monto, tarjeta }) {
+  const nombrePlan = plan === 'full' ? 'Full' : 'Básico';
+  const montoTexto = monto ? `$${Number(monto).toLocaleString('es-CL')} / mes` : 'No especificado';
+  const tarjetaTexto = tarjeta?.ultimosDigitos
+    ? `Tarjeta terminada en ${tarjeta.ultimosDigitos}${tarjeta.marca ? ` (${tarjeta.marca})` : ''}`
+    : null;
+
+  const contenidoHtml = `
+    <h2>✅ Tu suscripción está activa</h2>
+    <p>Hola${nombre ? ` ${nombre}` : ''}, confirmamos tu pago — ya puedes seguir usando MercadoAlerta sin interrupciones.</p>
+
+    <div class="highlight-box">
+      <h3>Plan ${nombrePlan}</h3>
+      <p>${montoTexto}</p>
+    </div>
+
+    <p style="font-size: 13px; color: #64748b;">
+      Forma de pago: ${tarjetaTexto || 'Tarjeta de crédito (MercadoPago)'}<br>
+      El cobro se repite automáticamente cada mes — puedes cancelarlo cuando quieras desde tu cuenta.
+    </p>
+
+    <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Ir a mi cuenta →</a>
+  `;
+  return { subject: `✅ Suscripción activa — Plan ${nombrePlan}`, html: envolverPlantillaEmail({ contenidoHtml }) };
+}
+
 module.exports = {
   enviarEmailAlerta,
   armarResumenLicitaciones,
@@ -332,5 +400,8 @@ module.exports = {
   armarEmailConfirmacionCuenta,
   armarEmailRecordatorio,
   armarEmailSeguimiento,
+  armarEmailAviso2Dias,
+  armarEmailTrialVencido,
+  armarEmailConfirmacionSuscripcion,
   envolverPlantillaEmail,
 };
