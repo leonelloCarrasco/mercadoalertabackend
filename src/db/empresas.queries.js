@@ -101,6 +101,50 @@ async function eliminarEmpresa(empresaId) {
   await pool.query('DELETE FROM empresas WHERE id = $1', [empresaId]);
 }
 
+/**
+ * Empresas en trial a las que hay que avisar que faltan ~2 días para que
+ * venza (mismo umbral que ya usa el banner del dashboard, mostrarBannerPlan
+ * en dashboard.js) — y todavía no se les mandó ese aviso. Trae directo el
+ * email/nombre del usuario de la empresa (modelo 1 usuario = 1 empresa
+ * desde la migración 023, así que siempre hay exactamente uno).
+ */
+async function listarEmpresasParaAviso2Dias() {
+  const result = await pool.query(
+    `SELECT e.id AS empresa_id, e.nombre_empresa, e.fecha_expiracion_trial, u.email, u.nombre
+     FROM empresas e
+     JOIN users u ON u.empresa_id = e.id
+     WHERE e.plan = 'trial'
+       AND e.aviso_2dias_enviado = false
+       AND e.fecha_expiracion_trial > NOW()
+       AND e.fecha_expiracion_trial <= NOW() + INTERVAL '2 days'`
+  );
+  return result.rows;
+}
+
+/**
+ * Empresas en trial cuyo período YA venció y todavía no se les mandó el
+ * aviso de "se acabó, elige un plan".
+ */
+async function listarEmpresasParaAvisoVencido() {
+  const result = await pool.query(
+    `SELECT e.id AS empresa_id, e.nombre_empresa, e.fecha_expiracion_trial, u.email, u.nombre
+     FROM empresas e
+     JOIN users u ON u.empresa_id = e.id
+     WHERE e.plan = 'trial'
+       AND e.aviso_vencido_enviado = false
+       AND e.fecha_expiracion_trial <= NOW()`
+  );
+  return result.rows;
+}
+
+async function marcarAviso2DiasEnviado(empresaId) {
+  await pool.query('UPDATE empresas SET aviso_2dias_enviado = true WHERE id = $1', [empresaId]);
+}
+
+async function marcarAvisoVencidoEnviado(empresaId) {
+  await pool.query('UPDATE empresas SET aviso_vencido_enviado = true WHERE id = $1', [empresaId]);
+}
+
 module.exports = {
   crearEmpresa,
   buscarEmpresaPorRut,
@@ -112,4 +156,8 @@ module.exports = {
   activarPagoEmpresa,
   actualizarPlanEmpresa,
   eliminarEmpresa,
+  listarEmpresasParaAviso2Dias,
+  listarEmpresasParaAvisoVencido,
+  marcarAviso2DiasEnviado,
+  marcarAvisoVencidoEnviado,
 };

@@ -4,6 +4,7 @@ const { correrPollingCompraAgil } = require('./poll-compra-agil');
 const { correrRevisionResoluciones } = require('./revisar-resoluciones');
 const { correrRecordatorioCierre } = require('./recordatorio-cierre');
 const { correrSeguimientoEstado } = require('./seguimiento-estado');
+const { correrAvisosTrial } = require('./avisos-trial');
 
 function iniciarCronJobs() {
   // Licitaciones: cada 3 horas (el volumen de detalle a traer puede tardar varios minutos
@@ -61,7 +62,18 @@ function iniciarCronJobs() {
     }
   });
 
-  console.log('[cron] Jobs programados: licitaciones cada 3h, Compra Ágil cada 1h, revisión de adjudicaciones diaria a las 03:00, recordatorios cada 15 min, seguimiento de estado cada 3h (min 30).');
+  // Avisos de trial: una vez al día (08:00 — horario razonable para que el
+  // correo llegue durante el día laboral, no de madrugada). Barato, solo
+  // lee empresas locales, no pega contra ninguna API externa.
+  cron.schedule('0 8 * * *', async () => {
+    try {
+      await correrAvisosTrial();
+    } catch (err) {
+      console.error('[cron] Error en avisos de trial:', err);
+    }
+  });
+
+  console.log('[cron] Jobs programados: licitaciones cada 3h, Compra Ágil cada 1h, revisión de adjudicaciones diaria a las 03:00, recordatorios cada 15 min, seguimiento de estado cada 3h (min 30), avisos de trial diarios a las 08:00.');
 }
 
 module.exports = { iniciarCronJobs };
