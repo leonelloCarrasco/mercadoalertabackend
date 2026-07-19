@@ -24,7 +24,9 @@ async function crearEmpresa({ rut, nombreEmpresa, plan, montoMensual, fechaExpir
 async function actualizarPlanEmpresa(empresaId, { plan, montoMensual }) {
   const result = await pool.query(
     `UPDATE empresas
-     SET plan = $1, monto_mensual = $2, fecha_expiracion_trial = NULL, estado_pago = 'pendiente'
+     SET plan = $1, monto_mensual = $2, fecha_expiracion_trial = NULL, estado_pago = 'pendiente',
+         suscripcion_cancelada_en = NULL, acceso_hasta = NULL,
+         aviso_acceso_2dias_enviado = false, aviso_acceso_terminado_enviado = false
      WHERE id = $3
      RETURNING *`,
     [plan, montoMensual, empresaId]
@@ -145,6 +147,66 @@ async function marcarAvisoVencidoEnviado(empresaId) {
   await pool.query('UPDATE empresas SET aviso_vencido_enviado = true WHERE id = $1', [empresaId]);
 }
 
+async function marcarSuscripcionCancelada(empresaId, accesoHasta) {
+  const result = await pool.query(
+    'UPDATE empresas SET suscripcion_cancelada_en = NOW(), acceso_hasta = $1 WHERE id = $2 RETURNING *',
+    [accesoHasta || null, empresaId]
+  );
+  return result.rows[0] || null;
+}
+
+/**
+ * Empresas con suscripción cancelada a las que hay que avisar que faltan
+ * ~2 días para que se corte el acceso (mismo umbral que el aviso de trial).
+ */
+async function listarEmpresasParaAvisoAcceso2Dias() {
+  const result = await pool.query(
+    `SELECT e.id AS empresa_id, e.nombre_empresa, e.acceso_hasta, u.email, u.nombre
+     FROM empresas e
+     JOIN users u ON u.empresa_id = e.id
+     WHERE e.suscripcion_cancelada_en IS NOT NULL
+       AND e.aviso_acceso_2dias_enviado = false
+       AND e.acceso_hasta > NOW()
+       AND e.acceso_hasta <= NOW() + INTERVAL '2 days'`
+  );
+  return result.rows;
+}
+
+/**
+ * Empresas con suscripción cancelada cuyo acceso_hasta YA pasó y todavía
+ * están con estado_pago='activo' (o sea, todavía no se les cortó el acceso
+ * de verdad) — a estas hay que avisarles Y cortarles el acceso en el mismo
+ * paso (ver avisos-trial.js).
+ */
+async function listarEmpresasParaCorteDeAcceso() {
+  const result = await pool.query(
+    `SELECT e.id AS empresa_id, e.nombre_empresa, u.email, u.nombre
+     FROM empresas e
+     JOIN users u ON u.empresa_id = e.id
+     WHERE e.suscripcion_cancelada_en IS NOT NULL
+       AND e.aviso_acceso_terminado_enviado = false
+       AND e.acceso_hasta <= NOW()
+       AND e.estado_pago = 'activo'`
+  );
+  return result.rows;
+}
+
+async function marcarAvisoAcceso2DiasEnviado(empresaId) {
+  await pool.query('UPDATE empresas SET aviso_acceso_2dias_enviado = true WHERE id = $1', [empresaId]);
+}
+
+/**
+ * Corta el acceso de verdad (estado_pago -> 'pendiente', mismo estado que ya
+ * usa requireEmpresaActiva.middleware.js para bloquear) y marca el aviso
+ * como enviado, en una sola operación — se usa DESPUÉS de mandar el correo.
+ */
+async function marcarAvisoAccesoTerminadoYCortarAcceso(empresaId) {
+  await pool.query(
+    `UPDATE empresas SET aviso_acceso_terminado_enviado = true, estado_pago = 'pendiente' WHERE id = $1`,
+    [empresaId]
+  );
+}
+
 module.exports = {
   crearEmpresa,
   buscarEmpresaPorRut,
@@ -160,4 +222,9 @@ module.exports = {
   listarEmpresasParaAvisoVencido,
   marcarAviso2DiasEnviado,
   marcarAvisoVencidoEnviado,
+  marcarSuscripcionCancelada,
+  listarEmpresasParaAvisoAcceso2Dias,
+  listarEmpresasParaCorteDeAcceso,
+  marcarAvisoAcceso2DiasEnviado,
+  marcarAvisoAccesoTerminadoYCortarAcceso,
 };

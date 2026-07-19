@@ -6,6 +6,12 @@ const { buscarUsuarioPorId } = require('../db/queries');
  * - La empresa está en un plan pago pero el pago no está 'activo' (pendiente,
  *   o cualquier otro estado que no sea "ya confirmado").
  * - La empresa está en trial y su fecha_expiracion_trial ya pasó.
+ * - La empresa canceló su suscripción y ya pasó acceso_hasta (el período que
+ *   había pagado antes de cancelar) — ver POST /api/pagos/cancelar y
+ *   migración 039. Este chequeo es la defensa inmediata: el job diario
+ *   (avisos-trial.js) eventualmente pasa estado_pago a 'pendiente' en este
+ *   mismo caso, pero puede haber hasta ~24h de diferencia hasta que corra —
+ *   este chequeo bloquea al toque, sin esperar al cron.
  */
 async function requireEmpresaActiva(req, res, next) {
   try {
@@ -24,6 +30,13 @@ async function requireEmpresaActiva(req, res, next) {
       return res.status(402).json({
         error: 'Tu período de prueba de 14 días terminó. Actualiza tu plan para seguir usando MercadoAlerta.',
         trialVencido: true,
+      });
+    }
+
+    if (usuario.suscripcion_cancelada_en && usuario.acceso_hasta && new Date(usuario.acceso_hasta) < new Date()) {
+      return res.status(402).json({
+        error: 'Tu suscripción cancelada ya no está vigente. Elige un plan para seguir usando MercadoAlerta.',
+        accesoCanceladoTerminado: true,
       });
     }
 

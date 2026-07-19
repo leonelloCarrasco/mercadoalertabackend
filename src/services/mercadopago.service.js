@@ -174,4 +174,52 @@ async function consultarUltimoPagoAutorizado(preapprovalId) {
   }
 }
 
-module.exports = { crearSuscripcion, consultarSuscripcion, cancelarSuscripcion, consultarUltimoPagoAutorizado };
+/**
+ * Historial de cobros de una suscripción — "Get invoice data"/"Search in
+ * invoices" (mismo endpoint que ya usa consultarUltimoPagoAutorizado para
+ * sacar la tarjeta, pero acá se devuelve la lista completa en vez de
+ * quedarse solo con el último). Cada item trae fecha (debit_date),
+ * transaction_amount y status — justo lo que hace falta para mostrar
+ * "Historial de pagos" en Mi Perfil.
+ *
+ * Devuelve [] si falla o no hay nada — igual que consultarUltimoPagoAutorizado,
+ * se prioriza no romper la pantalla por esto.
+ */
+async function listarPagosAutorizados(preapprovalId) {
+  if (!MP_ACCESS_TOKEN) {
+    return [{
+      simulado: true,
+      fecha: new Date().toISOString(),
+      monto: 14990,
+      estado: 'processed',
+    }];
+  }
+
+  try {
+    const response = await fetch(`${PREAPPROVAL_URL}/${preapprovalId}/authorized_payments`, {
+      headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
+    });
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const lista = Array.isArray(data) ? data : data.results || [];
+
+    return lista.map((p) => ({
+      simulado: false,
+      fecha: p.debit_date || p.date_created,
+      monto: Number(p.transaction_amount) || null,
+      estado: p.payment?.status || p.status,
+    }));
+  } catch (err) {
+    console.error(`[mercadopago.service] No se pudo obtener el historial de pagos de ${preapprovalId}:`, err.message);
+    return [];
+  }
+}
+
+module.exports = {
+  crearSuscripcion,
+  consultarSuscripcion,
+  cancelarSuscripcion,
+  consultarUltimoPagoAutorizado,
+  listarPagosAutorizados,
+};
