@@ -392,6 +392,42 @@ function armarEmailConfirmacionSuscripcion({ nombre, plan, monto, tarjeta }) {
   return { subject: `✅ Suscripción activa — Plan ${nombrePlan}`, html: envolverPlantillaEmail({ contenidoHtml }) };
 }
 
+/**
+ * Aviso de acceso por cortarse tras una cancelación — "te quedan ~2 días de
+ * acceso" (mismo umbral que el aviso de trial). Enviado por avisos-trial.js.
+ */
+function armarEmailAvisoAcceso2Dias({ nombre, accesoHasta }) {
+  const fechaTexto = new Date(accesoHasta).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
+  const contenidoHtml = `
+    <h2>⏰ Tu acceso está por terminar</h2>
+    <p>Hola${nombre ? ` ${nombre}` : ''}, cancelaste tu suscripción a MercadoAlerta hace un tiempo — tu acceso, que se mantuvo activo hasta terminar el período que ya habías pagado, vence el <strong>${fechaTexto}</strong>.</p>
+    <p>Si te arrepentiste, podés volver a suscribirte antes de esa fecha (o después, cuando quieras) sin perder nada de lo que configuraste — tus alertas, búsquedas guardadas y todo lo demás siguen guardados tal cual los dejaste.</p>
+    <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Reactivar mi plan →</a>
+  `;
+  return { subject: '⏰ Tu acceso a MercadoAlerta termina pronto', html: envolverPlantillaEmail({ contenidoHtml }) };
+}
+
+/**
+ * Aviso de acceso YA cortado tras una cancelación. Enviado por avisos-trial.js
+ * en el mismo momento en que efectivamente se corta el acceso (estado_pago
+ * pasa a 'pendiente') — es el único aviso proactivo de esto, igual que con
+ * el trial: si el usuario no vuelve a abrir la app, este correo es la única
+ * forma en que se entera.
+ */
+function armarEmailAccesoTerminado({ nombre }) {
+  const contenidoHtml = `
+    <h2>Tu acceso a MercadoAlerta terminó</h2>
+    <p>Hola${nombre ? ` ${nombre}` : ''}, el período que ya habías pagado antes de cancelar tu suscripción llegó a su fin.</p>
+
+    <div class="warning-box">
+      <p>⚠️ Tus alertas dejaron de monitorear Mercado Público — pero toda tu configuración (alertas, búsquedas guardadas, recordatorios, pipeline) sigue guardada tal cual la dejaste, por si querés volver.</p>
+    </div>
+
+    <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Reactivar mi plan →</a>
+  `;
+  return { subject: 'Tu acceso a MercadoAlerta terminó', html: envolverPlantillaEmail({ contenidoHtml }) };
+}
+
 module.exports = {
   enviarEmailAlerta,
   armarResumenLicitaciones,
@@ -403,5 +439,7 @@ module.exports = {
   armarEmailAviso2Dias,
   armarEmailTrialVencido,
   armarEmailConfirmacionSuscripcion,
+  armarEmailAvisoAcceso2Dias,
+  armarEmailAccesoTerminado,
   envolverPlantillaEmail,
 };

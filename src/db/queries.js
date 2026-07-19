@@ -29,7 +29,8 @@ async function buscarUsuarioPorId(id) {
   const result = await pool.query(
     `SELECT u.id, u.email, u.nombre, u.apellido, u.telefono, u.estado, u.es_admin, u.created_at, u.empresa_id,
             e.rut AS rut_empresa, e.nombre_empresa, e.rut_validado, e.declara_emt,
-            e.plan, e.estado_pago, e.fecha_expiracion_trial, e.monto_mensual
+            e.plan, e.estado_pago, e.fecha_expiracion_trial, e.monto_mensual,
+            e.suscripcion_cancelada_en, e.acceso_hasta
      FROM users u
      JOIN empresas e ON e.id = u.empresa_id
      WHERE u.id = $1`,
