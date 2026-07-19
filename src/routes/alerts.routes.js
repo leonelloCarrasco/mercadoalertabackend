@@ -8,7 +8,7 @@ const {
   actualizarAlertConfig,
   eliminarAlertConfig,
 } = require('../db/alert-configs.queries');
-const { listarHistorialUsuario } = require('../db/alerts-sent.queries');
+const { listarHistorialUsuario, eliminarDelHistorial } = require('../db/alerts-sent.queries');
 const { listarRegionesDisponibles } = require('../db/regiones.queries');
 const { buscarOrganismos, traducirOrganismosACodigos, adjuntarNombresOrganismos } = require('../db/organismos.queries');
 const { buscarCategorias, obtenerTitulosPorCodigos, obtenerArbolRubros } = require('../db/categorias-unspsc.queries');
@@ -119,6 +119,22 @@ router.get('/history', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener el historial' });
+  }
+});
+
+// DELETE /api/alerts/history/:id — saca una notificación del historial. No
+// toca recordatorios/seguimientos/pipeline (tablas independientes, ver
+// eliminarDelHistorial en alerts-sent.queries.js).
+router.delete('/history/:id', async (req, res) => {
+  try {
+    const eliminado = await eliminarDelHistorial(req.params.id, req.userId);
+    if (!eliminado) {
+      return res.status(404).json({ error: 'Notificación no encontrada' });
+    }
+    res.status(204).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al eliminar la notificación' });
   }
 });
 

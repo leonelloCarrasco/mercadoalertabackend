@@ -73,4 +73,24 @@ async function listarHistorialUsuario(userId) {
   return result.rows;
 }
 
-module.exports = { intentarReservarEnvio, liberarReserva, listarHistorialUsuario };
+/**
+ * Elimina una notificación del historial del usuario — a pedido suyo, desde
+ * el botón "Eliminar" de la sección Notificaciones. A propósito NO tiene
+ * ningún efecto sobre recordatorios_cierre / seguimientos_licitacion /
+ * pipeline_oportunidades — son tablas totalmente independientes entre sí,
+ * sin relación de llave foránea, así que esto no puede "arrastrar" nada de
+ * Oportunidades aunque sea la misma licitación.
+ *
+ * Filtra por user_id (a diferencia de liberarReserva, de uso interno para
+ * el propio sistema de reintento) — nadie puede borrar una fila de otro
+ * usuario adivinando el id.
+ */
+async function eliminarDelHistorial(id, userId) {
+  const result = await pool.query(
+    'DELETE FROM alerts_sent WHERE id = $1 AND user_id = $2 RETURNING id',
+    [id, userId]
+  );
+  return result.rowCount > 0;
+}
+
+module.exports = { intentarReservarEnvio, liberarReserva, listarHistorialUsuario, eliminarDelHistorial };
