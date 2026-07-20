@@ -138,8 +138,18 @@ async function listarCompraAgilResueltaSinProveedores() {
   return result.rows.map((r) => r.codigo_externo);
 }
 
+/**
+ * Trae la fila completa de una Compra Ágil por su código — mismo propósito
+ * que obtenerLicitacionPorCodigo en licitaciones.queries.js.
+ */
+async function obtenerCompraAgilPorCodigo(codigoExterno) {
+  const result = await pool.query('SELECT * FROM compras_agiles_vistas WHERE codigo_externo = $1', [codigoExterno]);
+  return result.rows[0] || null;
+}
+
 module.exports = {
   compraAgilYaVista,
+  obtenerCompraAgilPorCodigo,
   obtenerCodigosCompraAgilYaVistos,
   guardarCompraAgil,
   listarComprasAgilesNuevas,

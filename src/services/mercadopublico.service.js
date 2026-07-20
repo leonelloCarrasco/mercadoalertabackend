@@ -141,6 +141,34 @@ async function buscarProveedorPorRut(rut) {
   return { codigo: String(codigo), nombre: nombre || null };
 }
 
+/**
+ * Trae el HTML de la ficha pública de una licitación (la misma página que ve
+ * cualquier persona en el navegador, NO la API oficial — ver la
+ * investigación en la conversación de diseño de "Análisis de Procesos").
+ * `fetch()` sigue el redirect del `?idlicitacion=` al `?qs=` cifrado solo,
+ * sin que tengamos que resolver ese token nosotros mismos.
+ *
+ * Usada como contexto SIEMPRE disponible (incluso con adjuntos, sirve para
+ * completar datos) y como única fuente en el modo "sin adjuntos". No
+ * requiere ticket — es la página pública, no la API.
+ *
+ * Devuelve null si falla (sitio caído, cambiaron la estructura, lo que sea)
+ * — quien llama decide qué hacer con eso, no se lanza una excepción acá.
+ */
+async function obtenerFichaLicitacionHTML(codigoExterno) {
+  try {
+    const url = `http://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?idlicitacion=${encodeURIComponent(codigoExterno)}`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'MercadoAlerta/1.0 (+https://mercadoalerta.cl) - analisis bajo pedido del usuario' },
+    });
+    if (!response.ok) return null;
+    return await response.text();
+  } catch (err) {
+    console.error(`[mercadopublico.service] No se pudo traer la ficha pública de ${codigoExterno}:`, err.message);
+    return null;
+  }
+}
+
 module.exports = {
   obtenerLicitacionesActivas,
   obtenerLicitacionesPorFecha,
@@ -148,4 +176,5 @@ module.exports = {
   obtenerDetallesConDelay,
   buscarLicitacionesConParametros,
   buscarProveedorPorRut,
+  obtenerFichaLicitacionHTML,
 };

@@ -168,9 +168,20 @@ async function actualizarResolucionLicitacion(codigoExterno, {
   );
 }
 
+/**
+ * Trae la fila completa (todos los campos ya guardados) de una licitación
+ * por su código — usada por el análisis con IA para armar la metadata que
+ * se le pasa al modelo (nombre, organismo, monto, fecha de cierre).
+ */
+async function obtenerLicitacionPorCodigo(codigoExterno) {
+  const result = await pool.query('SELECT * FROM licitaciones_vistas WHERE codigo_externo = $1', [codigoExterno]);
+  return result.rows[0] || null;
+}
+
 module.exports = {
   licitacionYaVista,
   obtenerEstadoLicitacion,
+  obtenerLicitacionPorCodigo,
   obtenerCodigosYaVistos,
   guardarLicitacion,
   listarLicitacionesNuevas,
