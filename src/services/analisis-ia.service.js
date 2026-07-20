@@ -74,7 +74,7 @@ async function llamarIA(prompt) {
     },
     body: JSON.stringify({
       model: MODELO,
-      max_tokens: 4096,
+      max_tokens: 8192,
       messages: [{ role: 'user', content: prompt }],
     }),
   });
@@ -85,20 +85,36 @@ async function llamarIA(prompt) {
   }
 
   const data = await response.json();
+
+  // Si Claude se quedó sin espacio a mitad del JSON, stop_reason lo dice
+  // explícito — mejor un error claro de "hace falta más espacio" que un
+  // JSON.parse fallando genérico más abajo.
+  if (data.stop_reason === 'max_tokens') {
+    console.error('[analisis-ia.service] La respuesta se cortó por max_tokens — el texto de entrada puede ser muy largo/detallado para el límite actual.');
+    throw new Error('El análisis quedó incompleto porque el documento es muy extenso. Intenta de nuevo — si vuelve a pasar, avisa para ajustar el límite.');
+  }
+
   const textoRespuesta = data.content?.find((b) => b.type === 'text')?.text;
   if (!textoRespuesta) {
     throw new Error('La IA no devolvió contenido de texto.');
   }
 
-  // Por las dudas, se sacan posibles fences de markdown (```json ... ```) —
-  // el prompt pide JSON puro, pero conviene ser tolerante por si el modelo
-  // igual lo envuelve.
-  const jsonLimpio = textoRespuesta.replace(/^```json\s*|```\s*$/g, '').trim();
+  // Extracción tolerante: en vez de asumir que la respuesta es JSON puro de
+  // punta a punta (el prompt lo pide así, pero el modelo a veces igual
+  // agrega una frase antes/después pese a la instrucción), se toma desde la
+  // primera '{' hasta la última '}' — más robusto que solo sacar fences de
+  // markdown.
+  const inicio = textoRespuesta.indexOf('{');
+  const fin = textoRespuesta.lastIndexOf('}');
+  const jsonLimpio = (inicio !== -1 && fin !== -1 && fin > inicio)
+    ? textoRespuesta.slice(inicio, fin + 1)
+    : textoRespuesta.trim();
 
   try {
     return JSON.parse(jsonLimpio);
   } catch (err) {
-    console.error('[analisis-ia.service] Respuesta de la IA no es JSON válido:', textoRespuesta.slice(0, 500));
+    console.error('[analisis-ia.service] Respuesta de la IA no es JSON válido. Primeros 1000 caracteres:', textoRespuesta.slice(0, 1000));
+    console.error('[analisis-ia.service] Últimos 300 caracteres:', textoRespuesta.slice(-300));
     throw new Error('La IA devolvió una respuesta con formato inesperado. Intenta de nuevo.');
   }
 }
