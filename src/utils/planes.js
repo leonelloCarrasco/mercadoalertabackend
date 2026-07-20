@@ -37,6 +37,7 @@ const PLANES = {
     limiteBusquedas: 5,
     limiteRecordatorios: 3,
     limiteSeguimientos: 2,
+    limiteAnalisisIA: 1, // por CICLO ROTATIVO de 1 mes desde el primer uso — no mes calendario, no se arrastra lo no usado (ver analisis-ia.queries.js)
     requierePago: false,
     monto: null,
     diasTrial: 14,
@@ -48,6 +49,7 @@ const PLANES = {
     limiteBusquedas: 10,
     limiteRecordatorios: 15,
     limiteSeguimientos: 8,
+    limiteAnalisisIA: 3,
     requierePago: true,
     monto: 8990,
     montoRegular: 12990, // solo informativo, para mostrar "antes/ahora" en la landing
@@ -59,6 +61,7 @@ const PLANES = {
     limiteBusquedas: 20,
     limiteRecordatorios: 30,
     limiteSeguimientos: 15,
+    limiteAnalisisIA: 5,
     requierePago: true,
     monto: 14990,
     montoRegular: 18990,
