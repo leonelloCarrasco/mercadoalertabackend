@@ -7,7 +7,7 @@ const MODELO = 'claude-sonnet-5';
 // Si algún día se agregan los adjuntos automáticos, este límite evita mandar
 // contexto desproporcionado (costo) por una licitación con 10 anexos de 40
 // páginas cada uno.
-const MAX_CARACTERES_CONTEXTO = 60000;
+const MAX_CARACTERES_CONTEXTO = 120000;
 
 /**
  * Arma el prompt — le pide a la IA que devuelva SOLO JSON (nada de texto
@@ -17,10 +17,11 @@ const MAX_CARACTERES_CONTEXTO = 60000;
  * de bases corresponde al proceso declarado (paso 5 del diseño) sin
  * necesitar una llamada aparte.
  */
-function armarPrompt({ tipoProceso, codigoExterno, metadata, textoBases, sinAdjuntos }) {
-  const textoRecortado = textoBases.length > MAX_CARACTERES_CONTEXTO
-    ? `${textoBases.slice(0, MAX_CARACTERES_CONTEXTO)}\n\n[...texto recortado por longitud...]`
-    : textoBases;
+function armarPrompt({ tipoProceso, codigoExterno, metadata, textoBases, textoFicha, sinAdjuntos }) {
+  const textoTotal = textoBases + textoFicha;
+  const textoRecortado = textoTotal.length > MAX_CARACTERES_CONTEXTO
+    ? `${textoTotal.slice(0, MAX_CARACTERES_CONTEXTO)}\n\n[...texto recortado por longitud...]`
+    : textoTotal;
 
   const tipoTexto = tipoProceso === 'compra_agil' ? 'Compra Ágil' : 'Licitación';
 
@@ -124,8 +125,8 @@ async function llamarIA(prompt) {
  * archivo(s) y/o de la ficha pública) y la metadata conocida, llama a la IA,
  * y devuelve el JSON estructurado listo para guardar en caché.
  */
-async function analizarProceso({ tipoProceso, codigoExterno, metadata, textoBases, sinAdjuntos }) {
-  const prompt = armarPrompt({ tipoProceso, codigoExterno, metadata, textoBases, sinAdjuntos });
+async function analizarProceso({ tipoProceso, codigoExterno, metadata, textoBases, textoFicha, sinAdjuntos }) {
+  const prompt = armarPrompt({ tipoProceso, codigoExterno, metadata, textoBases, textoFicha, sinAdjuntos });
   return llamarIA(prompt);
 }
 

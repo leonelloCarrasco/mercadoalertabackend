@@ -192,9 +192,11 @@ router.post('/', upload.single('archivo'), async (req, res) => {
           // siquiera se llegó a llamar a la IA.
           return res.status(422).json({ error: extraccion.motivo });
         }
+        const textoFicha = await armarTextoSinAdjuntos(tipoProceso, codigoExterno, filaLocal);
+
 
         const metadataPrevia = armarMetadata(tipoProceso, filaLocal);
-        resultado = await analizarProceso({ tipoProceso, codigoExterno, metadata: metadataPrevia, textoBases: extraccion.texto, sinAdjuntos: false });
+        resultado = await analizarProceso({ tipoProceso, codigoExterno, metadata: metadataPrevia, textoBases: extraccion.texto, textoFicha, sinAdjuntos: false });
 
         if (resultado.coincide === false && forzarContinuar !== 'true') {
           // No se guarda ni se gasta cupo — el usuario tiene que confirmar
@@ -219,12 +221,13 @@ router.post('/', upload.single('archivo'), async (req, res) => {
       if (sigueVigente) {
         resultado = existente.contenido;
       } else {
-        const textoBases = await armarTextoSinAdjuntos(tipoProceso, codigoExterno, filaLocal);
-        if (!textoBases) {
+        const textoFicha = await armarTextoSinAdjuntos(tipoProceso, codigoExterno, filaLocal);
+        if (!textoFicha) {
           return res.status(502).json({ error: 'No pudimos traer la información pública de este proceso. Intenta de nuevo más tarde.' });
         }
+        const textoBases = '';
         const metadataPrevia = armarMetadata(tipoProceso, filaLocal);
-        resultado = await analizarProceso({ tipoProceso, codigoExterno, metadata: metadataPrevia, textoBases, sinAdjuntos: true });
+        resultado = await analizarProceso({ tipoProceso, codigoExterno, metadata: metadataPrevia, textoBases, textoFicha, sinAdjuntos: true });
         // No se valida "coincide" acá — sin adjuntos, la única fuente ES la
         // ficha del código que el usuario mismo ingresó, no hay nada
         // externo que pudiera no corresponder.
