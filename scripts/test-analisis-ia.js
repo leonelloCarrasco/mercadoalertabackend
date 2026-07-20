@@ -63,6 +63,7 @@ async function main() {
       fechaCierre: '2026-07-22T16:00:00',
     },
     textoBases: TEXTO_DE_PRUEBA,
+    textoFicha: TEXTO_DE_PRUEBA,
     sinAdjuntos: false,
   });
 
