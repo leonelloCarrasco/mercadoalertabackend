@@ -22,6 +22,7 @@ const { extraerTextoArchivo } = require('../services/documento-extractor.service
 const { analizarProceso } = require('../services/analisis-ia.service');
 const { enviarEmailAlerta, envolverPlantillaEmail } = require('../services/email.service');
 const { obtenerPlan } = require('../utils/planes');
+const { agruparChecklist, normalizarChecklist } = require('../utils/checklist-categorias');
 const pool = require('../db/pool');
 
 const router = express.Router();
@@ -131,6 +132,24 @@ router.get('/mios', async (req, res) => {
   }
 });
 
+// GET /api/analisis-ia/cupo — cuánto cupo queda en el ciclo vigente, SIN
+// disparar ningún análisis. Antes esto solo se veía después de intentar
+// usar la función (o fallar por falta de cupo) — alguien en trial (1 por
+// ciclo) podía gastar su único análisis sin saber que era el último que le
+// quedaba.
+router.get('/cupo', async (req, res) => {
+  try {
+    const limites = obtenerPlan(req.usuarioActual.plan);
+    const limiteAnalisis = limites?.limiteAnalisisIA ?? 1;
+    const cicloVigente = await obtenerCicloVigente(req.userId);
+    const consumidos = await contarConsumosDelCiclo(req.userId, cicloVigente);
+    res.json({ limite: limiteAnalisis, consumidos, restante: Math.max(0, limiteAnalisis - consumidos) });
+  } catch (err) {
+    console.error('[analisis-ia.cupo] Error:', err);
+    res.status(500).json({ error: 'Error al consultar tu cupo' });
+  }
+});
+
 // POST /api/analisis-ia — ejecuta un análisis NUEVO (o rehecho) PARA EL
 // USUARIO LOGUEADO. Siempre gasta cupo si termina con éxito y se guarda
 // (regla B) — sea porque se llamó a la IA de verdad, o porque se copió de
@@ -184,7 +203,9 @@ router.post('/', upload.single('archivo'), async (req, res) => {
       const existente = await buscarAnalisisPorHash(tipoProceso, codigoExterno, archivoHash);
 
       if (existente) {
-        resultado = existente.contenido;
+        // Se normaliza igual al copiar — el análisis original puede ser de
+        // antes de este cambio (sin categoria en su checklist).
+        resultado = { ...existente.contenido, checklistDocumentos: normalizarChecklist(existente.contenido.checklistDocumentos) };
       } else {
         const extraccion = await extraerTextoArchivo(archivo.buffer, archivo.mimetype, archivo.originalname);
         if (!extraccion.extraible) {
@@ -219,7 +240,7 @@ router.post('/', upload.single('archivo'), async (req, res) => {
       const sigueVigente = existente && (!fechaCierreActual || fechaCierreActual === fechaCierreExistente);
 
       if (sigueVigente) {
-        resultado = existente.contenido;
+        resultado = { ...existente.contenido, checklistDocumentos: normalizarChecklist(existente.contenido.checklistDocumentos) };
       } else {
         const textoFicha = await armarTextoSinAdjuntos(tipoProceso, codigoExterno, filaLocal);
         if (!textoFicha) {
@@ -276,10 +297,16 @@ router.post('/:id/enviar-correo', async (req, res) => {
     }
 
     const c = analisis.contenido;
-    const checklistHtml = (c.checklistDocumentos || []).map((d) => `
-      <li style="margin-bottom: 8px;">
-        ${d.obligatorio ? '✅' : '➖'} ${d.documento}${d.notas ? `<br><span style="color:#64748b; font-size:12px;">${d.notas}</span>` : ''}
-      </li>
+    const gruposChecklist = agruparChecklist(c.checklistDocumentos);
+    const checklistHtml = gruposChecklist.map((grupo) => `
+      <p style="font-size: 12px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.04em; margin: 14px 0 4px 0;">${grupo.etiqueta}</p>
+      <ul style="padding-left: 20px; margin: 0;">
+        ${grupo.documentos.map((d) => `
+          <li style="margin-bottom: 8px;">
+            ${d.obligatorio ? '✅' : '➖'} ${d.documento}${d.notas ? `<br><span style="color:#64748b; font-size:12px;">${d.notas}</span>` : ''}
+          </li>
+        `).join('')}
+      </ul>
     `).join('');
 
     const puntosHtml = (c.puntosDeAtencion || []).map((p) => `<li style="margin-bottom: 6px;">${p}</li>`).join('');
@@ -289,7 +316,7 @@ router.post('/:id/enviar-correo', async (req, res) => {
       ${analisis.sin_adjuntos ? '<div class="warning-box"><p>⚠️ Este análisis se hizo sin las bases completas — puede faltar información relevante.</p></div>' : ''}
       <p>${(c.resumen || '').replace(/\n/g, '<br>')}</p>
       <h3 style="font-size: 14px; margin-top: 24px;">Checklist de documentos</h3>
-      <ul style="padding-left: 20px;">${checklistHtml || '<li>No se identificaron documentos exigidos.</li>'}</ul>
+      ${checklistHtml || '<p style="font-size: 13px; color: #64748b;">No se identificaron documentos exigidos.</p>'}
       <h3 style="font-size: 14px; margin-top: 24px;">Puntos de atención</h3>
       <ul style="padding-left: 20px;">${puntosHtml || '<li>Sin puntos de atención identificados.</li>'}</ul>
     `;

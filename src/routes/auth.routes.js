@@ -40,6 +40,7 @@ const {
   registerLimiter,
   forgotPasswordLimiter,
   resetPasswordLimiter,
+  reenviarConfirmacionLimiter,
 } = require('../middleware/rate-limit.middleware');
 
 const router = express.Router();
@@ -271,6 +272,49 @@ router.post('/confirmar-cuenta', async (req, res) => {
   } catch (err) {
     console.error('Error en /confirmar-cuenta:', err);
     res.status(500).json({ error: 'Error interno al confirmar la cuenta' });
+  }
+});
+
+// POST /auth/reenviar-confirmacion — para cuando el correo de bienvenida no
+// llegó (fue a spam, se demoró, hubo un typo en el email al registrarse).
+// Sin este endpoint no había NINGUNA salida — la persona quedaba trabada,
+// sin poder ni reintentar el registro (el RUT/email ya existen).
+//
+// A propósito responde el MISMO mensaje genérico exista o no exista esa
+// cuenta, y también si la cuenta ya está confirmada — no hay forma de usar
+// este endpoint para averiguar qué correos están registrados en el sistema
+// (enumeración de cuentas).
+router.post('/reenviar-confirmacion', reenviarConfirmacionLimiter, async (req, res) => {
+  const { email } = req.body;
+  const mensajeGenerico = { mensaje: 'Si existe una cuenta pendiente de confirmar con ese correo, te enviamos un nuevo link.' };
+
+  if (!email) {
+    return res.status(400).json({ error: 'email es obligatorio' });
+  }
+
+  try {
+    const usuario = await buscarUsuarioPorEmail(email.trim().toLowerCase());
+
+    // Ni "no existe" ni "ya está confirmada" cambian la respuesta — mismo
+    // criterio de no-enumeración que /forgot-password.
+    if (!usuario || usuario.estado !== 'pendiente_email') {
+      return res.json(mensajeGenerico);
+    }
+
+    const token = generarTokenAleatorio();
+    const tokenHash = hashearToken(token);
+    const expiresAt = new Date(Date.now() + CONFIRMACION_TOKEN_TTL_MS);
+    await crearTokenConfirmacionCuenta(usuario.id, tokenHash, expiresAt);
+
+    const link = `${FRONTEND_URL}/confirmar-cuenta.html?token=${token}`;
+    const { subject, html } = armarEmailConfirmacionCuenta(link, usuario.nombre);
+    await enviarEmailAlerta({ to: usuario.email, subject, html });
+
+    res.json(mensajeGenerico);
+  } catch (err) {
+    console.error('Error en /reenviar-confirmacion:', err);
+    // Igual acá: no delatar por el error que la cuenta sí existe.
+    res.json(mensajeGenerico);
   }
 });
 
