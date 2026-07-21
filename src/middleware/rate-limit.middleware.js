@@ -44,4 +44,14 @@ const resetPasswordLimiter = rateLimit({
   handler: mensajeError('Demasiados intentos. Intenta de nuevo en unos minutos.'),
 });
 
-module.exports = { loginLimiter, registerLimiter, forgotPasswordLimiter, resetPasswordLimiter };
+// Mismo criterio que forgotPasswordLimiter: dispara un email real, hay que
+// evitar que sirva para spamear la bandeja de alguien.
+const reenviarConfirmacionLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: mensajeError('Demasiadas solicitudes de reenvío. Intenta de nuevo más tarde.'),
+});
+
+module.exports = { loginLimiter, registerLimiter, forgotPasswordLimiter, resetPasswordLimiter, reenviarConfirmacionLimiter };

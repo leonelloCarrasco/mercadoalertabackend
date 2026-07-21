@@ -1,3 +1,5 @@
+const { normalizarChecklist } = require('../utils/checklist-categorias');
+
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const MODELO = 'claude-sonnet-5';
 
@@ -46,7 +48,12 @@ Responde EXCLUSIVAMENTE con un JSON válido (sin texto antes ni después, sin ma
   "razonNoCoincide": string o null — si coincide=false, explica brevemente por qué.
   "resumen": string — resumen en lenguaje simple y directo (3-5 párrafos), pensado para alguien sin formación legal. Qué se licita, quién compra, cuándo cierra, y lo más importante para decidir si postular o no.
   "fechasClave": array de objetos {"nombre": string, "fecha": string} — todas las fechas relevantes que encuentres. Entrega las fechas exactas (con formato dd/MM/aaaa hh:mi) antes que una descripción de ésta, por ejemplo, tantos días antes o después de un evento. Generalmente están descritos directamente en la ficha de la licitación/Compra Ágil. 
-  "checklistDocumentos": array de objetos {"documento": string, "obligatorio": true/false, "notas": string o null} — TODOS los documentos/anexos que se exigen presentar, sacados del texto. Sé exhaustivo.
+  "checklistDocumentos": array de objetos {"documento": string, "categoria": string, "obligatorio": true/false, "notas": string o null} — TODOS los documentos/anexos que se exigen presentar, sacados del texto. Sé exhaustivo.
+    "categoria" DEBE ser exactamente uno de estos 4 valores (elige el que mejor calce, no inventes otros):
+    - "anexos" — formularios numerados propios de esta licitación (Anexo N°1, Anexo N°2, etc.)
+    - "certificados" — certificaciones de vigencia, calidad, registro sanitario, cumplimiento, antecedentes laborales, etc.
+    - "legal_societario" — documentos de constitución de la empresa, poderes, escrituras, cédula de identidad, RUT
+    - "otros" — cualquier documento exigido que no encaje en las anteriores
   "criteriosEvaluacion": array de objetos {"criterio": string, "ponderacion": string, "detalle": string o null} — cómo se evalúan las ofertas.
   "puntosDeAtencion": array de strings — cosas puntuales que un proponente podría pasar por alto y que causarían el rechazo/inadmisibilidad de su oferta.
 }
@@ -127,7 +134,14 @@ async function llamarIA(prompt) {
  */
 async function analizarProceso({ tipoProceso, codigoExterno, metadata, textoBases, textoFicha, sinAdjuntos }) {
   const prompt = armarPrompt({ tipoProceso, codigoExterno, metadata, textoBases, textoFicha, sinAdjuntos });
-  return llamarIA(prompt);
+  const resultado = await llamarIA(prompt);
+
+  // Nunca se confía a ciegas en que la IA respetó el enum cerrado de
+  // categorías del prompt — se valida acá, en el único lugar por el que
+  // pasa cualquier análisis nuevo, sin importar quién lo llame después.
+  resultado.checklistDocumentos = normalizarChecklist(resultado.checklistDocumentos);
+
+  return resultado;
 }
 
 module.exports = { analizarProceso };
