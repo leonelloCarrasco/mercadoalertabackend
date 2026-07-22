@@ -38,9 +38,9 @@ CREATE INDEX idx_pipeline_oportunidades_user_id ON pipeline_oportunidades (user_
 
 -- origen: distingue un seguimiento que el usuario activó a mano ('manual',
 -- default — mismo comportamiento de siempre) de uno que el pipeline creó
--- solo por detrás ('pipeline'). Importa al eliminar: si sacás algo del
+-- solo por detrás ('pipeline'). Importa al eliminar: si sacas algo del
 -- pipeline y su seguimiento era 'pipeline', se borra junto con el ítem — si
--- era 'manual' (lo habías activado vos aparte, antes o después), se deja,
--- porque seguís queriendo el aviso de cambio de estado por separado.
+-- era 'manual' (lo habías activado tú aparte, antes o después), se deja,
+-- porque sigues queriendo el aviso de cambio de estado por separado.
 ALTER TABLE seguimientos_licitacion
   ADD COLUMN origen VARCHAR(20) NOT NULL DEFAULT 'manual' CHECK (origen IN ('manual', 'pipeline'));
