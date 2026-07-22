@@ -3,6 +3,7 @@ const multer = require('multer');
 const crypto = require('crypto');
 const { requireAuth } = require('../middleware/auth.middleware');
 const { requireEmpresaActiva } = require('../middleware/requireEmpresaActiva.middleware');
+const { analisisIaLimiter } = require('../middleware/rate-limit.middleware');
 const {
   buscarMiAnalisis,
   buscarAnalisisPorHash,
@@ -29,10 +30,52 @@ const router = express.Router();
 router.use(requireAuth);
 router.use(requireEmpresaActiva);
 
+// Mismos tipos que acepta extraerTextoArchivo (documento-extractor.service.js)
+// — se valida acá TAMBIÉN, para rechazar antes de cargar el archivo entero a
+// memoria, en vez de recién después de haberlo leído. Se chequea mimetype O
+// extensión (no las dos a la vez) porque el navegador a veces manda un
+// mimetype genérico (ej. application/octet-stream) para archivos válidos —
+// misma tolerancia que ya tiene extraerTextoArchivo más adelante.
+const MIMETYPES_PERMITIDOS = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+const EXTENSIONES_PERMITIDAS = ['.pdf', '.docx'];
+
+function filtrarTipoArchivo(req, file, cb) {
+  const nombreMinuscula = (file.originalname || '').toLowerCase();
+  const extensionValida = EXTENSIONES_PERMITIDAS.some((ext) => nombreMinuscula.endsWith(ext));
+  const mimetypeValido = MIMETYPES_PERMITIDOS.includes(file.mimetype);
+
+  if (extensionValida || mimetypeValido) {
+    cb(null, true);
+  } else {
+    cb(new Error('Solo se aceptan archivos PDF o Word (.docx).'));
+  }
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB, mismo tope que exige ChileCompra para sus propios adjuntos
+  fileFilter: filtrarTipoArchivo,
 });
+
+// multer, al rechazar por fileFilter o por límite de tamaño, llama a
+// next(err) — sin este wrapper, Express usa su manejador de error por
+// defecto (una página HTML genérica con 500), no la respuesta JSON
+// consistente con el resto de la API. Se envuelve upload.single acá para
+// interceptar ESE error puntual y devolver algo coherente.
+function subirArchivo(req, res, next) {
+  upload.single('archivo')(req, res, (err) => {
+    if (err) {
+      const esTamano = err.code === 'LIMIT_FILE_SIZE';
+      return res.status(400).json({
+        error: esTamano ? 'El archivo supera el máximo de 20MB.' : err.message,
+      });
+    }
+    next();
+  });
+}
 
 const TIPOS_VALIDOS = ['licitacion', 'compra_agil'];
 
@@ -154,7 +197,7 @@ router.get('/cupo', async (req, res) => {
 // USUARIO LOGUEADO. Siempre gasta cupo si termina con éxito y se guarda
 // (regla B) — sea porque se llamó a la IA de verdad, o porque se copió de
 // otro análisis con el mismo archivo (regla C + optimización de costo).
-router.post('/', upload.single('archivo'), async (req, res) => {
+router.post('/', analisisIaLimiter, subirArchivo, async (req, res) => {
   const { tipoProceso, codigo, sinAdjuntos, forzarContinuar } = req.body;
   const archivo = req.file;
 
