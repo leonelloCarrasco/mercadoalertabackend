@@ -12,6 +12,7 @@ const pipelineRoutes = require('./routes/pipeline.routes');
 const empresasRoutes = require('./routes/empresas.routes');
 const analisisRoutes = require('./routes/analisis.routes');
 const analisisIaRoutes = require('./routes/analisis-ia.routes');
+const soporteRoutes = require('./routes/soporte.routes');
 const pagosRoutes = require('./routes/pagos.routes');
 
 const app = express();
@@ -68,5 +69,6 @@ app.use('/api/empresas', empresasRoutes);
 app.use('/api/pagos', pagosRoutes);
 app.use('/api/analisis', analisisRoutes);
 app.use('/api/analisis-ia', analisisIaRoutes);
+app.use('/api/soporte', soporteRoutes);
 
 module.exports = app;

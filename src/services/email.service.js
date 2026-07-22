@@ -6,14 +6,19 @@ const RESEND_API_URL = 'https://api.resend.com/emails';
  * Envía un email de alerta. Si no hay RESEND_API_KEY configurada, imprime
  * el contenido en consola en vez de fallar — así se puede probar el flujo
  * completo de matching sin tener una cuenta de Resend todavía.
+ *
+ * `replyTo` es opcional — se usa en el formulario de contacto de Ayuda, para
+ * que quien responda desde soporte le conteste directo al correo del
+ * usuario, sin tener que copiar/pegarlo a mano.
  */
-async function enviarEmailAlerta({ to, subject, html }) {
+async function enviarEmailAlerta({ to, subject, html, replyTo }) {
   const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey) {
     console.log('\n📧 [email.service] RESEND_API_KEY no configurada — modo simulación:');
     console.log(`   Para: ${to}`);
     console.log(`   Asunto: ${subject}`);
+    if (replyTo) console.log(`   Responder a: ${replyTo}`);
     console.log(`   Contenido: ${html.replace(/<[^>]+>/g, ' ').slice(0, 200)}...`);
     return { simulado: true };
   }
@@ -29,6 +34,7 @@ async function enviarEmailAlerta({ to, subject, html }) {
       to,
       subject,
       html,
+      ...(replyTo ? { reply_to: replyTo } : {}),
     }),
   });
 
@@ -401,7 +407,7 @@ function armarEmailAvisoAcceso2Dias({ nombre, accesoHasta }) {
   const contenidoHtml = `
     <h2>⏰ Tu acceso está por terminar</h2>
     <p>Hola${nombre ? ` ${nombre}` : ''}, cancelaste tu suscripción a MercadoAlerta hace un tiempo — tu acceso, que se mantuvo activo hasta terminar el período que ya habías pagado, vence el <strong>${fechaTexto}</strong>.</p>
-    <p>Si te arrepentiste, podés volver a suscribirte antes de esa fecha (o después, cuando quieras) sin perder nada de lo que configuraste — tus alertas, búsquedas guardadas y todo lo demás siguen guardados tal cual los dejaste.</p>
+    <p>Si te arrepentiste, puedes volver a suscribirte antes de esa fecha (o después, cuando quieras) sin perder nada de lo que configuraste — tus alertas, búsquedas guardadas y todo lo demás siguen guardados tal cual los dejaste.</p>
     <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Reactivar mi plan →</a>
   `;
   return { subject: '⏰ Tu acceso a MercadoAlerta termina pronto', html: envolverPlantillaEmail({ contenidoHtml }) };
@@ -420,7 +426,7 @@ function armarEmailAccesoTerminado({ nombre }) {
     <p>Hola${nombre ? ` ${nombre}` : ''}, el período que ya habías pagado antes de cancelar tu suscripción llegó a su fin.</p>
 
     <div class="warning-box">
-      <p>⚠️ Tus alertas dejaron de monitorear Mercado Público — pero toda tu configuración (alertas, búsquedas guardadas, recordatorios, pipeline) sigue guardada tal cual la dejaste, por si querés volver.</p>
+      <p>⚠️ Tus alertas dejaron de monitorear Mercado Público — pero toda tu configuración (alertas, búsquedas guardadas, recordatorios, pipeline) sigue guardada tal cual la dejaste, por si quieres volver.</p>
     </div>
 
     <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Reactivar mi plan →</a>

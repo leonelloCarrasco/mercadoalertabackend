@@ -54,4 +54,23 @@ const reenviarConfirmacionLimiter = rateLimit({
   handler: mensajeError('Demasiadas solicitudes de reenvío. Intenta de nuevo más tarde.'),
 });
 
-module.exports = { loginLimiter, registerLimiter, forgotPasswordLimiter, resetPasswordLimiter, reenviarConfirmacionLimiter };
+// Es un usuario ya logueado (no anónimo como los de arriba), pero igual
+// dispara un correo — un límite más generoso alcanza para frenar un posible
+// loop/bug del front sin molestar a alguien que de verdad necesita escribir
+// varias veces.
+const contactoAyudaLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: mensajeError('Demasiados mensajes enviados. Intenta de nuevo más tarde.'),
+});
+
+module.exports = {
+  loginLimiter,
+  registerLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter,
+  reenviarConfirmacionLimiter,
+  contactoAyudaLimiter,
+};
