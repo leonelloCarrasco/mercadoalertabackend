@@ -15,6 +15,7 @@ const {
 const { buscarUsuarioPorEmpresaId, buscarUsuarioPorId } = require('../db/queries');
 const { requireAuth } = require('../middleware/auth.middleware');
 const { requireAdminKey } = require('../middleware/admin.middleware');
+const { verificarFirmaWebhook } = require('../utils/mercadopago-signature');
 
 const router = express.Router();
 
@@ -30,6 +31,21 @@ const router = express.Router();
  */
 router.post('/webhook', async (req, res) => {
   try {
+    // Primera línea de defensa: rechazar de entrada lo que ni siquiera trae
+    // la firma correcta, antes de gastar una consulta a la API de
+    // MercadoPago o a la base. Si MERCADOPAGO_WEBHOOK_SECRET todavía no está
+    // configurada, esto no bloquea nada (ver verificarFirmaWebhook) — la
+    // segunda línea de defensa (re-consultar el estado real antes de activar
+    // algo, un poco más abajo) sigue funcionando igual mientras tanto.
+    const firmaValida = verificarFirmaWebhook(req);
+    if (firmaValida === false) {
+      console.warn('[pagos.webhook] Firma inválida — notificación rechazada.');
+      return res.sendStatus(401);
+    }
+    if (firmaValida === null) {
+      console.log('[pagos.webhook] MERCADOPAGO_WEBHOOK_SECRET no configurada — se procesa sin verificar firma.');
+    }
+
     // MercadoPago manda notificaciones de varios tipos al mismo webhook si
     // se activa más de un evento en el panel (ej. "Pagos" además de "Planes
     // y suscripciones") — acá solo nos importan las de tipo
@@ -48,7 +64,7 @@ router.post('/webhook', async (req, res) => {
 
     console.log(`[pagos.webhook] Notificación de tipo '${tipo}'.`);
 
-    const preapprovalId = req.body?.data?.id || req.query?.id;
+    const preapprovalId = req.body?.data?.id || req.query?.['data.id'] || req.query?.id;
 
     if (!preapprovalId) {
       console.warn('[pagos.webhook] No se encontró preapproval_id en la notificación:', req.body);

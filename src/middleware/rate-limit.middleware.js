@@ -1,4 +1,5 @@
 const rateLimit = require('express-rate-limit');
+const { ipKeyGenerator } = require('express-rate-limit');
 
 /**
  * Límites por IP para las rutas de autenticación. Los valores buscan un
@@ -66,6 +67,30 @@ const contactoAyudaLimiter = rateLimit({
   handler: mensajeError('Demasiados mensajes enviados. Intenta de nuevo más tarde.'),
 });
 
+/**
+ * A diferencia de los de arriba, este NO limita por IP — limita por
+ * usuario (req.userId, ya seteado por requireAuth antes de llegar acá).
+ * Tiene sentido acá puntualmente: el riesgo real no es tráfico anónimo
+ * (esta ruta ya exige estar logueado), sino un usuario autenticado
+ * bombardeando el endpoint con archivos basura — la cuota mensual de
+ * análisis NO lo frena, porque un archivo que falla la extracción (ej. PDF
+ * escaneado) o que no coincide con el código (mismatch) no gasta cupo, así
+ * que sin esto se podría repetir indefinidamente, gastando CPU en cada
+ * intento de extracción de texto.
+ *
+ * El límite es generoso a propósito (20/hora) — deja margen para probar
+ * varios archivos de buena fe (ej. el flujo de "¿continuar de todas
+ * formas?" ya implica 2 requests) sin frenar a nadie real.
+ */
+const analisisIaLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.userId || ipKeyGenerator(req.ip),
+  handler: mensajeError('Demasiados análisis intentados en poco tiempo. Intenta de nuevo más tarde.'),
+});
+
 module.exports = {
   loginLimiter,
   registerLimiter,
@@ -73,4 +98,5 @@ module.exports = {
   resetPasswordLimiter,
   reenviarConfirmacionLimiter,
   contactoAyudaLimiter,
+  analisisIaLimiter,
 };
