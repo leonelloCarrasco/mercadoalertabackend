@@ -68,8 +68,20 @@ const PLANES = {
   },
 };
 
+// Object.hasOwn (en vez de PLANES[nombrePlan] directo) es la parte crítica
+// acá: un objeto literal como PLANES hereda de Object.prototype, así que
+// nombrePlan = "constructor", "toString" o "__proto__" devolvería un método
+// heredado (truthy, no undefined) con el lookup directo — bastaba mandar
+// plan: "constructor" en POST /auth/register para que pasara la validación
+// "if (!configPlan)" con un objeto sin monto/requierePago/diasTrial reales,
+// lo que terminaba creando una empresa con estado_pago 'activo' y sin fecha
+// de expiración de trial (bypass completo del pago). Object.hasOwn descarta
+// cualquier propiedad heredada, solo reconoce las 3 claves propias del objeto.
 function obtenerPlan(nombrePlan) {
-  return PLANES[nombrePlan] || null;
+  if (typeof nombrePlan !== 'string' || !Object.hasOwn(PLANES, nombrePlan)) {
+    return null;
+  }
+  return PLANES[nombrePlan];
 }
 
 module.exports = { PLANES, obtenerPlan };

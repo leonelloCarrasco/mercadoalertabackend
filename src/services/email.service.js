@@ -3,6 +3,25 @@ const { obtenerTramo } = require('../utils/tramos-licitacion');
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
 /**
+ * Escapa HTML antes de insertar en las plantillas de correo cualquier texto
+ * que no sea 100% fijo — nombres de licitaciones/Compras Ágiles, organismos,
+ * proveedores adjudicados, etc. Esos campos vienen de Mercado Público (un
+ * tercero) o del propio usuario (nombre de cuenta), así que en teoría podrían
+ * traer HTML. La mayoría de los clientes de correo ignoran <script>, pero
+ * igual permiten inyectar markup/enlaces falsos dentro de un correo "oficial"
+ * — mejor no confiar en eso y escapar directamente.
+ */
+function escapeHtml(valor) {
+  if (valor === null || valor === undefined) return '';
+  return String(valor)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
  * Envía un email de alerta. Si no hay RESEND_API_KEY configurada, imprime
  * el contenido en consola en vez de fallar — así se puede probar el flujo
  * completo de matching sin tener una cuenta de Resend todavía.
@@ -119,12 +138,12 @@ function envolverPlantillaEmail({ contenidoHtml }) {
 function tarjetaProceso({ nombre, link, codigo, organismo, monto, cierre }) {
   return `
     <div class="item-card">
-      <a href="${link}" class="item-title" target="_blank" rel="noopener">${nombre} ↗</a>
+      <a href="${escapeHtml(link)}" class="item-title" target="_blank" rel="noopener">${escapeHtml(nombre)} ↗</a>
       <p class="item-meta">
-        Código: ${codigo}<br>
-        Organismo: ${organismo || 'No especificado'}<br>
-        Monto: ${monto}<br>
-        Cierra: ${cierre || 'No especificada'}
+        Código: ${escapeHtml(codigo)}<br>
+        Organismo: ${escapeHtml(organismo) || 'No especificado'}<br>
+        Monto: ${escapeHtml(monto)}<br>
+        Cierra: ${escapeHtml(cierre) || 'No especificada'}
       </p>
     </div>
   `;
@@ -242,7 +261,7 @@ function armarEmailRecuperacion(link) {
 function armarEmailConfirmacionCuenta(link, nombre) {
   const contenidoHtml = `
     <h2>¡Bienvenido/a a MercadoAlerta! 🎉</h2>
-    <p>Hola${nombre ? ` ${nombre}` : ''}, gracias por registrarte. Con tu cuenta confirmada vas a poder:</p>
+    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, gracias por registrarte. Con tu cuenta confirmada vas a poder:</p>
 
     <ul class="feature-list">
       <li>✅ Configurar alertas por rubro, región y organismo comprador</li>
@@ -303,8 +322,8 @@ function armarEmailSeguimiento({ nombre, codigoExterno, estadoAnterior, estadoNu
     if (adjudicados.length > 0) {
       const filas = adjudicados.map((it) => `
         <li style="margin-bottom: 10px;">
-          ${it.nombre_producto || it.categoria || 'Ítem'}<br>
-          Ganador: ${it.adjudicacion.nombre_proveedor || 'No especificado'} (${it.adjudicacion.rut_proveedor || 'RUT no especificado'})<br>
+          ${escapeHtml(it.nombre_producto || it.categoria) || 'Ítem'}<br>
+          Ganador: ${escapeHtml(it.adjudicacion.nombre_proveedor) || 'No especificado'} (${escapeHtml(it.adjudicacion.rut_proveedor) || 'RUT no especificado'})<br>
           Cantidad: ${it.adjudicacion.cantidad ?? '—'} · Monto unitario: ${it.adjudicacion.monto_unitario ? `$${Number(it.adjudicacion.monto_unitario).toLocaleString('es-CL')}` : 'No especificado'}
         </li>
       `).join('');
@@ -317,12 +336,12 @@ function armarEmailSeguimiento({ nombre, codigoExterno, estadoAnterior, estadoNu
 
   const contenidoHtml = `
     <h2>📋 Cambio de estado en una licitación que sigues</h2>
-    <p><a href="${link}" style="color: #12172B; font-weight: 700; text-decoration: none;" target="_blank" rel="noopener">${nombre} ↗</a><br>
-    <span style="font-size: 13px; color: #64748b;">Código: ${codigoExterno}</span></p>
+    <p><a href="${escapeHtml(link)}" style="color: #12172B; font-weight: 700; text-decoration: none;" target="_blank" rel="noopener">${escapeHtml(nombre)} ↗</a><br>
+    <span style="font-size: 13px; color: #64748b;">Código: ${escapeHtml(codigoExterno)}</span></p>
 
     <div class="highlight-box">
       <h3>Cambio de estado</h3>
-      <p>${estadoAnterior} → ${estadoNuevo}</p>
+      <p>${escapeHtml(estadoAnterior)} → ${escapeHtml(estadoNuevo)}</p>
     </div>
 
     ${detalleAdjudicacion}
@@ -338,7 +357,7 @@ function armarEmailAviso2Dias({ nombre, fechaExpiracionTrial }) {
   const fechaTexto = new Date(fechaExpiracionTrial).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
   const contenidoHtml = `
     <h2>⏰ Tu período de prueba está por terminar</h2>
-    <p>Hola${nombre ? ` ${nombre}` : ''}, tu prueba gratuita de MercadoAlerta vence el <strong>${fechaTexto}</strong>.</p>
+    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, tu prueba gratuita de MercadoAlerta vence el <strong>${fechaTexto}</strong>.</p>
     <p>Si quieres seguir recibiendo tus alertas sin interrupción, elige un plan antes de esa fecha — tus alertas, búsquedas guardadas y todo lo que configuraste durante la prueba se mantienen intactos, no se pierde nada.</p>
     <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Elegir mi plan →</a>
   `;
@@ -354,7 +373,7 @@ function armarEmailAviso2Dias({ nombre, fechaExpiracionTrial }) {
 function armarEmailTrialVencido({ nombre }) {
   const contenidoHtml = `
     <h2>Tu período de prueba terminó</h2>
-    <p>Hola${nombre ? ` ${nombre}` : ''}, tus 14 días de prueba gratuita de MercadoAlerta ya terminaron.</p>
+    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, tus 14 días de prueba gratuita de MercadoAlerta ya terminaron.</p>
 
     <div class="warning-box">
       <p>⚠️ Tus alertas dejaron de monitorear Mercado Público hasta que elijas un plan — pero no te preocupes, toda tu configuración (alertas, búsquedas guardadas, recordatorios, pipeline) sigue guardada tal cual la dejaste.</p>
@@ -376,12 +395,12 @@ function armarEmailConfirmacionSuscripcion({ nombre, plan, monto, tarjeta }) {
   const nombrePlan = plan === 'full' ? 'Full' : 'Básico';
   const montoTexto = monto ? `$${Number(monto).toLocaleString('es-CL')} / mes` : 'No especificado';
   const tarjetaTexto = tarjeta?.ultimosDigitos
-    ? `Tarjeta terminada en ${tarjeta.ultimosDigitos}${tarjeta.marca ? ` (${tarjeta.marca})` : ''}`
+    ? `Tarjeta terminada en ${escapeHtml(tarjeta.ultimosDigitos)}${tarjeta.marca ? ` (${escapeHtml(tarjeta.marca)})` : ''}`
     : null;
 
   const contenidoHtml = `
     <h2>✅ Tu suscripción está activa</h2>
-    <p>Hola${nombre ? ` ${nombre}` : ''}, confirmamos tu pago — ya puedes seguir usando MercadoAlerta sin interrupciones.</p>
+    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, confirmamos tu pago — ya puedes seguir usando MercadoAlerta sin interrupciones.</p>
 
     <div class="highlight-box">
       <h3>Plan ${nombrePlan}</h3>
@@ -406,7 +425,7 @@ function armarEmailAvisoAcceso2Dias({ nombre, accesoHasta }) {
   const fechaTexto = new Date(accesoHasta).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
   const contenidoHtml = `
     <h2>⏰ Tu acceso está por terminar</h2>
-    <p>Hola${nombre ? ` ${nombre}` : ''}, cancelaste tu suscripción a MercadoAlerta hace un tiempo — tu acceso, que se mantuvo activo hasta terminar el período que ya habías pagado, vence el <strong>${fechaTexto}</strong>.</p>
+    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, cancelaste tu suscripción a MercadoAlerta hace un tiempo — tu acceso, que se mantuvo activo hasta terminar el período que ya habías pagado, vence el <strong>${fechaTexto}</strong>.</p>
     <p>Si te arrepentiste, puedes volver a suscribirte antes de esa fecha (o después, cuando quieras) sin perder nada de lo que configuraste — tus alertas, búsquedas guardadas y todo lo demás siguen guardados tal cual los dejaste.</p>
     <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Reactivar mi plan →</a>
   `;
@@ -423,7 +442,7 @@ function armarEmailAvisoAcceso2Dias({ nombre, accesoHasta }) {
 function armarEmailAccesoTerminado({ nombre }) {
   const contenidoHtml = `
     <h2>Tu acceso a MercadoAlerta terminó</h2>
-    <p>Hola${nombre ? ` ${nombre}` : ''}, el período que ya habías pagado antes de cancelar tu suscripción llegó a su fin.</p>
+    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, el período que ya habías pagado antes de cancelar tu suscripción llegó a su fin.</p>
 
     <div class="warning-box">
       <p>⚠️ Tus alertas dejaron de monitorear Mercado Público — pero toda tu configuración (alertas, búsquedas guardadas, recordatorios, pipeline) sigue guardada tal cual la dejaste, por si quieres volver.</p>
@@ -435,6 +454,7 @@ function armarEmailAccesoTerminado({ nombre }) {
 }
 
 module.exports = {
+  escapeHtml,
   enviarEmailAlerta,
   armarResumenLicitaciones,
   armarResumenCompraAgil,
