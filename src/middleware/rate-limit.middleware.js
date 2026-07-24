@@ -91,6 +91,21 @@ const analisisIaLimiter = rateLimit({
   handler: mensajeError('Demasiados análisis intentados en poco tiempo. Intenta de nuevo más tarde.'),
 });
 
+// Igual que contactoAyudaLimiter: dispara un correo real a una dirección que
+// el propio usuario logueado puede elegir libremente (POST /:id/enviar-correo,
+// campo `email` del body) — sin límite, un usuario autenticado podría usarlo
+// para bombardear repetidamente cualquier casilla ajena con el contenido de
+// su análisis. Se limita por usuario (no por IP), mismo criterio que
+// analisisIaLimiter.
+const enviarCorreoAnalisisLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.userId || ipKeyGenerator(req.ip),
+  handler: mensajeError('Demasiados correos enviados. Intenta de nuevo más tarde.'),
+});
+
 module.exports = {
   loginLimiter,
   registerLimiter,
@@ -99,4 +114,5 @@ module.exports = {
   reenviarConfirmacionLimiter,
   contactoAyudaLimiter,
   analisisIaLimiter,
+  enviarCorreoAnalisisLimiter,
 };

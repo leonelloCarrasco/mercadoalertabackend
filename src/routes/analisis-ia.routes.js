@@ -3,7 +3,7 @@ const multer = require('multer');
 const crypto = require('crypto');
 const { requireAuth } = require('../middleware/auth.middleware');
 const { requireEmpresaActiva } = require('../middleware/requireEmpresaActiva.middleware');
-const { analisisIaLimiter } = require('../middleware/rate-limit.middleware');
+const { analisisIaLimiter, enviarCorreoAnalisisLimiter } = require('../middleware/rate-limit.middleware');
 const {
   buscarMiAnalisis,
   buscarAnalisisPorHash,
@@ -21,7 +21,7 @@ const { obtenerFichaLicitacionHTML } = require('../services/mercadopublico.servi
 const { extraerTextoFicha } = require('../utils/extraer-ficha-texto');
 const { extraerTextoArchivo } = require('../services/documento-extractor.service');
 const { analizarProceso } = require('../services/analisis-ia.service');
-const { enviarEmailAlerta, envolverPlantillaEmail } = require('../services/email.service');
+const { enviarEmailAlerta, envolverPlantillaEmail, escapeHtml } = require('../services/email.service');
 const { obtenerPlan } = require('../utils/planes');
 const { agruparChecklist, normalizarChecklist } = require('../utils/checklist-categorias');
 const pool = require('../db/pool');
@@ -326,9 +326,17 @@ router.post('/', analisisIaLimiter, subirArchivo, async (req, res) => {
 // POST /api/analisis-ia/:id/enviar-correo — manda el análisis por correo. Si
 // no se manda `email` en el body, usa el del usuario logueado por defecto.
 // Solo puede mandarlo el DUEÑO del análisis (regla C).
-router.post('/:id/enviar-correo', async (req, res) => {
+router.post('/:id/enviar-correo', enviarCorreoAnalisisLimiter, async (req, res) => {
   try {
     const destinatario = req.body.email?.trim() || req.usuarioActual.email;
+
+    // Validación básica de formato — junto con enviarCorreoAnalisisLimiter,
+    // evita que este endpoint se use para mandar correos a valores
+    // arbitrarios que no son ni siquiera una dirección de email real.
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!EMAIL_REGEX.test(destinatario)) {
+      return res.status(400).json({ error: 'El email de destino no es válido.' });
+    }
 
     const { rows } = await pool.query(
       'SELECT * FROM analisis_ia WHERE id = $1 AND user_id = $2',
@@ -342,22 +350,22 @@ router.post('/:id/enviar-correo', async (req, res) => {
     const c = analisis.contenido;
     const gruposChecklist = agruparChecklist(c.checklistDocumentos);
     const checklistHtml = gruposChecklist.map((grupo) => `
-      <p style="font-size: 12px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.04em; margin: 14px 0 4px 0;">${grupo.etiqueta}</p>
+      <p style="font-size: 12px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.04em; margin: 14px 0 4px 0;">${escapeHtml(grupo.etiqueta)}</p>
       <ul style="padding-left: 20px; margin: 0;">
         ${grupo.documentos.map((d) => `
           <li style="margin-bottom: 8px;">
-            ${d.obligatorio ? '✅' : '➖'} ${d.documento}${d.notas ? `<br><span style="color:#64748b; font-size:12px;">${d.notas}</span>` : ''}
+            ${d.obligatorio ? '✅' : '➖'} ${escapeHtml(d.documento)}${d.notas ? `<br><span style="color:#64748b; font-size:12px;">${escapeHtml(d.notas)}</span>` : ''}
           </li>
         `).join('')}
       </ul>
     `).join('');
 
-    const puntosHtml = (c.puntosDeAtencion || []).map((p) => `<li style="margin-bottom: 6px;">${p}</li>`).join('');
+    const puntosHtml = (c.puntosDeAtencion || []).map((p) => `<li style="margin-bottom: 6px;">${escapeHtml(p)}</li>`).join('');
 
     const contenidoHtml = `
-      <h2>📋 Análisis: ${analisis.nombre || analisis.codigo_externo}</h2>
+      <h2>📋 Análisis: ${escapeHtml(analisis.nombre || analisis.codigo_externo)}</h2>
       ${analisis.sin_adjuntos ? '<div class="warning-box"><p>⚠️ Este análisis se hizo sin las bases completas — puede faltar información relevante.</p></div>' : ''}
-      <p>${(c.resumen || '').replace(/\n/g, '<br>')}</p>
+      <p>${escapeHtml(c.resumen).replace(/\n/g, '<br>')}</p>
       <h3 style="font-size: 14px; margin-top: 24px;">Checklist de documentos</h3>
       ${checklistHtml || '<p style="font-size: 13px; color: #64748b;">No se identificaron documentos exigidos.</p>'}
       <h3 style="font-size: 14px; margin-top: 24px;">Puntos de atención</h3>

@@ -61,6 +61,19 @@ function generarToken(userId) {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 }
 
+// Límites de largo para campos de texto libre que terminan mostrándose en
+// pantalla (ej. tabla de usuarios del panel admin) — el escapado en el
+// frontend (escapeHtml) ya evita que se ejecute HTML/script, pero limitar el
+// largo acá es una segunda capa de defensa (evita payloads larguísimos y
+// mantiene la UI legible). No se restringen caracteres (nombres con tildes,
+// guiones, apóstrofes son válidos) — solo el largo.
+const MAX_LARGO_NOMBRE = 80;
+const MAX_LARGO_TELEFONO = 30;
+
+function campoDemasiadoLargo(valor, maximo) {
+  return typeof valor === 'string' && valor.trim().length > maximo;
+}
+
 /**
  * Si ya existe una empresa/usuario con el mismo RUT o el mismo email, pero
  * ese usuario nunca llegó a estado 'activo' (registro abandonado a mitad de
@@ -116,6 +129,14 @@ router.post('/register', registerLimiter, async (req, res) => {
 
   if (password.length < 8) {
     return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+  }
+
+  if (campoDemasiadoLargo(nombre, MAX_LARGO_NOMBRE) || campoDemasiadoLargo(apellido, MAX_LARGO_NOMBRE)) {
+    return res.status(400).json({ error: `Nombre y Apellido no pueden superar los ${MAX_LARGO_NOMBRE} caracteres.` });
+  }
+
+  if (campoDemasiadoLargo(telefono, MAX_LARGO_TELEFONO)) {
+    return res.status(400).json({ error: `El teléfono no puede superar los ${MAX_LARGO_TELEFONO} caracteres.` });
   }
 
   if (!aceptaTerminos) {
@@ -456,6 +477,14 @@ router.put('/me', requireAuth, async (req, res) => {
 
   if (!nombre || !apellido || !telefono) {
     return res.status(400).json({ error: 'Nombre, Apellido y Teléfono son obligatorios' });
+  }
+
+  if (campoDemasiadoLargo(nombre, MAX_LARGO_NOMBRE) || campoDemasiadoLargo(apellido, MAX_LARGO_NOMBRE)) {
+    return res.status(400).json({ error: `Nombre y Apellido no pueden superar los ${MAX_LARGO_NOMBRE} caracteres.` });
+  }
+
+  if (campoDemasiadoLargo(telefono, MAX_LARGO_TELEFONO)) {
+    return res.status(400).json({ error: `El teléfono no puede superar los ${MAX_LARGO_TELEFONO} caracteres.` });
   }
 
   try {

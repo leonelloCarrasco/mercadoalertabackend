@@ -17,6 +17,16 @@ const pagosRoutes = require('./routes/pagos.routes');
 
 const app = express();
 
+// Necesario cuando el backend corre detrás de un proxy/CDN (Render, Railway,
+// Cloudflare, nginx, etc. — el caso típico en producción). Sin esto,
+// req.ip devuelve la IP del proxy para TODAS las requests, lo que rompe el
+// rate limiting por IP (express-rate-limit) — todos los usuarios terminarían
+// compartiendo el mismo balde — y también el remoteip que se le manda a
+// Cloudflare Turnstile para verificar el captcha.
+// '1' = confiar en un solo salto de proxy (el balanceador/CDN inmediato).
+// Ajustar el número si hay más de un proxy encadenado antes de llegar acá.
+app.set('trust proxy', 1);
+
 const ORIGENES_PERMITIDOS = [
   'https://mercadoalerta.cl',
   'https://www.mercadoalerta.cl',
