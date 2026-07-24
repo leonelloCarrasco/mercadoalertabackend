@@ -76,16 +76,23 @@ async function obtenerDetallesConDelay(codigosExternos) {
 async function obtenerLicitacionesPorFecha(fecha) {
   const ticket = process.env.MERCADOPUBLICO_TICKET;
   const url = `${BASE_URL}?fecha=${encodeURIComponent(fecha)}&ticket=${ticket}`;
-	
+
   const response = await fetch(url, { headers: { Accept: 'application/json' } });
 
   if (!response.ok) {
     throw new Error(`Error consultando licitaciones por fecha: HTTP ${response.status}`);
-  }else if (response.status == 203){
-	  console.log("cuota alcanzada "+ response.Mensaje);
   }
 
   const data = await response.json();
+
+  // Status 203 = la API respondió pero avisando algo (ej. cuota alcanzada) —
+  // el mensaje real viene en el body ya parseado (data.Mensaje), no en el
+  // objeto Response crudo (que nunca tuvo ese campo — antes este log
+  // siempre imprimía "undefined").
+  if (response.status === 203) {
+    console.log(`cuota alcanzada ${data.Mensaje || '(sin mensaje)'}`);
+  }
+
   return data.Listado || [];
 }
 

@@ -3,7 +3,7 @@ const {
   obtenerDetalleCompraAgil,
   CuotaAgotadaError,
 } = require('../services/compraagil.service');
-const { compraAgilYaVista, obtenerCodigosCompraAgilYaVistos, guardarCompraAgil } = require('../db/compra-agil.queries');
+const { obtenerCodigosCompraAgilYaVistos, guardarCompraAgil } = require('../db/compra-agil.queries');
 const { procesarAlertasCompraAgil } = require('../services/alerting.service');
 
 // Debe ser mayor al intervalo real entre corridas del cron, para no dejar huecos
