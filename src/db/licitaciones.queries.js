@@ -97,7 +97,11 @@ async function guardarLicitacion(detalle) {
       tramo?.utmMax || null,
       JSON.stringify(itemsParaGuardar),
       detalle.Estado || null,
-      detalle.Adjudicacion?.Fecha || detalle.Fechas?.FechaAdjudicacion || null,
+      // Fechas.FechaAdjudicacion trae la hora real (ej. "15:57:50"); el campo
+      // Adjudicacion.Fecha (separado, a nivel superior) SIEMPRE viene a
+      // medianoche en la API — se prioriza el que sí tiene hora, con el otro
+      // como respaldo por si alguna vez faltara.
+      detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha || null,
       detalle.Adjudicacion?.NumeroOferentes || null,
       detalle.Adjudicacion?.UrlActa || null,
       resueltaDesdeElInicio,

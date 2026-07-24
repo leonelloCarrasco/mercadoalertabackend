@@ -102,7 +102,10 @@ async function correrSeguimientoEstado() {
       await actualizarResolucionLicitacion(codigo, {
         items,
         estado: nuevoEstado,
-        fechaAdjudicacion: detalle.Adjudicacion?.Fecha || detalle.Fechas?.FechaAdjudicacion || null,
+        // Fechas.FechaAdjudicacion trae la hora real; Adjudicacion.Fecha
+        // (separado) siempre viene a medianoche en la API — se prioriza el
+        // que sí tiene hora (ver mismo fix en licitaciones.queries.js).
+        fechaAdjudicacion: detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha || null,
         numeroOferentes: detalle.Adjudicacion?.NumeroOferentes || null,
         urlActa: detalle.Adjudicacion?.UrlActa || null,
         resuelta: esFinal,
