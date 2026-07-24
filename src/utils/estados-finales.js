@@ -8,7 +8,7 @@
  * Se usan en DOS momentos: al guardar por primera vez (por si algo ya llega
  * resuelto desde el principio) y en el job de revisión nocturno.
  */
-const ESTADOS_FINALES_LICITACION = ['Adjudicada','Desierta','Revocada'];
+const ESTADOS_FINALES_LICITACION = ['Adjudicada', 'Desierta (o art. 3 ó 9 Ley 19.886)', 'Revocada'];
 const ESTADOS_FINALES_COMPRA_AGIL = ['proveedor_seleccionado','desierta','revocada'];
 
 module.exports = { ESTADOS_FINALES_LICITACION, ESTADOS_FINALES_COMPRA_AGIL };

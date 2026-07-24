@@ -47,14 +47,18 @@ async function obtenerDetalleLicitacion(codigoExterno) {
  */
 async function obtenerDetallesConDelay(codigosExternos) {
   const detalles = [];
+  let iteracion =1;
+  let errores = 1;
 
   for (const codigo of codigosExternos) {
     try {
       const detalle = await obtenerDetalleLicitacion(codigo);
       if (detalle) detalles.push(detalle);
     } catch (err) {
-      console.error(`No se pudo obtener detalle de ${codigo}:`, err.message);
+      console.error(`Error ${errores} de ${iteracion}. No se pudo obtener detalle de ${codigo}:`, err.message);
+      errores ++;
     }
+    iteracion ++;
     await sleep(DELAY_ENTRE_LLAMADAS_MS);
   }
 
@@ -72,11 +76,13 @@ async function obtenerDetallesConDelay(codigosExternos) {
 async function obtenerLicitacionesPorFecha(fecha) {
   const ticket = process.env.MERCADOPUBLICO_TICKET;
   const url = `${BASE_URL}?fecha=${encodeURIComponent(fecha)}&ticket=${ticket}`;
-
+	
   const response = await fetch(url, { headers: { Accept: 'application/json' } });
 
   if (!response.ok) {
     throw new Error(`Error consultando licitaciones por fecha: HTTP ${response.status}`);
+  }else if (response.status == 203){
+	  console.log("cuota alcanzada "+ response.Mensaje);
   }
 
   const data = await response.json();
