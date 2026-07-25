@@ -70,6 +70,24 @@ async function listarAlertConfigsActivas() {
   return result.rows;
 }
 
+/**
+ * Igual que listarAlertConfigsActivas pero para UNA sola config por id (con
+ * el email/telegram_chat_id del usuario ya unidos) — usada justo después de
+ * crear una alerta, para el backfill contra procesos ya publicados (ver
+ * procesarBackfillNuevaAlerta en alerting.service.js). crearAlertConfig
+ * devuelve la fila cruda de alert_configs sin esos dos campos, porque viven
+ * en la tabla users.
+ */
+async function obtenerAlertConfigConContacto(id) {
+  const result = await pool.query(`
+    SELECT ac.*, u.email, u.telegram_chat_id
+    FROM alert_configs ac
+    JOIN users u ON u.id = ac.user_id
+    WHERE ac.id = $1
+  `, [id]);
+  return result.rows[0] || null;
+}
+
 async function obtenerAlertConfigPorId(id, userId) {
   const result = await pool.query(
     'SELECT * FROM alert_configs WHERE id = $1 AND user_id = $2',
@@ -126,6 +144,7 @@ module.exports = {
   crearAlertConfig,
   listarAlertConfigsDeUsuario,
   listarAlertConfigsActivas,
+  obtenerAlertConfigConContacto,
   contarConfigsActivasDeUsuario,
   obtenerAlertConfigPorId,
   actualizarAlertConfig,

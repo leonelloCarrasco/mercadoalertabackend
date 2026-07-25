@@ -1,5 +1,7 @@
 const { listarAlertConfigsActivas } = require('../db/alert-configs.queries');
 const { intentarReservarEnvio, liberarReserva } = require('../db/alerts-sent.queries');
+const { listarLicitacionesPublicadasVigentes } = require('../db/licitaciones.queries');
+const { listarComprasAgilesPublicadasVigentes } = require('../db/compra-agil.queries');
 const { matchLicitacion, matchCompraAgil } = require('./matching.service');
 const { enviarEmailAlerta, armarResumenLicitaciones, armarResumenCompraAgil } = require('./email.service');
 const { enviarTelegramAlerta } = require('./telegram.service');
@@ -169,4 +171,138 @@ async function procesarAlertasCompraAgil(comprasAgilesNuevas) {
   console.log(`[alerting] ${emailsEnviados} emails resumen y ${telegramsEnviados} mensajes de Telegram enviados (Compra Ágil).`);
 }
 
-module.exports = { procesarAlertasLicitaciones, procesarAlertasCompraAgil };
+/**
+ * Adapta una fila de licitaciones_vistas (guardada ya normalizada/aplanada
+ * en la base, ver guardarLicitacion) de vuelta al mismo "shape" de la API
+ * de Mercado Público que ya esperan matchLicitacion, armarResumenLicitaciones
+ * y armarTextoTelegramLicitaciones — así se reusa exactamente la misma
+ * lógica de matching y de armado de mensajes que usa el flujo normal (items
+ * recién descubiertos por el polling), en vez de duplicarla para este caso.
+ */
+function filaLicitacionAApiShape(fila) {
+  return {
+    CodigoExterno: fila.codigo_externo,
+    Nombre: fila.nombre,
+    MontoEstimado: fila.monto_estimado,
+    Estado: fila.estado,
+    Tipo: fila.tipo_licitacion,
+    Fechas: { FechaCierre: fila.fecha_cierre },
+    Items: {
+      Listado: (fila.items || []).map((it) => ({
+        CodigoProducto: it.codigo_producto,
+        CodigoCategoria: it.codigo_categoria,
+      })),
+    },
+    Comprador: {
+      RegionUnidad: fila.region,
+      NombreOrganismo: fila.nombre_organismo,
+      CodigoOrganismo: fila.codigo_organismo,
+    },
+  };
+}
+
+/** Igual que filaLicitacionAApiShape, pero para compras_agiles_vistas. */
+function filaCompraAgilAApiShape(fila) {
+  return {
+    codigo: fila.codigo_externo,
+    nombre: fila.nombre,
+    estado: { codigo: fila.estado },
+    montos: { monto_disponible_clp: fila.monto_estimado },
+    fechas: { fecha_publicacion: fila.fecha_publicacion, fecha_cierre: fila.fecha_cierre },
+    institucion: { nombre_region: fila.region, organismo_comprador: fila.nombre_institucion },
+    productos_solicitados: fila.productos_solicitados || [],
+  };
+}
+
+/**
+ * Al crear una alerta, además de matchear procesos NUEVOS de ahí en adelante
+ * (vía el polling normal), busca entre los procesos "Publicada"/"publicada"
+ * ya guardados en la base — que existían ANTES de esta alerta y podrían
+ * igual ser de interés — y si algo matchea, lo notifica una única vez, igual
+ * que si fuera nuevo.
+ *
+ * Se llama en segundo plano (fire-and-forget) desde POST /api/alerts/config,
+ * sin bloquear la respuesta al usuario: recorrer potencialmente cientos de
+ * procesos guardados puede tardar unos segundos, y crear la alerta no
+ * debería quedar esperando eso.
+ *
+ * config viene de obtenerAlertConfigConContacto (trae email/telegram_chat_id
+ * del usuario ya unidos, a diferencia de lo que devuelve crearAlertConfig).
+ */
+async function procesarBackfillNuevaAlerta(config) {
+  try {
+    const [licitacionesVigentes, comprasAgilesVigentes] = await Promise.all([
+      listarLicitacionesPublicadasVigentes(),
+      listarComprasAgilesPublicadasVigentes(),
+    ]);
+
+    const licitacionesMatch = [];
+    for (const fila of licitacionesVigentes) {
+      const detalle = filaLicitacionAApiShape(fila);
+      const matches = await matchLicitacion(detalle, [config]);
+      if (matches.length > 0) licitacionesMatch.push(detalle);
+    }
+
+    const comprasAgilesMatch = [];
+    for (const fila of comprasAgilesVigentes) {
+      const item = filaCompraAgilAApiShape(fila);
+      const matches = await matchCompraAgil(item, [config]);
+      if (matches.length > 0) comprasAgilesMatch.push(item);
+    }
+
+    if (licitacionesMatch.length === 0 && comprasAgilesMatch.length === 0) {
+      console.log(`[alerting] Backfill de alerta nueva (config ${config.id}): sin coincidencias entre lo ya publicado.`);
+      return;
+    }
+
+    // Misma reserva atómica que el flujo normal (ver agruparPorUsuario) —
+    // evita duplicar el aviso si el polling llega a tocar el mismo item casi
+    // al mismo tiempo que este backfill.
+    const licitacionesAEnviarEmail = [];
+    const licitacionesAEnviarTelegram = [];
+    for (const d of licitacionesMatch) {
+      const reservaEmailId = await intentarReservarEnvio(config.user_id, d.CodigoExterno, 'licitacion', 'email', config.id);
+      if (reservaEmailId) licitacionesAEnviarEmail.push(d);
+      if (config.telegram_chat_id) {
+        const reservaTelegramId = await intentarReservarEnvio(config.user_id, d.CodigoExterno, 'licitacion', 'telegram', config.id);
+        if (reservaTelegramId) licitacionesAEnviarTelegram.push(d);
+      }
+    }
+
+    const comprasAgilesAEnviarEmail = [];
+    const comprasAgilesAEnviarTelegram = [];
+    for (const item of comprasAgilesMatch) {
+      const reservaEmailId = await intentarReservarEnvio(config.user_id, item.codigo, 'compra_agil', 'email', config.id);
+      if (reservaEmailId) comprasAgilesAEnviarEmail.push(item);
+      if (config.telegram_chat_id) {
+        const reservaTelegramId = await intentarReservarEnvio(config.user_id, item.codigo, 'compra_agil', 'telegram', config.id);
+        if (reservaTelegramId) comprasAgilesAEnviarTelegram.push(item);
+      }
+    }
+
+    if (licitacionesAEnviarEmail.length > 0) {
+      const { subject, html } = armarResumenLicitaciones(licitacionesAEnviarEmail);
+      await enviarEmailAlerta({ to: config.email, subject: `🆕 ${subject}`, html });
+    }
+    if (comprasAgilesAEnviarEmail.length > 0) {
+      const { subject, html } = armarResumenCompraAgil(comprasAgilesAEnviarEmail);
+      await enviarEmailAlerta({ to: config.email, subject: `🆕 ${subject}`, html });
+    }
+    if (licitacionesAEnviarTelegram.length > 0) {
+      await enviarTelegramAlerta(config.telegram_chat_id, armarTextoTelegramLicitaciones(licitacionesAEnviarTelegram));
+    }
+    if (comprasAgilesAEnviarTelegram.length > 0) {
+      await enviarTelegramAlerta(config.telegram_chat_id, armarTextoTelegramCompraAgil(comprasAgilesAEnviarTelegram));
+    }
+
+    console.log(`[alerting] Backfill de alerta nueva (config ${config.id}): ${licitacionesMatch.length} licitaciones + ${comprasAgilesMatch.length} Compras Ágiles ya publicadas encontradas y notificadas.`);
+  } catch (err) {
+    // A propósito NO se propaga — este backfill corre fire-and-forget después
+    // de responder la creación de la alerta (ver alerts.routes.js), así que
+    // ya no hay ningún request esperando; si algo falla acá, la alerta igual
+    // queda creada y va a funcionar normal para procesos futuros.
+    console.error(`[alerting] Error en backfill de alerta nueva (config ${config.id}):`, err);
+  }
+}
+
+module.exports = { procesarAlertasLicitaciones, procesarAlertasCompraAgil, procesarBackfillNuevaAlerta };

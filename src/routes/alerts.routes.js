@@ -4,6 +4,7 @@ const { requireEmpresaActiva } = require('../middleware/requireEmpresaActiva.mid
 const {
   crearAlertConfig,
   listarAlertConfigsDeUsuario,
+  obtenerAlertConfigConContacto,
   obtenerAlertConfigPorId,
   actualizarAlertConfig,
   eliminarAlertConfig,
@@ -14,6 +15,7 @@ const { buscarOrganismos, traducirOrganismosACodigos, adjuntarNombresOrganismos 
 const { buscarCategorias, obtenerTitulosPorCodigos, obtenerArbolRubros } = require('../db/categorias-unspsc.queries');
 const { obtenerPlan } = require('../utils/planes');
 const { TRAMOS_LICITACION } = require('../utils/tramos-licitacion');
+const { procesarBackfillNuevaAlerta } = require('../services/alerting.service');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -259,6 +261,17 @@ router.post('/config', async (req, res) => {
 
     const config = await crearAlertConfig(req.userId, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos });
     res.status(201).json({ config: await adjuntarNombresOrganismos(config) });
+
+    // Fire-and-forget: busca entre lo que YA estaba "Publicada"/"publicada"
+    // antes de crear esta alerta (no solo lo que aparezca de ahora en
+    // adelante, que ya cubre el polling normal) y notifica lo que matchee.
+    // Corre después de responder para no hacer esperar al usuario — si algo
+    // sale mal acá, la alerta igual queda creada y funciona normal.
+    obtenerAlertConfigConContacto(config.id)
+      .then((configConContacto) => {
+        if (configConContacto) return procesarBackfillNuevaAlerta(configConContacto);
+      })
+      .catch((err) => console.error(`[alerts.config] Error dejando andar el backfill de la alerta ${config.id}:`, err));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al crear la configuración' });

@@ -68,6 +68,19 @@ async function listarComprasAgilesNuevas() {
 }
 
 /**
+ * Compras Ágiles "publicada" y todavía vigentes — equivalente a
+ * listarLicitacionesPublicadasVigentes, usada por el mismo backfill al
+ * crear una alerta nueva (ver alerting.service.js).
+ */
+async function listarComprasAgilesPublicadasVigentes() {
+  const result = await pool.query(
+    `SELECT * FROM compras_agiles_vistas
+     WHERE estado = 'publicada' AND (fecha_cierre IS NULL OR fecha_cierre > NOW())`
+  );
+  return result.rows;
+}
+
+/**
  * Compras Ágiles guardadas ANTES de que empezáramos a guardar productos_solicitados
  * (migración 015) — solo las que siguen "publicada", ya que las cerradas/canceladas
  * nunca más van a generar una alerta, y no vale la pena gastar cuota de la API en ellas.
@@ -153,6 +166,7 @@ module.exports = {
   obtenerCodigosCompraAgilYaVistos,
   guardarCompraAgil,
   listarComprasAgilesNuevas,
+  listarComprasAgilesPublicadasVigentes,
   listarCompraAgilSinProductos,
   actualizarProductosSolicitados,
   listarCompraAgilPendienteDeResolucion,
