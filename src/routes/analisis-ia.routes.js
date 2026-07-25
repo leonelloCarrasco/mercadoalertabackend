@@ -10,6 +10,7 @@ const {
   buscarAnalisisSinAdjuntos,
   guardarAnalisis,
   listarMisAnalisis,
+  eliminarAnalisis,
   obtenerCicloVigente,
   contarConsumosDelCiclo,
   registrarConsumo,
@@ -172,6 +173,29 @@ router.get('/mios', async (req, res) => {
   } catch (err) {
     console.error('[analisis-ia.mios] Error:', err);
     res.status(500).json({ error: 'Error al listar tus análisis' });
+  }
+});
+
+// DELETE /api/analisis-ia/:id — quita un análisis del listado del usuario
+// logueado. Solo borra el propio (ver eliminarAnalisis, scoped por
+// user_id) — si el id no existe o es de otro usuario, 404 en ambos casos
+// para no filtrar cuáles ids existen. NO devuelve el cupo gastado (ver
+// migración 042): el registro de consumo sobrevive al borrado.
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  if (!/^\d+$/.test(id)) {
+    return res.status(400).json({ error: 'Id inválido' });
+  }
+
+  try {
+    const borrado = await eliminarAnalisis(req.userId, id);
+    if (!borrado) {
+      return res.status(404).json({ error: 'Análisis no encontrado' });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[analisis-ia.eliminar] Error:', err);
+    res.status(500).json({ error: 'Error al eliminar el análisis' });
   }
 });
 
