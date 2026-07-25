@@ -78,6 +78,21 @@ async function listarMisAnalisis(userId) {
 }
 
 /**
+ * Borra el análisis SOLO si es del usuario logueado (WHERE user_id = $2) —
+ * el mismo criterio de ownership que el resto de las queries de esta tabla.
+ * Devuelve la fila borrada, o null si no existía o no era suya (la ruta lo
+ * trata como 404 en ambos casos, para no filtrar si el id existe pero es de
+ * otro usuario).
+ */
+async function eliminarAnalisis(userId, id) {
+  const result = await pool.query(
+    'DELETE FROM analisis_ia WHERE id = $1 AND user_id = $2 RETURNING id',
+    [id, userId]
+  );
+  return result.rows[0] || null;
+}
+
+/**
  * Ciclo rotativo (regla A): NO es mes calendario. Devuelve la fecha de
  * inicio del ciclo vigente, o null si nunca empezó uno, o si el que había
  * ya venció (más de 1 mes desde que arrancó) — en los dos casos "null" se
@@ -128,6 +143,7 @@ module.exports = {
   buscarAnalisisSinAdjuntos,
   guardarAnalisis,
   listarMisAnalisis,
+  eliminarAnalisis,
   obtenerCicloVigente,
   contarConsumosDelCiclo,
   registrarConsumo,
