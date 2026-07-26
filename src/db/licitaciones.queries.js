@@ -117,6 +117,21 @@ async function listarLicitacionesNuevas() {
 }
 
 /**
+ * Licitaciones "Publicada" y todavía vigentes (mismo doble chequeo que hace
+ * matchLicitacion — estado + fecha, ver matching.service.js) — usada al
+ * crear una alerta nueva, para poder avisar también de procesos que ya
+ * existían ANTES de la alerta, no solo de los que aparezcan de ahora en
+ * adelante (ver procesarBackfillNuevaAlerta en alerting.service.js).
+ */
+async function listarLicitacionesPublicadasVigentes() {
+  const result = await pool.query(
+    `SELECT * FROM licitaciones_vistas
+     WHERE estado = 'Publicada' AND (fecha_cierre IS NULL OR fecha_cierre > NOW())`
+  );
+  return result.rows;
+}
+
+/**
  * Licitaciones guardadas ANTES de que empezáramos a guardar todos los ítems
  * (migración 016) — solo las que aún no cierran, ya que una vez pasada la
  * fecha de cierre el matching las descarta igual (ver matching.service.js),
@@ -189,6 +204,7 @@ module.exports = {
   obtenerCodigosYaVistos,
   guardarLicitacion,
   listarLicitacionesNuevas,
+  listarLicitacionesPublicadasVigentes,
   listarLicitacionesSinItems,
   actualizarItemsLicitacion,
   listarLicitacionesPendientesDeResolucion,
