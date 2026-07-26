@@ -22,6 +22,24 @@ function escapeHtml(valor) {
 }
 
 /**
+ * Formatea una fecha (Date del driver de pg, string ISO de la API de Mercado
+ * Público, o timestamp) al formato dd/mm/aaaa hh:mi CLT — antes se pasaban
+ * estos valores directo a las plantillas, así que cuando llegaba un objeto
+ * Date de JS (típico de columnas TIMESTAMP leídas de la base) terminaba
+ * mostrando el resultado crudo de su toString(), tipo "Mon Aug 03 2026
+ * 15:01:00 GMT-0400 (hora estándar de Chile)". Fuerza además la hora a la
+ * zona horaria de Chile (America/Santiago) sin importar en qué huso corra el
+ * servidor — así el horario mostrado es siempre el que le sirve al usuario,
+ * no el del servidor.
+ */
+function formatFechaHoraCL(fecha) {
+  if (!fecha) return 'No especificada';
+  try {
+    return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch { return fecha; }
+}
+
+/**
  * Envía un email de alerta. Si no hay RESEND_API_KEY configurada, imprime
  * el contenido en consola en vez de fallar — así se puede probar el flujo
  * completo de matching sin tener una cuenta de Resend todavía.
@@ -196,7 +214,7 @@ function armarResumenLicitaciones(items) {
       codigo: d.CodigoExterno,
       organismo: d.Comprador?.NombreOrganismo,
       monto,
-      cierre: d.Fechas?.FechaCierre,
+      cierre: formatFechaHoraCL(d.Fechas?.FechaCierre),
     });
   }).join('');
 
@@ -231,7 +249,7 @@ function armarResumenCompraAgil(items) {
       codigo: item.codigo,
       organismo: item.institucion?.organismo_comprador,
       monto,
-      cierre: item.fechas?.fecha_cierre,
+      cierre: formatFechaHoraCL(item.fechas?.fecha_cierre),
     });
   }).join('');
 
@@ -312,7 +330,7 @@ function armarEmailRecordatorio(r) {
   const contenidoHtml = `
     <h2>${emoji} Recordatorio de cierre</h2>
     <p>Esta ${tipoTexto.toLowerCase()} que marcaste para recordatorio cierra dentro de las próximas ${r.horas_antes} horas:</p>
-    ${tarjetaProceso({ nombre: r.nombre, link, codigo: r.codigo_externo, organismo: r.organismo, monto, cierre: r.fecha_cierre })}
+    ${tarjetaProceso({ nombre: r.nombre, link, codigo: r.codigo_externo, organismo: r.organismo, monto, cierre: formatFechaHoraCL(r.fecha_cierre) })}
   `;
   return { subject, html: envolverPlantillaEmail({ contenidoHtml }) };
 }
@@ -465,6 +483,7 @@ function armarEmailAccesoTerminado({ nombre }) {
 
 module.exports = {
   escapeHtml,
+  formatFechaHoraCL,
   enviarEmailAlerta,
   armarResumenLicitaciones,
   armarResumenCompraAgil,

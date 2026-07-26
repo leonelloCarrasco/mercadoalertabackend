@@ -386,10 +386,20 @@ router.post('/:id/enviar-correo', enviarCorreoAnalisisLimiter, async (req, res) 
 
     const puntosHtml = (c.puntosDeAtencion || []).map((p) => `<li style="margin-bottom: 6px;">${escapeHtml(p)}</li>`).join('');
 
+    // Fechas clave — mismo lugar que en pantalla (justo después del resumen,
+    // antes del checklist). Antes esta sección no se incluía en el correo
+    // aunque la IA sí la devuelve (c.fechasClave) y sí se muestra en el
+    // dashboard.
+    const fechasHtml = (c.fechasClave || []).map((f) => `
+      <li style="margin-bottom: 6px;"><strong>${escapeHtml(f.nombre)}:</strong> ${escapeHtml(f.fecha)}</li>
+    `).join('');
+
     const contenidoHtml = `
       <h2>📋 Análisis: ${escapeHtml(analisis.nombre || analisis.codigo_externo)}</h2>
       ${analisis.sin_adjuntos ? '<div class="warning-box"><p>⚠️ Este análisis se hizo sin las bases completas — puede faltar información relevante.</p></div>' : ''}
       <p>${escapeHtml(c.resumen).replace(/\n/g, '<br>')}</p>
+      <h3 style="font-size: 14px; margin-top: 24px;">Fechas clave</h3>
+      <ul style="padding-left: 20px;">${fechasHtml || '<li>No se identificaron fechas.</li>'}</ul>
       <h3 style="font-size: 14px; margin-top: 24px;">Checklist de documentos</h3>
       ${checklistHtml || '<p style="font-size: 13px; color: #64748b;">No se identificaron documentos exigidos.</p>'}
       <h3 style="font-size: 14px; margin-top: 24px;">Puntos de atención</h3>
