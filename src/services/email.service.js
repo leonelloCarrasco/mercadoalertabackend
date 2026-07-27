@@ -195,6 +195,37 @@ function urlFichaCompraAgil(codigoExterno) {
 }
 
 /**
+ * Formatea el monto de una licitación para mostrar — usa MontoEstimado si
+ * viene informado, y si no cae al tramo de la licitación (ver TRAMOS_LICITACION)
+ * para mostrar al menos un rango en UTM. Compartido entre el resumen por email
+ * y el mensaje de Telegram (ver armarTextoTelegramLicitaciones en
+ * alerting.service.js) para que ambos canales muestren exactamente el mismo texto.
+ */
+function formatMontoLicitacion(d) {
+  if (d.MontoEstimado) {
+    return `$${Number(d.MontoEstimado).toLocaleString('es-CL')}`;
+  }
+  const tramo = obtenerTramo(d.Tipo);
+  if (tramo?.utmMinGarantizado) {
+    return tramo.utmMax
+      ? `Entre ${tramo.utmMinGarantizado} y ${tramo.utmMax} UTM`
+      : `Desde ${tramo.utmMinGarantizado} UTM`;
+  }
+  return 'No especificado';
+}
+
+/**
+ * Igual que formatMontoLicitacion, pero para Compras Ágiles — no tienen
+ * tramo por Tipo, así que si no viene monto_disponible_clp no hay fallback.
+ * Compartido con el mensaje de Telegram (ver armarTextoTelegramCompraAgil).
+ */
+function formatMontoCompraAgil(item) {
+  return item.montos?.monto_disponible_clp
+    ? `$${Number(item.montos.monto_disponible_clp).toLocaleString('es-CL')}`
+    : 'No especificado';
+}
+
+/**
  * Resumen de licitaciones nuevas que matchearon una o más alertas — se arma
  * a partir del detalle crudo de la API (mismo shape que devuelve
  * mercadopublico.service.js), no del registro ya guardado en licitaciones_vistas.
@@ -205,17 +236,7 @@ function armarResumenLicitaciones(items) {
     : `📋 ${items.length} nuevas licitaciones que coinciden con tus alertas`;
 
   const tarjetas = items.map((d) => {
-    let monto = 'No especificado';
-    if (d.MontoEstimado) {
-      monto = `$${Number(d.MontoEstimado).toLocaleString('es-CL')}`;
-    } else {
-      const tramo = obtenerTramo(d.Tipo);
-      if (tramo?.utmMinGarantizado) {
-        monto = tramo.utmMax
-          ? `Entre ${tramo.utmMinGarantizado} y ${tramo.utmMax} UTM`
-          : `Desde ${tramo.utmMinGarantizado} UTM`;
-      }
-    }
+    const monto = formatMontoLicitacion(d);
 
     return tarjetaProceso({
       nombre: d.Nombre,
@@ -248,9 +269,7 @@ function armarResumenCompraAgil(items) {
     : `⚡ ${items.length} nuevas Compras Ágiles que coinciden con tus alertas`;
 
   const tarjetas = items.map((item) => {
-    const monto = item.montos?.monto_disponible_clp
-      ? `$${Number(item.montos.monto_disponible_clp).toLocaleString('es-CL')}`
-      : 'No especificado';
+    const monto = formatMontoCompraAgil(item);
 
     return tarjetaProceso({
       nombre: item.nombre,
@@ -493,6 +512,10 @@ function armarEmailAccesoTerminado({ nombre }) {
 module.exports = {
   escapeHtml,
   formatFechaHoraCL,
+  formatMontoLicitacion,
+  formatMontoCompraAgil,
+  urlFichaLicitacion,
+  urlFichaCompraAgil,
   enviarEmailAlerta,
   armarResumenLicitaciones,
   armarResumenCompraAgil,
