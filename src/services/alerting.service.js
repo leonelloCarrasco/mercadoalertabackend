@@ -3,7 +3,17 @@ const { intentarReservarEnvio, liberarReserva } = require('../db/alerts-sent.que
 const { listarLicitacionesPublicadasVigentes } = require('../db/licitaciones.queries');
 const { listarComprasAgilesPublicadasVigentes } = require('../db/compra-agil.queries');
 const { matchLicitacion, matchCompraAgil } = require('./matching.service');
-const { enviarEmailAlerta, armarResumenLicitaciones, armarResumenCompraAgil, formatFechaHoraCL } = require('./email.service');
+const {
+  enviarEmailAlerta,
+  armarResumenLicitaciones,
+  armarResumenCompraAgil,
+  formatFechaHoraCL,
+  formatMontoLicitacion,
+  formatMontoCompraAgil,
+  urlFichaLicitacion,
+  urlFichaCompraAgil,
+  escapeHtml,
+} = require('./email.service');
 const { enviarTelegramAlerta } = require('./telegram.service');
 
 /**
@@ -92,9 +102,11 @@ function armarTextoTelegramLicitaciones(items) {
     ? '📋 Nueva licitación que coincide con tus alertas:'
     : `📋 ${items.length} nuevas licitaciones que coinciden con tus alertas:`;
 
-  const lista = items.map((d) =>
-    `\n\n• ${d.Nombre}\n  Código: ${d.CodigoExterno}\n Organismo: ${d.Comprador?.NombreOrganismo}\n Monto: ${d.MontoEstimado || 'N/E'}\n  ⚠️Cierra: ${formatFechaHoraCL(d.Fechas?.FechaCierre) || 'N/E'}`
-  ).join('');
+  const lista = items.map((d) => {
+    const link = urlFichaLicitacion(d.CodigoExterno);
+    const nombre = `<a href="${escapeHtml(link)}">${escapeHtml(d.Nombre)}</a>`;
+    return `\n\n• ${nombre}\n Código: ${escapeHtml(d.CodigoExterno)}\n Organismo: ${escapeHtml(d.Comprador?.NombreOrganismo)}\n Monto: ${formatMontoLicitacion(d)}\n ⚠️Cierra: ${formatFechaHoraCL(d.Fechas?.FechaCierre) || 'N/E'}`;
+  }).join('');
 
   return encabezado + lista;
 }
@@ -104,9 +116,11 @@ function armarTextoTelegramCompraAgil(items) {
     ? '⚡ Nueva Compra Ágil que coincide con tus alertas:'
     : `⚡ ${items.length} nuevas Compras Ágiles que coinciden con tus alertas:`;
 
-  const lista = items.map((item) =>
-    `\n\n• ${item.nombre}\n  Código: ${item.codigo}\n Organismo: ${item.institucion?.organismo_comprador}\n Monto: ${item.montos?.monto_disponible_clp || 'N/E'}\n  ⚠️ Cierra: ${formatFechaHoraCL(item.fechas?.fecha_cierre) || 'N/E'}`
-  ).join('');
+  const lista = items.map((item) => {
+    const link = urlFichaCompraAgil(item.codigo);
+    const nombre = `<a href="${escapeHtml(link)}">${escapeHtml(item.nombre)}</a>`;
+    return `\n\n• ${nombre}\n Código: ${escapeHtml(item.codigo)}\n Organismo: ${escapeHtml(item.institucion?.organismo_comprador)}\n Monto: ${formatMontoCompraAgil(item)}\n ⚠️ Cierra: ${formatFechaHoraCL(item.fechas?.fecha_cierre) || 'N/E'}`;
+  }).join('');
 
   return encabezado + lista + '\n\n⚠️ Recuerda que las Compras Ágiles pueden cerrar en menos de 24 horas.';
 }
