@@ -93,7 +93,7 @@ function armarTextoTelegramLicitaciones(items) {
     : `📋 ${items.length} nuevas licitaciones que coinciden con tus alertas:`;
 
   const lista = items.map((d) =>
-    `\n\n• ${d.Nombre}\n  Monto: ${d.MontoEstimado || 'N/E'}\n  Cierra: ${formatFechaHoraCL(d.Fechas?.FechaCierre) || 'N/E'}`
+    `\n\n• ${d.Nombre}\n  Código: ${d.CodigoExterno}\n Organismo: ${d.Comprador?.NombreOrganismo}\n Monto: ${d.MontoEstimado || 'N/E'}\n  ⚠️Cierra: ${formatFechaHoraCL(d.Fechas?.FechaCierre) || 'N/E'}`
   ).join('');
 
   return encabezado + lista;
@@ -105,7 +105,7 @@ function armarTextoTelegramCompraAgil(items) {
     : `⚡ ${items.length} nuevas Compras Ágiles que coinciden con tus alertas:`;
 
   const lista = items.map((item) =>
-    `\n\n• ${item.nombre}\n  Monto: ${item.montos?.monto_disponible_clp || 'N/E'}\n  ⚠️ Cierra: ${formatFechaHoraCL(item.fechas?.fecha_cierre) || 'N/E'}`
+    `\n\n• ${item.nombre}\n  Código: ${item.codigo}\n Organismo: ${item.institucion?.organismo_comprador}\n Monto: ${item.montos?.monto_disponible_clp || 'N/E'}\n  ⚠️ Cierra: ${formatFechaHoraCL(item.fechas?.fecha_cierre) || 'N/E'}`
   ).join('');
 
   return encabezado + lista + '\n\n⚠️ Recuerda que las Compras Ágiles pueden cerrar en menos de 24 horas.';
