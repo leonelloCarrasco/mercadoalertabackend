@@ -178,16 +178,22 @@ router.post('/register', registerLimiter, async (req, res) => {
 
     // Validamos el RUT contra Mercado Público UNA vez, acá mismo, y de ahí
     // sacamos el nombre oficial de la empresa (ya no hay pre-registro separado).
+    //
+    // validarProveedor devuelve valido:null (no true/false) cuando no se pudo
+    // validar — sin MERCADOPUBLICO_TICKET configurado, por rate limit de MP, o
+    // por error de red — y en TODOS esos casos el propio servicio documenta
+    // que la intención es no bloquear el registro (ver los comentarios en
+    // validacion-proveedor.service.js: "se omite la validación" / "no
+    // bloqueamos el registro"). Antes acá se devolvía 503 igual en ese caso,
+    // lo que en la práctica rompía el registro completo en cualquier
+    // ambiente sin el ticket configurado (dev/QA incluido) — solo el false
+    // explícito (RUT consultado y NO encontrado como proveedor) debe
+    // rechazar el registro.
     const validacion = await validarProveedor(rutEmpresa);
 
-    if (validacion.valido !== true) {
-      if (validacion.valido === false) {
-        return res.status(400).json({
-          error: 'No encontramos este RUT como proveedor inscrito en Mercado Público. Verifica que esté bien escrito, o inscríbete primero en mercadopublico.cl.',
-        });
-      }
-      return res.status(503).json({
-        error: 'No pudimos validar el RUT en este momento porque Mercado Público no respondió. Intenta nuevamente en unos minutos.',
+    if (validacion.valido === false) {
+      return res.status(400).json({
+        error: 'No encontramos este RUT como proveedor inscrito en Mercado Público. Verifica que esté bien escrito, o inscríbete primero en mercadopublico.cl.',
       });
     }
 

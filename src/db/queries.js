@@ -64,6 +64,35 @@ async function actualizarDatosUsuario(userId, nombre, apellido, telefono) {
   return result.rows[0] || null;
 }
 
+/**
+ * Vincula el chat_id de Telegram al usuario. Si otro usuario ya tenía este
+ * MISMO chat_id vinculado (ej. alguien reinstaló el bot con otra cuenta de
+ * MercadoAlerta desde el mismo Telegram), se lo saca de ahí primero — un
+ * chat_id de Telegram solo puede estar vinculado a un usuario a la vez,
+ * para que las alertas no le lleguen a la cuenta equivocada.
+ */
+async function vincularTelegram(userId, chatId) {
+  await pool.query('UPDATE users SET telegram_chat_id = NULL WHERE telegram_chat_id = $1', [chatId]);
+  const result = await pool.query(
+    'UPDATE users SET telegram_chat_id = $1 WHERE id = $2 RETURNING id, email, telegram_chat_id',
+    [chatId, userId]
+  );
+  return result.rows[0] || null;
+}
+
+async function desvincularTelegram(userId) {
+  const result = await pool.query(
+    'UPDATE users SET telegram_chat_id = NULL WHERE id = $1 RETURNING id',
+    [userId]
+  );
+  return result.rows[0] || null;
+}
+
+async function obtenerEstadoTelegram(userId) {
+  const result = await pool.query('SELECT telegram_chat_id FROM users WHERE id = $1', [userId]);
+  return { vinculado: Boolean(result.rows[0]?.telegram_chat_id) };
+}
+
 async function obtenerPasswordHash(userId) {
   const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
   return result.rows[0]?.password_hash || null;
@@ -100,4 +129,7 @@ module.exports = {
   obtenerPasswordHash,
   actualizarEstadoUsuario,
   eliminarUsuario,
+  vincularTelegram,
+  desvincularTelegram,
+  obtenerEstadoTelegram,
 };

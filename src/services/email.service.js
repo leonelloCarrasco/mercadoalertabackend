@@ -56,6 +56,15 @@ async function enviarEmailAlerta({ to, subject, html, replyTo }) {
     console.log(`   Para: ${to}`);
     console.log(`   Asunto: ${subject}`);
     if (replyTo) console.log(`   Responder a: ${replyTo}`);
+    // Antes esto pelaba TODO el HTML con un solo regex, lo que de paso se
+    // comía los href de los <a> — sin eso era imposible probar en local
+    // ningún flujo por link (confirmar cuenta, resetear contraseña, etc.)
+    // sin credenciales reales de Resend. Ahora se listan los links aparte,
+    // antes del texto plano recortado.
+    const links = [...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+    if (links.length > 0) {
+      console.log(`   Links: ${links.join(' | ')}`);
+    }
     console.log(`   Contenido: ${html.replace(/<[^>]+>/g, ' ').slice(0, 200)}...`);
     return { simulado: true };
   }
