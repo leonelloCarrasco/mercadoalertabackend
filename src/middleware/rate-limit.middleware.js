@@ -55,6 +55,18 @@ const reenviarConfirmacionLimiter = rateLimit({
   handler: mensajeError('Demasiadas solicitudes de reenvío. Intenta de nuevo más tarde.'),
 });
 
+// Genera un link de vinculación de Telegram — no hay razón legítima para
+// pedir muchos en poco tiempo (cada uno invalida al anterior igual), así que
+// un límite bajo alcanza y sobra.
+const telegramLinkLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.userId || ipKeyGenerator(req.ip),
+  handler: mensajeError('Demasiadas solicitudes de vinculación. Intenta de nuevo más tarde.'),
+});
+
 // Es un usuario ya logueado (no anónimo como los de arriba), pero igual
 // dispara un correo — un límite más generoso alcanza para frenar un posible
 // loop/bug del front sin molestar a alguien que de verdad necesita escribir
@@ -112,6 +124,7 @@ module.exports = {
   forgotPasswordLimiter,
   resetPasswordLimiter,
   reenviarConfirmacionLimiter,
+  telegramLinkLimiter,
   contactoAyudaLimiter,
   analisisIaLimiter,
   enviarCorreoAnalisisLimiter,
