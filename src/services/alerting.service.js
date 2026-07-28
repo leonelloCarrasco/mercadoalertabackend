@@ -85,9 +85,9 @@ async function enviarResumenesPorEmail(porUsuarioEmail, armarResumenFn) {
 async function enviarResumenesPorTelegram(porUsuarioTelegram, armarTextoFn) {
   let enviados = 0;
   for (const [, bucket] of porUsuarioTelegram) {
-    const texto = armarTextoFn(bucket.items);
+    const mensajes = armarTextoFn(bucket.items); // array de uno o más mensajes (ver partirEnMensajesTelegram)
     try {
-      await enviarTelegramAlerta(bucket.config.telegram_chat_id, texto);
+      await enviarTelegramAlertaMulti(bucket.config.telegram_chat_id, mensajes);
       enviados++;
     } catch (err) {
       console.error(`[alerting] Error enviando resumen por Telegram a user ${bucket.config.user_id}:`, err.message);
@@ -97,18 +97,58 @@ async function enviarResumenesPorTelegram(porUsuarioTelegram, armarTextoFn) {
   return enviados;
 }
 
+// Telegram rechaza cualquier sendMessage de más de 4096 caracteres (HTTP 400
+// "message is too long") — con el backfill de una alerta nueva es fácil
+// pasarse ese límite si matchean muchos procesos de una sola vez (más aún
+// ahora que cada ítem incluye link, código y organismo). En vez de cortar el
+// texto a lo bruto (lo que partiría un ítem —o una etiqueta <a> de HTML— a
+// la mitad), se arman varios mensajes completos, cada uno con ítems
+// enteros — nunca un ítem partido entre dos mensajes.
+const TELEGRAM_MAX_CHARS = 4000; // margen bajo el límite real de 4096
+
+/**
+ * Arma uno o más mensajes de Telegram a partir de un encabezado, una lista
+ * de bloques de texto (uno por ítem, ya formateados) y un pie de página
+ * opcional. Devuelve un array — quien llame manda cada elemento como un
+ * sendMessage separado.
+ */
+function partirEnMensajesTelegram(encabezado, bloques, piePagina = '') {
+  const mensajes = [];
+  let actual = encabezado;
+
+  for (const bloque of bloques) {
+    if ((actual + bloque).length > TELEGRAM_MAX_CHARS) {
+      mensajes.push(actual);
+      actual = '(continuación)';
+    }
+    actual += bloque;
+  }
+
+  if (piePagina) {
+    if ((actual + piePagina).length > TELEGRAM_MAX_CHARS) {
+      mensajes.push(actual);
+      actual = piePagina;
+    } else {
+      actual += piePagina;
+    }
+  }
+
+  mensajes.push(actual);
+  return mensajes;
+}
+
 function armarTextoTelegramLicitaciones(items) {
   const encabezado = items.length === 1
     ? '📋 Nueva licitación que coincide con tus alertas:'
     : `📋 ${items.length} nuevas licitaciones que coinciden con tus alertas:`;
 
-  const lista = items.map((d) => {
+  const bloques = items.map((d) => {
     const link = urlFichaLicitacion(d.CodigoExterno);
     const nombre = `<a href="${escapeHtml(link)}">${escapeHtml(d.Nombre)}</a>`;
     return `\n\n• ${nombre}\n Código: ${escapeHtml(d.CodigoExterno)}\n Organismo: ${escapeHtml(d.Comprador?.NombreOrganismo)}\n Monto: ${formatMontoLicitacion(d)}\n ⚠️Cierra: ${formatFechaHoraCL(d.Fechas?.FechaCierre) || 'N/E'}`;
-  }).join('');
+  });
 
-  return encabezado + lista;
+  return partirEnMensajesTelegram(encabezado, bloques);
 }
 
 function armarTextoTelegramCompraAgil(items) {
@@ -116,13 +156,26 @@ function armarTextoTelegramCompraAgil(items) {
     ? '⚡ Nueva Compra Ágil que coincide con tus alertas:'
     : `⚡ ${items.length} nuevas Compras Ágiles que coinciden con tus alertas:`;
 
-  const lista = items.map((item) => {
+  const bloques = items.map((item) => {
     const link = urlFichaCompraAgil(item.codigo);
     const nombre = `<a href="${escapeHtml(link)}">${escapeHtml(item.nombre)}</a>`;
     return `\n\n• ${nombre}\n Código: ${escapeHtml(item.codigo)}\n Organismo: ${escapeHtml(item.institucion?.organismo_comprador)}\n Monto: ${formatMontoCompraAgil(item)}\n ⚠️ Cierra: ${formatFechaHoraCL(item.fechas?.fecha_cierre) || 'N/E'}`;
-  }).join('');
+  });
 
-  return encabezado + lista + '\n\n⚠️ Recuerda que las Compras Ágiles pueden cerrar en menos de 24 horas.';
+  return partirEnMensajesTelegram(encabezado, bloques, '\n\n⚠️ Recuerda que las Compras Ágiles pueden cerrar en menos de 24 horas.');
+}
+
+/**
+ * Envía un texto de Telegram que puede venir como string único (compatibilidad
+ * con cualquier caller que arme su propio texto corto) o como array de varios
+ * mensajes (armarTextoTelegramLicitaciones/CompraAgil) — manda cada uno en
+ * secuencia, en orden, esperando a que termine el anterior.
+ */
+async function enviarTelegramAlertaMulti(chatId, textoOMensajes) {
+  const mensajes = Array.isArray(textoOMensajes) ? textoOMensajes : [textoOMensajes];
+  for (const mensaje of mensajes) {
+    await enviarTelegramAlerta(chatId, mensaje);
+  }
 }
 
 /**
@@ -303,10 +356,10 @@ async function procesarBackfillNuevaAlerta(config) {
       await enviarEmailAlerta({ to: config.email, subject: `🆕 ${subject}`, html });
     }
     if (licitacionesAEnviarTelegram.length > 0) {
-      await enviarTelegramAlerta(config.telegram_chat_id, armarTextoTelegramLicitaciones(licitacionesAEnviarTelegram));
+      await enviarTelegramAlertaMulti(config.telegram_chat_id, armarTextoTelegramLicitaciones(licitacionesAEnviarTelegram));
     }
     if (comprasAgilesAEnviarTelegram.length > 0) {
-      await enviarTelegramAlerta(config.telegram_chat_id, armarTextoTelegramCompraAgil(comprasAgilesAEnviarTelegram));
+      await enviarTelegramAlertaMulti(config.telegram_chat_id, armarTextoTelegramCompraAgil(comprasAgilesAEnviarTelegram));
     }
 
     console.log(`[alerting] Backfill de alerta nueva (config ${config.id}): ${licitacionesMatch.length} licitaciones + ${comprasAgilesMatch.length} Compras Ágiles ya publicadas encontradas y notificadas.`);
