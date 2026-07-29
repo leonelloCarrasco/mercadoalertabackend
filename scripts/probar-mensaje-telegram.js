@@ -6,7 +6,7 @@
  * Siempre imprime el mensaje en consola (crudo, con las etiquetas HTML
  * visibles como texto — útil para revisar la estructura/el largo).
  *
- * Si además le pasás un chat_id, intenta mandarlo de verdad por Telegram —
+ * Si además le pasas un chat_id, intenta mandarlo de verdad por Telegram —
  * ahí sí vas a ver cómo se renderiza la negrita y el link en la app (la
  * consola nunca te va a mostrar eso, solo el texto crudo). Si
  * TELEGRAM_BOT_TOKEN no está configurado, el envío cae solo en modo
@@ -18,8 +18,8 @@
  *   node scripts/probar-mensaje-telegram.js {chatId}
  *   node scripts/probar-mensaje-telegram.js {chatId} {cantidadDeItems}
  *
- * El chat_id es el mismo que ya tenés vinculado en tu cuenta — si no lo
- * sabés de memoria, lo podés sacar directo de la base:
+ * El chat_id es el mismo que ya tienes vinculado en tu cuenta — si no lo
+ * sabes de memoria, lo puedes sacar directo de la base:
  *   SELECT telegram_chat_id FROM users WHERE email = 'tu-email@ejemplo.cl';
  */
 require('dotenv').config({ quiet: true });
