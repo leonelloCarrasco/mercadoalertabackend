@@ -2,7 +2,7 @@
  * Script de diagnóstico: muestra el estado de suscripción actual (real, tal
  * como está guardado en la base) de la empresa de un usuario — para
  * comparar contra el ID que estás probando en el simulador de webhooks de
- * MercadoPago, o contra lo que esperás que haya quedado guardado.
+ * MercadoPago, o contra lo que esperas que haya quedado guardado.
  *
  * Corre con: node scripts/ver-suscripcion.js tucorreo@ejemplo.com
  */

@@ -41,7 +41,7 @@
  * Uso:
  *   node scripts/carga-masiva-licitaciones.js /ruta/a/carga_masiva_licitaciones.xlsx
  *
- * Necesita la librería xlsx (ya agregada a package.json) — si no la tenés
+ * Necesita la librería xlsx (ya agregada a package.json) — si no la tienes
  * instalada: npm install
  */
 require('dotenv').config({ quiet: true });
