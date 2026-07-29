@@ -145,7 +145,7 @@ function armarTextoTelegramLicitaciones(items) {
   const bloques = items.map((d) => {
     const link = urlFichaLicitacion(d.CodigoExterno);
     const nombre = `<a href="${escapeHtml(link)}">${escapeHtml(d.Nombre)}</a>`;
-    return `\n\n• ${nombre}\n Código: ${escapeHtml(d.CodigoExterno)}\n Organismo: ${escapeHtml(d.Comprador?.NombreOrganismo)}\n Monto: ${formatMontoLicitacion(d)}\n ⚠️Cierra: ${formatFechaHoraCL(d.Fechas?.FechaCierre) || 'N/E'}`;
+    return `\n\n• <b>${nombre}</b>\n✔️ <b>Código:</b> ${escapeHtml(d.CodigoExterno)}\n🏛️ <b>Organismo:</b> ${escapeHtml(d.Comprador?.NombreOrganismo)}\n💲 <b>Monto:</b> ${formatMontoLicitacion(d)}\n⚠️ <b>Cierra:</b> ${formatFechaHoraCL(d.Fechas?.FechaCierre) || 'N/E'}`;
   });
 
   return partirEnMensajesTelegram(encabezado, bloques);
@@ -159,7 +159,7 @@ function armarTextoTelegramCompraAgil(items) {
   const bloques = items.map((item) => {
     const link = urlFichaCompraAgil(item.codigo);
     const nombre = `<a href="${escapeHtml(link)}">${escapeHtml(item.nombre)}</a>`;
-    return `\n\n• ${nombre}\n Código: ${escapeHtml(item.codigo)}\n Organismo: ${escapeHtml(item.institucion?.organismo_comprador)}\n Monto: ${formatMontoCompraAgil(item)}\n ⚠️ Cierra: ${formatFechaHoraCL(item.fechas?.fecha_cierre) || 'N/E'}`;
+    return `\n\n• <b>${nombre}</b>\n✔️ <b>Código:</b> ${escapeHtml(item.codigo)}\n🏛️ <b>Organismo:</b> ${escapeHtml(item.institucion?.organismo_comprador)}\n💲 <b>Monto:</b> ${formatMontoCompraAgil(item)}\n⚠️ <b>Cierra:</b> ${formatFechaHoraCL(item.fechas?.fecha_cierre) || 'N/E'}`;
   });
 
   return partirEnMensajesTelegram(encabezado, bloques, '\n\n⚠️ Recuerda que las Compras Ágiles pueden cerrar en menos de 24 horas.');
@@ -372,4 +372,4 @@ async function procesarBackfillNuevaAlerta(config) {
   }
 }
 
-module.exports = { procesarAlertasLicitaciones, procesarAlertasCompraAgil, procesarBackfillNuevaAlerta };
+module.exports = { procesarAlertasLicitaciones, procesarAlertasCompraAgil, procesarBackfillNuevaAlerta, armarTextoTelegramLicitaciones, armarTextoTelegramCompraAgil };

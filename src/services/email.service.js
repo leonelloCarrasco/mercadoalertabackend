@@ -131,8 +131,8 @@ function envolverPlantillaEmail({ contenidoHtml }) {
     .feature-list li::before { content: "✓"; position: absolute; left: 0; color: #3ECF8E; font-weight: bold; }
     .warning-box { background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px 20px; margin: 24px 0; }
     .warning-box p { color: #92400e; margin: 0; font-size: 13px; }
-    .item-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; margin-bottom: 14px; }
-    .item-card a.item-title { color: #12172B; text-decoration: none; font-size: 15px; font-weight: 700; }
+    .item-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; margin-bottom: 14px; background: #e2e8f0}
+    .item-card p.item-title { color: #12172B; margin: 0 0 4px 0; font-size: 15px; font-weight: 700; }
     .item-card .item-meta { margin: 8px 0 0 0; font-size: 13px; color: #475569; line-height: 1.7; }
   </style>
 </head>
@@ -142,7 +142,7 @@ function envolverPlantillaEmail({ contenidoHtml }) {
       <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
         <tr>
           <td valign="middle" style="padding-right: 12px;">
-            <img src="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/assets/mercadoalerta-icon-email.png" width="45" height="45" alt="MercadoAlerta">
+            <img src="https://mercadoalerta.cl/assets/mercadoalerta-icon-email.png" width="45" height="45" alt="MercadoAlerta">
           </td>
           <td valign="middle">
             <h1><span class="acento">MercadoAlerta</span></h1>
@@ -175,13 +175,14 @@ function envolverPlantillaEmail({ contenidoHtml }) {
 function tarjetaProceso({ nombre, link, codigo, organismo, monto, cierre }) {
   return `
     <div class="item-card">
-      <a href="${escapeHtml(link)}" class="item-title" target="_blank" rel="noopener">${escapeHtml(nombre)} ↗</a>
+      <p class="item-title">${escapeHtml(nombre)}</p>
       <p class="item-meta">
-        Código: ${escapeHtml(codigo)}<br>
-        Organismo: ${escapeHtml(organismo) || 'No especificado'}<br>
-        Monto: ${escapeHtml(monto)}<br>
-        Cierra: ${escapeHtml(cierre) || 'No especificada'}
+        ✔️ <strong>Código:</strong> ${escapeHtml(codigo)}<br>
+        🏛️ <strong>Organismo:</strong> ${escapeHtml(organismo) || 'No especificado'}<br>
+        💲 <strong>Monto:</strong> ${escapeHtml(monto)}<br>
+        ⏱️ <strong>Cierra:</strong> ${escapeHtml(cierre) || 'No especificada'}
       </p>
+      <a href="${escapeHtml(link)}" class="button" target="_blank" rel="noopener" style="padding: 10px 24px; font-size: 13px; margin: 8px 0 0 0;">Ver en Mercado Público →</a>
     </div>
   `;
 }
@@ -232,8 +233,8 @@ function formatMontoCompraAgil(item) {
  */
 function armarResumenLicitaciones(items) {
   const subject = items.length === 1
-    ? `📋 Nueva licitación: ${items[0].Nombre}`
-    : `📋 ${items.length} nuevas licitaciones que coinciden con tus alertas`;
+    ? `🔔📋 Nueva licitación: ${items[0].Nombre}`
+    : `🔔📋 ${items.length} nuevas licitaciones que coinciden con tus alertas`;
 
   const tarjetas = items.map((d) => {
     const monto = formatMontoLicitacion(d);
@@ -249,7 +250,7 @@ function armarResumenLicitaciones(items) {
   }).join('');
 
   const contenidoHtml = `
-    <h2>📋 ${items.length} nueva${items.length === 1 ? '' : 's'} licitaci${items.length === 1 ? 'ón' : 'ones'} que coincide${items.length === 1 ? '' : 'n'} con tus alertas</h2>
+    <h2>📋 Hemos detectado ${items.length} nueva${items.length === 1 ? '' : 's'} licitaci${items.length === 1 ? 'ón' : 'ones'} que coincide${items.length === 1 ? '' : 'n'} con tus alertas</h2>
     ${tarjetas}
     <div class="divider"></div>
     <p style="font-size: 13px; color: #64748b;">Gestiona tus alertas o revisa el detalle completo desde tu dashboard.</p>
@@ -265,8 +266,8 @@ function armarResumenLicitaciones(items) {
  */
 function armarResumenCompraAgil(items) {
   const subject = items.length === 1
-    ? `⚡ Nueva Compra Ágil: ${items[0].nombre}`
-    : `⚡ ${items.length} nuevas Compras Ágiles que coinciden con tus alertas`;
+    ? `🔔⚡ Nueva Compra Ágil: ${items[0].nombre}`
+    : `🔔⚡ ${items.length} nuevas Compras Ágiles que coinciden con tus alertas`;
 
   const tarjetas = items.map((item) => {
     const monto = formatMontoCompraAgil(item);
@@ -282,7 +283,7 @@ function armarResumenCompraAgil(items) {
   }).join('');
 
   const contenidoHtml = `
-    <h2>⚡ ${items.length} nueva${items.length === 1 ? '' : 's'} Compra${items.length === 1 ? '' : 's'} Ágil${items.length === 1 ? '' : 'es'} que coincide${items.length === 1 ? '' : 'n'} con tus alertas</h2>
+    <h2>⚡ Hemos detectado ${items.length} nueva${items.length === 1 ? '' : 's'} Compra${items.length === 1 ? '' : 's'} Ágil${items.length === 1 ? '' : 'es'} que coincide${items.length === 1 ? '' : 'n'} con tus alertas</h2>
     <div class="warning-box">
       <p>⚠️ Recuerda que estas pueden cerrar en menos de 24 horas — conviene revisarlas cuanto antes.</p>
     </div>
@@ -316,8 +317,8 @@ function armarEmailRecuperacion(link) {
  */
 function armarEmailConfirmacionCuenta(link, nombre) {
   const contenidoHtml = `
-    <h2>¡Bienvenido/a a MercadoAlerta! 🎉</h2>
-    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, gracias por registrarte. Con tu cuenta confirmada vas a poder:</p>
+    <h2>🎉 ¡Bienvenido/a a MercadoAlerta! 🎉</h2>
+    <p>👋🏻 Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, gracias por registrarte. Con tu cuenta confirmada vas a poder:</p>
 
     <ul class="feature-list">
       <li>✅ Configurar alertas por rubro, región y organismo comprador</li>
@@ -392,12 +393,15 @@ function armarEmailSeguimiento({ nombre, codigoExterno, estadoAnterior, estadoNu
 
   const contenidoHtml = `
     <h2>📋 Cambio de estado en una licitación que sigues</h2>
-    <p><a href="${escapeHtml(link)}" style="color: #12172B; font-weight: 700; text-decoration: none;" target="_blank" rel="noopener">${escapeHtml(nombre)} ↗</a><br>
-    <span style="font-size: 13px; color: #64748b;">Código: ${escapeHtml(codigoExterno)}</span></p>
+    <div class="item-card">
+      <p class="item-title">${escapeHtml(nombre)}</p>
+      <span style="font-size: 13px; color: #64748b;"><strong>Código:</strong> ${escapeHtml(codigoExterno)}</span></p>
 
-    <div class="highlight-box">
-      <h3>Cambio de estado</h3>
-      <p>${escapeHtml(estadoAnterior)} → ${escapeHtml(estadoNuevo)}</p>
+      <div class="highlight-box">
+        <h3>Cambio de estado</h3>
+        <p>${escapeHtml(estadoAnterior)} → ${escapeHtml(estadoNuevo)}</p>
+      </div>
+      <a href="${escapeHtml(link)}" class="button" target="_blank" rel="noopener" style="padding: 10px 24px; font-size: 13px; margin: 8px 0 0 0;">Ver en Mercado Público →</a>
     </div>
 
     ${detalleAdjudicacion}
@@ -413,7 +417,7 @@ function armarEmailAviso2Dias({ nombre, fechaExpiracionTrial }) {
   const fechaTexto = new Date(fechaExpiracionTrial).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
   const contenidoHtml = `
     <h2>⏰ Tu período de prueba está por terminar</h2>
-    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, tu prueba gratuita de MercadoAlerta vence el <strong>${fechaTexto}</strong>.</p>
+    <p>👋🏻 Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, tu prueba gratuita de MercadoAlerta vence el <strong>${fechaTexto}</strong>.</p>
     <p>Si quieres seguir recibiendo tus alertas sin interrupción, elige un plan antes de esa fecha — tus alertas, búsquedas guardadas y todo lo que configuraste durante la prueba se mantienen intactos, no se pierde nada.</p>
     <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Elegir mi plan →</a>
   `;
@@ -428,16 +432,16 @@ function armarEmailAviso2Dias({ nombre, fechaExpiracionTrial }) {
  */
 function armarEmailTrialVencido({ nombre }) {
   const contenidoHtml = `
-    <h2>Tu período de prueba terminó</h2>
-    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, tus 14 días de prueba gratuita de MercadoAlerta ya terminaron.</p>
+    <h2>😔 Tu período de prueba terminó</h2>
+    <p>👋🏻 Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, tus 14 días de prueba gratuita de MercadoAlerta ya terminaron.</p>
 
     <div class="warning-box">
-      <p>⚠️ Tus alertas dejaron de monitorear Mercado Público hasta que elijas un plan — pero no te preocupes, toda tu configuración (alertas, búsquedas guardadas, recordatorios, pipeline) sigue guardada tal cual la dejaste.</p>
+      <p>⚠️ Tus alertas dejaron de monitorear Mercado Público hasta que elijas un plan — pero no te preocupes, toda tu configuración (alertas, búsquedas guardadas, recordatorios, portafolio) sigue guardada tal cual la dejaste.</p>
     </div>
 
     <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Elegir mi plan →</a>
   `;
-  return { subject: 'Tu prueba gratuita de MercadoAlerta terminó', html: envolverPlantillaEmail({ contenidoHtml }) };
+  return { subject: '😔 Tu prueba gratuita de MercadoAlerta terminó', html: envolverPlantillaEmail({ contenidoHtml }) };
 }
 
 /**
@@ -456,7 +460,7 @@ function armarEmailConfirmacionSuscripcion({ nombre, plan, monto, tarjeta }) {
 
   const contenidoHtml = `
     <h2>✅ Tu suscripción está activa</h2>
-    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, confirmamos tu pago — ya puedes seguir usando MercadoAlerta sin interrupciones.</p>
+    <p>👋🏻 Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, confirmamos tu pago — ya puedes seguir usando MercadoAlerta sin interrupciones.</p>
 
     <div class="highlight-box">
       <h3>Plan ${nombrePlan}</h3>
@@ -481,7 +485,7 @@ function armarEmailAvisoAcceso2Dias({ nombre, accesoHasta }) {
   const fechaTexto = new Date(accesoHasta).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
   const contenidoHtml = `
     <h2>⏰ Tu acceso está por terminar</h2>
-    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, cancelaste tu suscripción a MercadoAlerta hace un tiempo — tu acceso, que se mantuvo activo hasta terminar el período que ya habías pagado, vence el <strong>${fechaTexto}</strong>.</p>
+    <p>👋🏻 Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, cancelaste tu suscripción a MercadoAlerta hace un tiempo — tu acceso, que se mantuvo activo hasta terminar el período que ya habías pagado, vence el <strong>${fechaTexto}</strong>.</p>
     <p>Si te arrepentiste, puedes volver a suscribirte antes de esa fecha (o después, cuando quieras) sin perder nada de lo que configuraste — tus alertas, búsquedas guardadas y todo lo demás siguen guardados tal cual los dejaste.</p>
     <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Reactivar mi plan →</a>
   `;
@@ -497,8 +501,8 @@ function armarEmailAvisoAcceso2Dias({ nombre, accesoHasta }) {
  */
 function armarEmailAccesoTerminado({ nombre }) {
   const contenidoHtml = `
-    <h2>Tu acceso a MercadoAlerta terminó</h2>
-    <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, el período que ya habías pagado antes de cancelar tu suscripción llegó a su fin.</p>
+    <h2>😔 Tu acceso a MercadoAlerta terminó</h2>
+    <p>👋🏻 Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, el período que ya habías pagado antes de cancelar tu suscripción llegó a su fin.</p>
 
     <div class="warning-box">
       <p>⚠️ Tus alertas dejaron de monitorear Mercado Público — pero toda tu configuración (alertas, búsquedas guardadas, recordatorios, pipeline) sigue guardada tal cual la dejaste, por si quieres volver.</p>
@@ -506,7 +510,7 @@ function armarEmailAccesoTerminado({ nombre }) {
 
     <a href="${process.env.FRONTEND_URL || 'https://mercadoalerta.cl'}/login.html" class="button">Reactivar mi plan →</a>
   `;
-  return { subject: 'Tu acceso a MercadoAlerta terminó', html: envolverPlantillaEmail({ contenidoHtml }) };
+  return { subject: '😔 Tu acceso a MercadoAlerta terminó', html: envolverPlantillaEmail({ contenidoHtml }) };
 }
 
 module.exports = {
