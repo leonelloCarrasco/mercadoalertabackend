@@ -28,43 +28,66 @@
  * que efectivamente paga cada empresa queda "congelado" en empresas.monto_mensual
  * al momento de contratar — si el precio de lista cambia después (ver T&C),
  * no afecta a empresas que ya contrataron.
+ *
+ * accesoAnalisisPrecios: gatea /api/analisis/* (ver analisis.routes.js) —
+ * hoy solo Full tiene acceso al análisis de precios de Mercado Público.
+ * portafolio: gatea POST /api/pipeline (ver pipeline.routes.js) — Trial no
+ * puede crear ítems de portafolio en absoluto, no es un tema de cantidad.
+ * mensajeria: string informativo (no un array) para mostrar en el landing y
+ * en la sección de Mensajería de Mi Perfil — se detecta si incluye
+ * "WhatsApp" para saber si mostrar ese canal como disponible en el plan.
  */
 const PLANES = {
   trial: {
+    nombreDisplay: 'Trial',
+    descripcion: '14 días gratis para probar antes de decidir.',
     limiteUsuarios: 1,
-    limiteAlertas: 1,
+    limiteAlertas: 3,
     limiteCategorias: 1,
     limiteBusquedas: 5,
-    limiteRecordatorios: 3,
-    limiteSeguimientos: 2,
-    limiteAnalisisIA: 1, // por CICLO ROTATIVO de 1 mes desde el primer uso — no mes calendario, no se arrastra lo no usado (ver analisis-ia.queries.js)
+    limiteRecordatorios: 5,
+    limiteSeguimientos: 5,
+    limiteAnalisisIA: 3, // por CICLO ROTATIVO de 1 mes desde el primer uso — no mes calendario, no se arrastra lo no usado (ver analisis-ia.queries.js)
+    accesoAnalisisPrecios: false, // "análisis de precios de Mercado Público" — exclusivo de planes pagos
     requierePago: false,
     monto: null,
     diasTrial: 14,
+    mensajeria: "Email y Telegram",
+    portafolio: false
   },
   basico: {
+    nombreDisplay: 'Basic',
+    descripcion: 'Para equipos chicos que ya postulan seguido.',
     limiteUsuarios: 1,
     limiteAlertas: 10,
     limiteCategorias: 1,
-    limiteBusquedas: 10,
-    limiteRecordatorios: 15,
-    limiteSeguimientos: 8,
-    limiteAnalisisIA: 3,
+    limiteBusquedas: 15,
+    limiteRecordatorios: 10,
+    limiteSeguimientos: 10,
+    limiteAnalisisIA: 10,
+    accesoAnalisisPrecios: false,
     requierePago: true,
-    monto: 8990,
-    montoRegular: 12990, // solo informativo, para mostrar "antes/ahora" en la landing
+    monto: 9990, // IVA incluido
+    montoRegular: 14990, // solo informativo, para mostrar "antes/ahora" en la landing — IVA incluido
+    mensajeria: "Email, Telegram y WhatsApp",
+    portafolio: true
   },
   full: {
+    nombreDisplay: 'Full',
+    descripcion: 'Para equipos que postulan a diario.',
     limiteUsuarios: 1,
-    limiteAlertas: 15,
+    limiteAlertas: 20,
     limiteCategorias: 1,
-    limiteBusquedas: 20,
-    limiteRecordatorios: 30,
-    limiteSeguimientos: 15,
-    limiteAnalisisIA: 5,
+    limiteBusquedas: 30,
+    limiteRecordatorios: 20,
+    limiteSeguimientos: 20,
+    limiteAnalisisIA: 20,
+    accesoAnalisisPrecios: true,
     requierePago: true,
-    monto: 14990,
-    montoRegular: 18990,
+    monto: 16990, // IVA incluido
+    montoRegular: 22990, // IVA incluido
+    mensajeria: "Email, Telegram y WhatsApp",
+    portafolio: true
   },
 };
 

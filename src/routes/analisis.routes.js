@@ -2,18 +2,20 @@ const express = require('express');
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth.middleware');
 const { requireEmpresaActiva } = require('../middleware/requireEmpresaActiva.middleware');
+const { obtenerPlan } = require('../utils/planes');
 
 const router = express.Router();
 router.use(requireAuth);
 router.use(requireEmpresaActiva); // deja disponible req.usuarioActual
 
-// Mismo criterio temporal que en el frontend (dashboard.js) — sacar 'trial' de
-// acá antes de lanzar a producción, es solo para poder probar durante desarrollo.
-const PLANES_CON_ANALISIS = ['full', 'trial'];
-
+// Análisis de precios de Mercado Público — exclusivo del plan Full. Lee
+// accesoAnalisisPrecios de planes.js (fuente única de verdad) en vez de
+// mantener una lista aparte
+// que se puede desincronizar si algún día cambian los planes.
 router.use((req, res, next) => {
-  if (!PLANES_CON_ANALISIS.includes(req.usuarioActual.plan)) {
-    return res.status(403).json({ error: 'El análisis de datos está disponible en el plan Full.' });
+  const plan = obtenerPlan(req.usuarioActual.plan);
+  if (!plan?.accesoAnalisisPrecios) {
+    return res.status(403).json({ error: 'El análisis de precios de Mercado Público está disponible en el plan Full.' });
   }
   next();
 });
