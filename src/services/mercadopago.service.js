@@ -190,7 +190,7 @@ async function listarPagosAutorizados(preapprovalId) {
     return [{
       simulado: true,
       fecha: new Date().toISOString(),
-      monto: 14990,
+      monto: 16990,
       estado: 'processed',
     }];
   }

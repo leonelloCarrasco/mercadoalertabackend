@@ -53,10 +53,18 @@ router.post('/', async (req, res) => {
 
   const codigo = codigoExterno.trim();
 
+  const limites = obtenerPlan(req.usuarioActual.plan);
+
+  // Acceso binario — Trial no puede crear NINGÚN ítem de portafolio, no es
+  // un tema de cuánto (a diferencia del límite de cantidad de más abajo,
+  // que sí aplica a Básico/Full entre sí).
+  if (!limites?.portafolio) {
+    return res.status(403).json({ error: 'El Portafolio está disponible en los planes Básico y Full.' });
+  }
+
   // El pipeline comparte cupo con seguimiento (no hay cuota propia — ver
   // conversación de diseño): cada ítem de Licitación en el pipeline consume
   // un seguimiento por detrás, así que tiene sentido que compartan el límite.
-  const limites = obtenerPlan(req.usuarioActual.plan);
   const limitePipeline = limites?.limiteSeguimientos ?? 2;
 
   try {

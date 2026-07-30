@@ -14,6 +14,7 @@ const analisisRoutes = require('./routes/analisis.routes');
 const analisisIaRoutes = require('./routes/analisis-ia.routes');
 const soporteRoutes = require('./routes/soporte.routes');
 const telegramRoutes = require('./routes/telegram.routes');
+const planesRoutes = require('./routes/planes.routes');
 const pagosRoutes = require('./routes/pagos.routes');
 
 const app = express();
@@ -82,5 +83,6 @@ app.use('/api/analisis', analisisRoutes);
 app.use('/api/analisis-ia', analisisIaRoutes);
 app.use('/api/soporte', soporteRoutes);
 app.use('/api/telegram', telegramRoutes);
+app.use('/api/planes', planesRoutes);
 
 module.exports = app;
