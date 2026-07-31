@@ -104,20 +104,50 @@ router.delete('/vincular', requireAuth, async (req, res) => {
 function firmaValida(req) {
   const secret = process.env.YCLOUD_WEBHOOK_SECRET;
   const header = req.headers['ycloud-signature'];
-  if (!secret || !header || !req.rawBody) return false;
+  if (!secret) {
+    console.error('[whatsapp.webhook] YCLOUD_WEBHOOK_SECRET no está configurada.');
+    return false;
+  }
+  if (!header) {
+    console.error('[whatsapp.webhook] Falta el header YCloud-Signature en el request.');
+    return false;
+  }
+  if (!req.rawBody) {
+    console.error('[whatsapp.webhook] req.rawBody no está disponible — revisar que express.json() tenga el "verify" configurado en app.js.');
+    return false;
+  }
 
-  const partes = Object.fromEntries(header.split(',').map((p) => p.split('=')));
+  // .trim() en cada parte — YCloud puede mandar "t=123, s=abc" (con espacio
+  // después de la coma), y sin el trim el key quedaba " s" en vez de "s",
+  // haciendo que partes.s diera undefined siempre.
+  const partes = Object.fromEntries(
+    header.split(',').map((p) => p.split('=').map((x) => x.trim()))
+  );
   const timestamp = partes.t;
   const firmaRecibida = partes.s;
-  if (!timestamp || !firmaRecibida) return false;
+  if (!timestamp || !firmaRecibida) {
+    console.error('[whatsapp.webhook] No se pudo extraer t/s del header. Header recibido:', header);
+    return false;
+  }
 
   const signedPayload = `${timestamp}.${req.rawBody.toString('utf8')}.`;
   const firmaEsperada = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
 
   const bufRecibido = Buffer.from(firmaRecibida);
   const bufEsperado = Buffer.from(firmaEsperada);
-  if (bufRecibido.length !== bufEsperado.length) return false;
-  return crypto.timingSafeEqual(bufRecibido, bufEsperado);
+  if (bufRecibido.length !== bufEsperado.length) {
+    console.error(`[whatsapp.webhook] Largo de firma no coincide. Recibida: ${bufRecibido.length} caracteres, esperada: ${bufEsperado.length} caracteres.`);
+    console.error('[whatsapp.webhook] Firma recibida:', firmaRecibida);
+    console.error('[whatsapp.webhook] Firma esperada:', firmaEsperada);
+    return false;
+  }
+  const coincide = crypto.timingSafeEqual(bufRecibido, bufEsperado);
+  if (!coincide) {
+    console.error('[whatsapp.webhook] Las firmas no coinciden.');
+    console.error('[whatsapp.webhook] Firma recibida:', firmaRecibida);
+    console.error('[whatsapp.webhook] Firma esperada:', firmaEsperada);
+  }
+  return coincide;
 }
 
 // POST /api/whatsapp/webhook — YCloud le pega a esto cada vez que alguien le
