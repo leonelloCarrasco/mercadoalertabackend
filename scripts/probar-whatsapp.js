@@ -1,17 +1,17 @@
 /**
- * Script de prueba para mandar mensajes de WhatsApp directo, sin pasar por
- * el flujo completo de la UI — mismo espíritu que
+ * Script de prueba para mandar mensajes de WhatsApp directo (vía YCloud),
+ * sin pasar por el flujo completo de la UI — mismo espíritu que
  * scripts/probar-mensaje-telegram.js.
  *
  * La vinculación en sí (que funciona con "el usuario escribe primero", ver
  * whatsapp.routes.js) no se puede probar con un script simple como este —
  * necesita el webhook real recibiendo un mensaje entrante. Para probar ESO,
  * la forma más simple es usar el flujo real desde el dashboard una vez que
- * tengas WHATSAPP_APP_SECRET y el webhook dado de alta en Meta.
+ * tengas YCLOUD_WEBHOOK_SECRET y el webhook dado de alta en YCloud.
  *
- * Si WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID no están configurados,
- * cae en modo simulación (imprime en consola en vez de mandar de verdad) —
- * funciona igual sin credenciales, solo que no llega nada real al teléfono.
+ * Si YCLOUD_API_KEY no está configurada, cae en modo simulación (imprime en
+ * consola en vez de mandar de verdad) — funciona igual sin credenciales,
+ * solo que no llega nada real al teléfono.
  *
  * Uso:
  *   node scripts/probar-whatsapp.js resumen {numero} {cantidad}

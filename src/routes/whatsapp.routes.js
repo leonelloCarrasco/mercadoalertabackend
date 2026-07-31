@@ -15,7 +15,7 @@ const { obtenerPlan } = require('../utils/planes');
 
 const router = express.Router();
 
-const CODIGO_TTL_MS = 15 * 60 * 1000; // 15 min — igual que el link de Telegram, solo para el ida y vuelta de mandar el WhatsApp
+const CODIGO_TTL_MS = 15 * 60 * 1000; // 15 min — igual que el link de Telegram
 
 // WhatsApp es exclusivo de los planes cuya "mensajeria" lo incluye (hoy
 // Básico y Full, ver planes.js).
@@ -32,19 +32,23 @@ function hashearCodigo(codigo) {
   return crypto.createHash('sha256').update(codigo).digest('hex');
 }
 
-// POST /api/whatsapp/generar-codigo — el usuario NO manda su número acá (a
-// diferencia del diseño anterior): lo vamos a aprender directo del mensaje
-// de WhatsApp que nos mande, que es la fuente de verdad real de "a qué
-// número tiene acceso esta persona".
+/** YCloud manda los números con "+" (ej. "+56912345678") — se guarda sin el "+", mismo formato que se usa en el resto del proyecto. */
+function normalizarNumero(numero) {
+  return String(numero || '').replace(/[^\d]/g, '');
+}
+
+// POST /api/whatsapp/generar-codigo — el usuario NO manda su número acá: lo
+// aprendemos directo del mensaje de WhatsApp que nos mande, que es la
+// fuente de verdad real de "a qué número tiene acceso esta persona".
 router.post('/generar-codigo', requireAuth, requireEmpresaActiva, whatsappCodigoLimiter, async (req, res) => {
   try {
     if (!tieneWhatsappEnElPlan(req)) {
       return res.status(403).json({ error: 'WhatsApp está disponible en los planes Básico y Full.' });
     }
 
-    const numeroNegocio = process.env.WHATSAPP_NUMERO_NEGOCIO;
+    const numeroNegocio = process.env.YCLOUD_BUSINESS_NUMBER;
     if (!numeroNegocio) {
-      console.error('⚠️  WHATSAPP_NUMERO_NEGOCIO no configurada en .env — no se puede armar el link de vinculación.');
+      console.error('⚠️  YCLOUD_BUSINESS_NUMBER no configurada en .env — no se puede armar el link de vinculación.');
       return res.status(503).json({ error: 'La vinculación con WhatsApp no está disponible en este momento.' });
     }
 
@@ -56,8 +60,9 @@ router.post('/generar-codigo', requireAuth, requireEmpresaActiva, whatsappCodigo
     await crearTokenWhatsappVerificacion(req.userId, codigoHash, expiresAt);
 
     const textoPrecargado = encodeURIComponent(`VINCULAR ${codigo}`);
+    const numeroParaLink = numeroNegocio.replace(/[^\d]/g, ''); // wa.me no acepta el "+", aunque YCLOUD_BUSINESS_NUMBER sí lo lleva (lo necesita la API al mandar mensajes)
     res.json({
-      link: `https://wa.me/${numeroNegocio}?text=${textoPrecargado}`,
+      link: `https://wa.me/${numeroParaLink}?text=${textoPrecargado}`,
       codigo,
       expiraEn: CODIGO_TTL_MS / 1000,
     });
@@ -87,77 +92,72 @@ router.delete('/vincular', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/whatsapp/webhook — Meta llama a esto UNA VEZ, al dar de alta la
-// URL del webhook en el dashboard de la app, para confirmar que la URL es
-// tuya (le mandás de vuelta el mismo hub.challenge que te pasó, solo si el
-// hub.verify_token coincide con el que vos mismo configuraste).
-router.get('/webhook', (req, res) => {
-  const modo = req.query['hub.mode'];
-  const tokenRecibido = req.query['hub.verify_token'];
-  const challenge = req.query['hub.challenge'];
-
-  if (modo === 'subscribe' && tokenRecibido === process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN) {
-    return res.status(200).send(challenge);
-  }
-  res.sendStatus(403);
-});
-
 /**
- * Verifica que el POST realmente venga de Meta — a diferencia de Telegram
- * (un header simple con un secreto fijo), WhatsApp firma el body completo
- * con HMAC-SHA256 usando el App Secret, mandado en el header
- * X-Hub-Signature-256 como "sha256=<hex>". Sin WHATSAPP_APP_SECRET
- * configurado, el webhook rechaza todo en vez de aceptar sin verificar
- * (mismo criterio que Telegram con su secret_token).
+ * Verifica que el POST realmente venga de YCloud — formato de firma propio
+ * de YCloud (distinto al de Meta directo):
+ *   Header: YCloud-Signature: t={timestamp},s={signature}
+ *   signed_payload = "{timestamp}.{body_crudo}."
+ *   firma_esperada = HMAC-SHA256(signed_payload, YCLOUD_WEBHOOK_SECRET)
+ * Sin YCLOUD_WEBHOOK_SECRET configurado, el webhook rechaza todo en vez de
+ * aceptar sin verificar.
  */
 function firmaValida(req) {
-  const appSecret = process.env.WHATSAPP_APP_SECRET;
-  const firmaRecibida = req.headers['x-hub-signature-256'];
-  if (!appSecret || !firmaRecibida || !req.rawBody) return false;
+  const secret = process.env.YCLOUD_WEBHOOK_SECRET;
+  const header = req.headers['ycloud-signature'];
+  if (!secret || !header || !req.rawBody) return false;
 
-  const firmaEsperada = 'sha256=' + crypto.createHmac('sha256', appSecret).update(req.rawBody).digest('hex');
+  const partes = Object.fromEntries(header.split(',').map((p) => p.split('=')));
+  const timestamp = partes.t;
+  const firmaRecibida = partes.s;
+  if (!timestamp || !firmaRecibida) return false;
+
+  const signedPayload = `${timestamp}.${req.rawBody.toString('utf8')}.`;
+  const firmaEsperada = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
+
   const bufRecibido = Buffer.from(firmaRecibida);
   const bufEsperado = Buffer.from(firmaEsperada);
   if (bufRecibido.length !== bufEsperado.length) return false;
   return crypto.timingSafeEqual(bufRecibido, bufEsperado);
 }
 
-// POST /api/whatsapp/webhook — Meta le pega a esto cada vez que alguien le
-// escribe a nuestro número de WhatsApp. Acá es donde se completa la
-// vinculación: si el mensaje entrante es "VINCULAR <código>" y ese código
-// coincide con uno vigente, se vincula ese número al usuario dueño del
-// código — el número queda registrado tal como lo manda Meta (el remitente
-// real), no algo que el usuario tipeó a mano en el dashboard.
+// POST /api/whatsapp/webhook — YCloud le pega a esto cada vez que alguien le
+// escribe a nuestro número de WhatsApp (evento whatsapp.inbound_message.received).
+// Acá es donde se completa la vinculación: si el mensaje entrante es
+// "VINCULAR <código>" y ese código coincide con uno vigente, se vincula ese
+// número al usuario dueño del código — el número queda registrado tal como
+// lo manda YCloud (el remitente real), no algo que el usuario tipeó a mano.
 router.post('/webhook', async (req, res) => {
-  if (!process.env.WHATSAPP_APP_SECRET) {
-    console.error('⚠️  WHATSAPP_APP_SECRET no configurada — el webhook de WhatsApp queda deshabilitado por seguridad.');
+  if (!process.env.YCLOUD_WEBHOOK_SECRET) {
+    console.error('⚠️  YCLOUD_WEBHOOK_SECRET no configurada — el webhook de WhatsApp queda deshabilitado por seguridad.');
     return res.status(503).end();
   }
   if (!firmaValida(req)) {
     return res.status(401).end();
   }
 
-  // Siempre 200 de acá en adelante — Meta reintenta agresivamente si no
-  // confirmás con 200, y un error nuestro no debería generar reintentos
+  // Siempre 2xx de acá en adelante — YCloud reintenta agresivamente si no
+  // confirmás con 2xx, y un error nuestro no debería generar reintentos
   // infinitos de un mensaje que de todas formas no vamos a poder procesar
   // mejor la segunda vez.
   try {
-    const mensaje = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-    const numero = mensaje?.from;
-    const texto = mensaje?.text?.body || '';
-    const match = texto.trim().match(/^vincular\s+(\d{6})$/i);
+    if (req.body?.type === 'whatsapp.inbound_message.received') {
+      const inbound = req.body.whatsappInboundMessage;
+      const numero = normalizarNumero(inbound?.from);
+      const texto = inbound?.text?.body || '';
+      const match = texto.trim().match(/^vincular\s+(\d{6})$/i);
 
-    if (match && numero) {
-      const codigo = match[1];
-      const codigoHash = hashearCodigo(codigo);
-      const tokenInfo = await buscarTokenWhatsappVerificacionVigente(codigoHash);
+      if (match && numero) {
+        const codigo = match[1];
+        const codigoHash = hashearCodigo(codigo);
+        const tokenInfo = await buscarTokenWhatsappVerificacionVigente(codigoHash);
 
-      if (tokenInfo) {
-        await marcarTokenResetUsado(tokenInfo.id);
-        await vincularWhatsapp(tokenInfo.user_id, numero);
-        await enviarMensajeWhatsappCrudo(numero, '✅ ¡Listo! Tu cuenta de MercadoAlerta quedó vinculada a este número. Ya vas a empezar a recibir tus alertas por acá.');
-      } else {
-        await enviarMensajeWhatsappCrudo(numero, '⚠️ Este código de vinculación venció o ya fue usado. Volvé a MercadoAlerta y generá uno nuevo desde Mi Perfil.');
+        if (tokenInfo) {
+          await marcarTokenResetUsado(tokenInfo.id);
+          await vincularWhatsapp(tokenInfo.user_id, numero);
+          await enviarMensajeWhatsappCrudo(numero, '✅ ¡Listo! Tu cuenta de MercadoAlerta quedó vinculada a este número. Ya vas a empezar a recibir tus alertas por acá.');
+        } else {
+          await enviarMensajeWhatsappCrudo(numero, '⚠️ Este código de vinculación venció o ya fue usado. Volvé a MercadoAlerta y generá uno nuevo desde Mi Perfil.');
+        }
       }
     }
   } catch (err) {

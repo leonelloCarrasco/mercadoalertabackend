@@ -1,37 +1,38 @@
 /**
- * Envío de mensajes por WhatsApp Cloud API (Meta), directo — sin BSP
- * intermediario.
+ * Envío de mensajes por WhatsApp vía YCloud (BSP — Business Solution
+ * Provider sobre WhatsApp Cloud API). Se usa YCloud en vez de integrar
+ * directo con Meta porque:
+ *  1. Meta directo trababa mucho la aprobación de plantillas de
+ *     autenticación (ver historial del proyecto).
+ *  2. Coexistencia (mantener la app de WhatsApp Business del celular activa
+ *     junto con la API) requiere que quien conecta el número sea un "Tech
+ *     Provider/Solution Partner" de Meta con Embedded Signup implementado —
+ *     YCloud ya es ese socio, nosotros no.
  *
- * Hay dos modos de envío, según quién inicia la conversación:
+ * Dos modos de envío, según quién inicia la conversación (misma regla de
+ * WhatsApp de siempre, YCloud no la cambia):
  *
- *  1. El NEGOCIO inicia (ej. el resumen de alertas) — tiene que ser una
- *     plantilla pre-aprobada por Meta en Business Manager, con variables
- *     numeradas ({{1}}, {{2}}...), sin HTML ni links libres. Requiere tener
- *     creada y APROBADA (puede tardar horas/días la primera vez) la
- *     plantilla "resumen de alerta" (nombre configurable via
- *     WHATSAPP_TEMPLATE_ALERTA_RESUMEN, default "alerta_resumen"):
- *     cuerpo sugerido: "Tienes {{1}} nueva(s) oportunidad(es) que coinciden
- *     con tus alertas en MercadoAlerta. Revisa tu panel para ver el detalle."
+ *  1. El NEGOCIO inicia (ej. el resumen de alertas) — plantilla
+ *     pre-aprobada por Meta (la aprobación sigue siendo de Meta por debajo,
+ *     YCloud es solo la capa de API/dashboard). Nombre configurable via
+ *     WHATSAPP_TEMPLATE_ALERTA_RESUMEN, default "alerta_resumen".
  *
- *  2. El USUARIO inicia (ej. vincular WhatsApp — ver whatsapp.routes.js) —
- *     eso abre una ventana de 24hs donde SÍ se puede mandar texto libre sin
- *     ninguna plantilla. Se usa para la confirmación de vinculación, en vez
- *     de una plantilla de código de verificación (que Meta termina
- *     rechazando muy seguido por parecer un mensaje de autenticación real,
- *     ver la discusión completa en el historial del proyecto).
+ *  2. El USUARIO inicia (vincular WhatsApp — ver whatsapp.routes.js) — texto
+ *     libre sin plantilla, dentro de la ventana de 24hs.
  *
- * Si WHATSAPP_ACCESS_TOKEN o WHATSAPP_PHONE_NUMBER_ID no están configurados
- * (por ejemplo, mientras el número de Meta Business todavía no está
- * verificado), se loguea en consola en vez de mandar — mismo criterio que
- * el resto de los canales (email/Telegram) cuando faltan credenciales.
+ * Si YCLOUD_API_KEY no está configurada, se loguea en consola en vez de
+ * mandar — mismo criterio que el resto de los canales cuando faltan
+ * credenciales.
  */
+const YCLOUD_API_URL = 'https://api.ycloud.com/v2/whatsapp/messages/sendDirectly';
+
 async function enviarPlantillaWhatsapp(numero, nombrePlantilla, variables = []) {
-  const token = process.env.WHATSAPP_ACCESS_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const apiKey = process.env.YCLOUD_API_KEY;
+  const numeroNegocio = process.env.YCLOUD_BUSINESS_NUMBER;
   const idioma = process.env.WHATSAPP_TEMPLATE_IDIOMA || 'es';
 
-  if (!token || !phoneNumberId) {
-    console.log(`\n🟢 [whatsapp.service] WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID no configurados — modo simulación:`);
+  if (!apiKey || !numeroNegocio) {
+    console.log(`\n🟢 [whatsapp.service] YCLOUD_API_KEY/YCLOUD_BUSINESS_NUMBER no configurados — modo simulación:`);
     console.log(`   Para: ${numero} | Plantilla: ${nombrePlantilla} | Variables:`, variables);
     return { simulado: true };
   }
@@ -41,13 +42,11 @@ async function enviarPlantillaWhatsapp(numero, nombrePlantilla, variables = []) 
     return { omitido: true };
   }
 
-  const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
-
-  const response = await fetch(url, {
+  const response = await fetch(YCLOUD_API_URL, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    headers: { 'X-API-Key': apiKey, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      messaging_product: 'whatsapp',
+      from: numeroNegocio,
       to: numero,
       type: 'template',
       template: {
@@ -61,20 +60,16 @@ async function enviarPlantillaWhatsapp(numero, nombrePlantilla, variables = []) 
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
-    // Errores típicos acá: 132001 (plantilla no existe/no aprobada todavía),
-    // 131047 (fuera de la ventana de 24hs — no aplica a plantillas),
-    // 131026 (el número no tiene WhatsApp).
-    throw new Error(`Error enviando WhatsApp: HTTP ${response.status} — ${errorBody}`);
+    throw new Error(`Error enviando WhatsApp (YCloud): HTTP ${response.status} — ${await response.text()}`);
   }
 
   return response.json();
 }
 
 /**
- * Mensaje resumen (no el detalle de cada oportunidad, a diferencia de
- * Telegram) — decisión tomada a propósito dado que las plantillas de
- * WhatsApp no admiten armar una lista dinámica de N ítems con links.
+ * Mensaje resumen (no el detalle de cada oportunidad) — decisión tomada a
+ * propósito dado que las plantillas de WhatsApp no admiten armar una lista
+ * dinámica de N ítems con links.
  */
 async function enviarResumenAlertaWhatsapp(numero, cantidadNuevas) {
   const plantilla = process.env.WHATSAPP_TEMPLATE_ALERTA_RESUMEN || 'alerta_resumen';
@@ -84,31 +79,29 @@ async function enviarResumenAlertaWhatsapp(numero, cantidadNuevas) {
 /**
  * Texto libre, SIN plantilla — solo válido dentro de las 24hs después de
  * que el número de destino le escribió primero a nuestro WhatsApp (por eso
- * se usa únicamente para responder dentro del webhook de vinculación, nunca
- * para iniciar una conversación).
+ * se usa únicamente para responder dentro del webhook de vinculación).
  */
 async function enviarMensajeWhatsappCrudo(numero, texto) {
-  const token = process.env.WHATSAPP_ACCESS_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const apiKey = process.env.YCLOUD_API_KEY;
+  const numeroNegocio = process.env.YCLOUD_BUSINESS_NUMBER;
 
-  if (!token || !phoneNumberId) {
-    console.log(`\n🟢 [whatsapp.service] WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID no configurados — modo simulación:`);
+  if (!apiKey || !numeroNegocio) {
+    console.log(`\n🟢 [whatsapp.service] YCLOUD_API_KEY/YCLOUD_BUSINESS_NUMBER no configurados — modo simulación:`);
     console.log(`   Para: ${numero} | Texto: ${texto}`);
     return { simulado: true };
   }
 
   try {
-    const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
-    const response = await fetch(url, {
+    const response = await fetch(YCLOUD_API_URL, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messaging_product: 'whatsapp', to: numero, type: 'text', text: { body: texto } }),
+      headers: { 'X-API-Key': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: numeroNegocio, to: numero, type: 'text', text: { body: texto } }),
     });
     if (!response.ok) {
-      console.error('[whatsapp.service] Error mandando texto libre:', await response.text());
+      console.error('[whatsapp.service] Error mandando texto libre (YCloud):', await response.text());
     }
   } catch (err) {
-    console.error('[whatsapp.service] Error mandando texto libre:', err.message);
+    console.error('[whatsapp.service] Error mandando texto libre (YCloud):', err.message);
   }
 }
 
