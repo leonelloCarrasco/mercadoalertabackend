@@ -15,6 +15,7 @@ const analisisIaRoutes = require('./routes/analisis-ia.routes');
 const soporteRoutes = require('./routes/soporte.routes');
 const telegramRoutes = require('./routes/telegram.routes');
 const planesRoutes = require('./routes/planes.routes');
+const whatsappRoutes = require('./routes/whatsapp.routes');
 const pagosRoutes = require('./routes/pagos.routes');
 
 const app = express();
@@ -51,7 +52,11 @@ app.use(cors({
     }
   },
 }));
-app.use(express.json());
+// { verify } guarda el body crudo en req.rawBody ANTES de parsearlo — lo
+// necesita el webhook de WhatsApp para verificar la firma HMAC que manda
+// Meta (X-Hub-Signature-256), que se calcula sobre el body tal cual llegó,
+// no sobre el objeto ya parseado.
+app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.static('public'));
 
 // Este endpoint tiene doble propósito:
@@ -84,5 +89,6 @@ app.use('/api/analisis-ia', analisisIaRoutes);
 app.use('/api/soporte', soporteRoutes);
 app.use('/api/telegram', telegramRoutes);
 app.use('/api/planes', planesRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 module.exports = app;

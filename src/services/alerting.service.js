@@ -15,6 +15,20 @@ const {
   escapeHtml,
 } = require('./email.service');
 const { enviarTelegramAlerta } = require('./telegram.service');
+const { enviarResumenAlertaWhatsapp } = require('./whatsapp.service');
+const { obtenerPlan } = require('../utils/planes');
+
+/**
+ * WhatsApp solo se manda si: el usuario vinculó y verificó su número, Y su
+ * plan actual incluye WhatsApp en su mensajería (ver planes.js — hoy
+ * Básico/Full sí, Trial no). Se chequea el plan en cada envío (no solo al
+ * vincular) porque alguien pudo haber bajado de plan después de vincular.
+ */
+function puedeRecibirWhatsapp(config) {
+  if (!config.whatsapp_verificado || !config.whatsapp_numero) return false;
+  const plan = obtenerPlan(config.plan);
+  return Boolean(plan?.mensajeria?.includes('WhatsApp'));
+}
 
 /**
  * Recorre los items nuevos, hace matching contra las configuraciones activas,
@@ -22,17 +36,18 @@ const { enviarTelegramAlerta } = require('./telegram.service');
  * reservando atómicamente cada (usuario, item, canal) antes de agregarlo al grupo,
  * para no duplicar envíos si esta misma corrida se solapa con otra (ver alerts-sent.queries.js).
  *
- * Devuelve dos Maps: uno para email, otro para telegram, cada uno
+ * Devuelve tres Maps: uno por canal (email, telegram, whatsapp), cada uno
  * userId -> { config, items: [...], reservaIds: [...] }
  */
 async function agruparPorUsuario(items, matchFn, tipoProceso, extraerCodigo) {
   const configs = await listarAlertConfigsActivas();
   const porUsuarioEmail = new Map();
   const porUsuarioTelegram = new Map();
+  const porUsuarioWhatsapp = new Map();
 
   if (configs.length === 0) {
     console.log('[alerting] No hay ninguna configuración de alerta activa en todo el sistema.');
-    return { porUsuarioEmail, porUsuarioTelegram };
+    return { porUsuarioEmail, porUsuarioTelegram, porUsuarioWhatsapp };
   }
 
   for (const item of items) {
@@ -61,10 +76,22 @@ async function agruparPorUsuario(items, matchFn, tipoProceso, extraerCodigo) {
           bucket.reservaIds.push(reservaTelegramId);
         }
       }
+
+      if (puedeRecibirWhatsapp(config)) {
+        const reservaWhatsappId = await intentarReservarEnvio(config.user_id, codigoExterno, tipoProceso, 'whatsapp', config.id);
+        if (reservaWhatsappId) {
+          if (!porUsuarioWhatsapp.has(config.user_id)) {
+            porUsuarioWhatsapp.set(config.user_id, { config, items: [], reservaIds: [] });
+          }
+          const bucket = porUsuarioWhatsapp.get(config.user_id);
+          bucket.items.push(item);
+          bucket.reservaIds.push(reservaWhatsappId);
+        }
+      }
     }
   }
 
-  return { porUsuarioEmail, porUsuarioTelegram };
+  return { porUsuarioEmail, porUsuarioTelegram, porUsuarioWhatsapp };
 }
 
 async function enviarResumenesPorEmail(porUsuarioEmail, armarResumenFn) {
@@ -91,6 +118,25 @@ async function enviarResumenesPorTelegram(porUsuarioTelegram, armarTextoFn) {
       enviados++;
     } catch (err) {
       console.error(`[alerting] Error enviando resumen por Telegram a user ${bucket.config.user_id}:`, err.message);
+      for (const id of bucket.reservaIds) await liberarReserva(id);
+    }
+  }
+  return enviados;
+}
+
+/**
+ * A diferencia de email/Telegram, WhatsApp no manda el detalle de cada
+ * ítem — solo la CANTIDAD (ver enviarResumenAlertaWhatsapp), porque las
+ * plantillas de Meta no admiten armar una lista dinámica con links.
+ */
+async function enviarResumenesPorWhatsapp(porUsuarioWhatsapp) {
+  let enviados = 0;
+  for (const [, bucket] of porUsuarioWhatsapp) {
+    try {
+      await enviarResumenAlertaWhatsapp(bucket.config.whatsapp_numero, bucket.items.length);
+      enviados++;
+    } catch (err) {
+      console.error(`[alerting] Error enviando resumen por WhatsApp a user ${bucket.config.user_id}:`, err.message);
       for (const id of bucket.reservaIds) await liberarReserva(id);
     }
   }
@@ -187,22 +233,23 @@ async function enviarTelegramAlertaMulti(chatId, textoOMensajes) {
 async function procesarAlertasLicitaciones(licitacionesNuevas) {
   if (licitacionesNuevas.length === 0) return;
 
-  const { porUsuarioEmail, porUsuarioTelegram } = await agruparPorUsuario(
+  const { porUsuarioEmail, porUsuarioTelegram, porUsuarioWhatsapp } = await agruparPorUsuario(
     licitacionesNuevas,
     matchLicitacion,
     'licitacion',
     (detalle) => detalle.CodigoExterno
   );
 
-  if (porUsuarioEmail.size === 0 && porUsuarioTelegram.size === 0) {
+  if (porUsuarioEmail.size === 0 && porUsuarioTelegram.size === 0 && porUsuarioWhatsapp.size === 0) {
     console.log('[alerting] Hay configuraciones activas, pero ninguna coincidió con estos items.');
     return;
   }
 
   const emailsEnviados = await enviarResumenesPorEmail(porUsuarioEmail, armarResumenLicitaciones);
   const telegramsEnviados = await enviarResumenesPorTelegram(porUsuarioTelegram, armarTextoTelegramLicitaciones);
+  const whatsappsEnviados = await enviarResumenesPorWhatsapp(porUsuarioWhatsapp);
 
-  console.log(`[alerting] ${emailsEnviados} emails resumen y ${telegramsEnviados} mensajes de Telegram enviados (licitaciones).`);
+  console.log(`[alerting] ${emailsEnviados} emails resumen, ${telegramsEnviados} mensajes de Telegram y ${whatsappsEnviados} mensajes de WhatsApp enviados (licitaciones).`);
 }
 
 /**
@@ -220,22 +267,23 @@ async function procesarAlertasCompraAgil(comprasAgilesNuevas) {
     productos_solicitados: entrada.detalle?.productos_solicitados || [],
   }));
 
-  const { porUsuarioEmail, porUsuarioTelegram } = await agruparPorUsuario(
+  const { porUsuarioEmail, porUsuarioTelegram, porUsuarioWhatsapp } = await agruparPorUsuario(
     items,
     matchCompraAgil,
     'compra_agil',
     (item) => item.codigo
   );
 
-  if (porUsuarioEmail.size === 0 && porUsuarioTelegram.size === 0) {
+  if (porUsuarioEmail.size === 0 && porUsuarioTelegram.size === 0 && porUsuarioWhatsapp.size === 0) {
     console.log('[alerting] Hay configuraciones activas, pero ninguna coincidió con estos items.');
     return;
   }
 
   const emailsEnviados = await enviarResumenesPorEmail(porUsuarioEmail, armarResumenCompraAgil);
   const telegramsEnviados = await enviarResumenesPorTelegram(porUsuarioTelegram, armarTextoTelegramCompraAgil);
+  const whatsappsEnviados = await enviarResumenesPorWhatsapp(porUsuarioWhatsapp);
 
-  console.log(`[alerting] ${emailsEnviados} emails resumen y ${telegramsEnviados} mensajes de Telegram enviados (Compra Ágil).`);
+  console.log(`[alerting] ${emailsEnviados} emails resumen, ${telegramsEnviados} mensajes de Telegram y ${whatsappsEnviados} mensajes de WhatsApp enviados (Compra Ágil).`);
 }
 
 /**
@@ -327,6 +375,7 @@ async function procesarBackfillNuevaAlerta(config) {
     // al mismo tiempo que este backfill.
     const licitacionesAEnviarEmail = [];
     const licitacionesAEnviarTelegram = [];
+    const licitacionesAEnviarWhatsapp = [];
     for (const d of licitacionesMatch) {
       const reservaEmailId = await intentarReservarEnvio(config.user_id, d.CodigoExterno, 'licitacion', 'email', config.id);
       if (reservaEmailId) licitacionesAEnviarEmail.push(d);
@@ -334,16 +383,25 @@ async function procesarBackfillNuevaAlerta(config) {
         const reservaTelegramId = await intentarReservarEnvio(config.user_id, d.CodigoExterno, 'licitacion', 'telegram', config.id);
         if (reservaTelegramId) licitacionesAEnviarTelegram.push(d);
       }
+      if (puedeRecibirWhatsapp(config)) {
+        const reservaWhatsappId = await intentarReservarEnvio(config.user_id, d.CodigoExterno, 'licitacion', 'whatsapp', config.id);
+        if (reservaWhatsappId) licitacionesAEnviarWhatsapp.push(d);
+      }
     }
 
     const comprasAgilesAEnviarEmail = [];
     const comprasAgilesAEnviarTelegram = [];
+    const comprasAgilesAEnviarWhatsapp = [];
     for (const item of comprasAgilesMatch) {
       const reservaEmailId = await intentarReservarEnvio(config.user_id, item.codigo, 'compra_agil', 'email', config.id);
       if (reservaEmailId) comprasAgilesAEnviarEmail.push(item);
       if (config.telegram_chat_id) {
         const reservaTelegramId = await intentarReservarEnvio(config.user_id, item.codigo, 'compra_agil', 'telegram', config.id);
         if (reservaTelegramId) comprasAgilesAEnviarTelegram.push(item);
+      }
+      if (puedeRecibirWhatsapp(config)) {
+        const reservaWhatsappId = await intentarReservarEnvio(config.user_id, item.codigo, 'compra_agil', 'whatsapp', config.id);
+        if (reservaWhatsappId) comprasAgilesAEnviarWhatsapp.push(item);
       }
     }
 
@@ -360,6 +418,12 @@ async function procesarBackfillNuevaAlerta(config) {
     }
     if (comprasAgilesAEnviarTelegram.length > 0) {
       await enviarTelegramAlertaMulti(config.telegram_chat_id, armarTextoTelegramCompraAgil(comprasAgilesAEnviarTelegram));
+    }
+    // Un solo mensaje de WhatsApp con el total combinado (no uno por tipo de
+    // proceso) — mismo criterio de "resumen simple" que el resto de WhatsApp.
+    const totalWhatsapp = licitacionesAEnviarWhatsapp.length + comprasAgilesAEnviarWhatsapp.length;
+    if (totalWhatsapp > 0) {
+      await enviarResumenAlertaWhatsapp(config.whatsapp_numero, totalWhatsapp);
     }
 
     console.log(`[alerting] Backfill de alerta nueva (config ${config.id}): ${licitacionesMatch.length} licitaciones + ${comprasAgilesMatch.length} Compras Ágiles ya publicadas encontradas y notificadas.`);
