@@ -67,6 +67,18 @@ const telegramLinkLimiter = rateLimit({
   handler: mensajeError('Demasiadas solicitudes de vinculación. Intenta de nuevo más tarde.'),
 });
 
+// Generar el link de vinculación de WhatsApp ya no manda ningún mensaje de
+// pago (el flujo cambió a "el usuario escribe primero", ver whatsapp.routes.js)
+// — mismo límite generoso que Telegram, no el estricto de antes.
+const whatsappCodigoLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.userId || ipKeyGenerator(req.ip),
+  handler: mensajeError('Demasiadas solicitudes de vinculación. Intenta de nuevo más tarde.'),
+});
+
 // Es un usuario ya logueado (no anónimo como los de arriba), pero igual
 // dispara un correo — un límite más generoso alcanza para frenar un posible
 // loop/bug del front sin molestar a alguien que de verdad necesita escribir
@@ -125,6 +137,7 @@ module.exports = {
   resetPasswordLimiter,
   reenviarConfirmacionLimiter,
   telegramLinkLimiter,
+  whatsappCodigoLimiter,
   contactoAyudaLimiter,
   analisisIaLimiter,
   enviarCorreoAnalisisLimiter,

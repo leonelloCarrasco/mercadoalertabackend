@@ -93,6 +93,36 @@ async function obtenerEstadoTelegram(userId) {
   return { vinculado: Boolean(result.rows[0]?.telegram_chat_id) };
 }
 
+/**
+ * Vincula y confirma WhatsApp en un solo paso — a diferencia del diseño
+ * anterior (número primero, código después), ahora el número se aprende del
+ * propio mensaje entrante de WhatsApp (ver whatsapp.routes.js /webhook), así
+ * que no hace falta un estado "pendiente" intermedio. Mismo criterio que
+ * vincularTelegram: si el número ya estaba vinculado a OTRA cuenta, se lo
+ * saca de ahí primero.
+ */
+async function vincularWhatsapp(userId, numero) {
+  await pool.query('UPDATE users SET whatsapp_numero = NULL, whatsapp_verificado = false WHERE whatsapp_numero = $1', [numero]);
+  const result = await pool.query(
+    'UPDATE users SET whatsapp_numero = $1, whatsapp_verificado = true WHERE id = $2 RETURNING id, whatsapp_numero, whatsapp_verificado',
+    [numero, userId]
+  );
+  return result.rows[0] || null;
+}
+
+async function desvincularWhatsapp(userId) {
+  const result = await pool.query(
+    'UPDATE users SET whatsapp_numero = NULL, whatsapp_verificado = false WHERE id = $1 RETURNING id',
+    [userId]
+  );
+  return result.rows[0] || null;
+}
+
+async function obtenerEstadoWhatsapp(userId) {
+  const result = await pool.query('SELECT whatsapp_verificado FROM users WHERE id = $1', [userId]);
+  return { vinculado: Boolean(result.rows[0]?.whatsapp_verificado) };
+}
+
 async function obtenerPasswordHash(userId) {
   const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
   return result.rows[0]?.password_hash || null;
@@ -132,4 +162,7 @@ module.exports = {
   vincularTelegram,
   desvincularTelegram,
   obtenerEstadoTelegram,
+  vincularWhatsapp,
+  desvincularWhatsapp,
+  obtenerEstadoWhatsapp,
 };

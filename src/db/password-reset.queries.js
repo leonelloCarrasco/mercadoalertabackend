@@ -106,6 +106,39 @@ async function invalidarTokensTelegramLinkDeUsuario(userId) {
   );
 }
 
+/**
+ * Mismo mecanismo de tokens, para vincular WhatsApp (tipo='whatsapp_verificacion')
+ * — igual que Telegram: el usuario manda un código por WhatsApp (no lo
+ * confirma en el dashboard), así que la búsqueda es por hash solo, sin
+ * conocer de antemano a quién pertenece (eso lo dice el token).
+ */
+async function crearTokenWhatsappVerificacion(userId, tokenHash, expiresAt) {
+  const result = await pool.query(
+    `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at, tipo)
+     VALUES ($1, $2, $3, 'whatsapp_verificacion')
+     RETURNING id, user_id, expires_at`,
+    [userId, tokenHash, expiresAt]
+  );
+  return result.rows[0];
+}
+
+async function buscarTokenWhatsappVerificacionVigente(tokenHash) {
+  const result = await pool.query(
+    `SELECT id, user_id, expires_at
+     FROM password_reset_tokens
+     WHERE token_hash = $1 AND used_at IS NULL AND expires_at > NOW() AND tipo = 'whatsapp_verificacion'`,
+    [tokenHash]
+  );
+  return result.rows[0] || null;
+}
+
+async function invalidarTokensWhatsappVerificacionDeUsuario(userId) {
+  await pool.query(
+    "UPDATE password_reset_tokens SET used_at = NOW() WHERE user_id = $1 AND used_at IS NULL AND tipo = 'whatsapp_verificacion'",
+    [userId]
+  );
+}
+
 module.exports = {
   crearTokenReset,
   buscarTokenResetVigente,
@@ -116,4 +149,7 @@ module.exports = {
   crearTokenTelegramLink,
   buscarTokenTelegramLinkVigente,
   invalidarTokensTelegramLinkDeUsuario,
+  crearTokenWhatsappVerificacion,
+  buscarTokenWhatsappVerificacionVigente,
+  invalidarTokensWhatsappVerificacionDeUsuario,
 };

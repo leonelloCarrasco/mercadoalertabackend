@@ -62,9 +62,10 @@ async function contarConfigsActivasDeUsuario(userId, excludeConfigId = null) {
  */
 async function listarAlertConfigsActivas() {
   const result = await pool.query(`
-    SELECT ac.*, u.email, u.telegram_chat_id
+    SELECT ac.*, u.email, u.telegram_chat_id, u.whatsapp_numero, u.whatsapp_verificado, e.plan
     FROM alert_configs ac
     JOIN users u ON u.id = ac.user_id
+    JOIN empresas e ON e.id = u.empresa_id
     WHERE ac.activo = true
   `);
   return result.rows;
@@ -72,17 +73,18 @@ async function listarAlertConfigsActivas() {
 
 /**
  * Igual que listarAlertConfigsActivas pero para UNA sola config por id (con
- * el email/telegram_chat_id del usuario ya unidos) — usada justo después de
- * crear una alerta, para el backfill contra procesos ya publicados (ver
- * procesarBackfillNuevaAlerta en alerting.service.js). crearAlertConfig
- * devuelve la fila cruda de alert_configs sin esos dos campos, porque viven
- * en la tabla users.
+ * el email/telegram_chat_id/whatsapp/plan del usuario ya unidos) — usada
+ * justo después de crear una alerta, para el backfill contra procesos ya
+ * publicados (ver procesarBackfillNuevaAlerta en alerting.service.js).
+ * crearAlertConfig devuelve la fila cruda de alert_configs sin esos campos,
+ * porque viven en users/empresas.
  */
 async function obtenerAlertConfigConContacto(id) {
   const result = await pool.query(`
-    SELECT ac.*, u.email, u.telegram_chat_id
+    SELECT ac.*, u.email, u.telegram_chat_id, u.whatsapp_numero, u.whatsapp_verificado, e.plan
     FROM alert_configs ac
     JOIN users u ON u.id = ac.user_id
+    JOIN empresas e ON e.id = u.empresa_id
     WHERE ac.id = $1
   `, [id]);
   return result.rows[0] || null;
