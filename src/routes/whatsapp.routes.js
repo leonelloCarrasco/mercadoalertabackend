@@ -96,7 +96,7 @@ router.delete('/vincular', requireAuth, async (req, res) => {
  * Verifica que el POST realmente venga de YCloud — formato de firma propio
  * de YCloud (distinto al de Meta directo):
  *   Header: YCloud-Signature: t={timestamp},s={signature}
- *   signed_payload = "{timestamp}.{body_crudo}."
+ *   signed_payload = "{timestamp}.{body_crudo}" (SIN punto final — ojo, la doc de YCloud en texto tiene un punto ahí, pero es el cierre de la oración, no parte de la fórmula; el pseudocódigo oficial de YCloud no lo lleva)
  *   firma_esperada = HMAC-SHA256(signed_payload, YCLOUD_WEBHOOK_SECRET)
  * Sin YCLOUD_WEBHOOK_SECRET configurado, el webhook rechaza todo en vez de
  * aceptar sin verificar.
@@ -130,7 +130,7 @@ function firmaValida(req) {
     return false;
   }
 
-  const signedPayload = `${timestamp}.${req.rawBody.toString('utf8')}.`;
+  const signedPayload = `${timestamp}.${req.rawBody.toString('utf8')}`;
   const firmaEsperada = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
 
   const bufRecibido = Buffer.from(firmaRecibida);
