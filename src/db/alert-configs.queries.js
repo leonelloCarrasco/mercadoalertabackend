@@ -62,7 +62,7 @@ async function contarConfigsActivasDeUsuario(userId, excludeConfigId = null) {
  */
 async function listarAlertConfigsActivas() {
   const result = await pool.query(`
-    SELECT ac.*, u.email, u.telegram_chat_id, u.whatsapp_numero, u.whatsapp_verificado, e.plan
+    SELECT ac.*, u.email, u.nombre, u.telegram_chat_id, u.whatsapp_numero, u.whatsapp_verificado, e.plan
     FROM alert_configs ac
     JOIN users u ON u.id = ac.user_id
     JOIN empresas e ON e.id = u.empresa_id
@@ -81,7 +81,7 @@ async function listarAlertConfigsActivas() {
  */
 async function obtenerAlertConfigConContacto(id) {
   const result = await pool.query(`
-    SELECT ac.*, u.email, u.telegram_chat_id, u.whatsapp_numero, u.whatsapp_verificado, e.plan
+    SELECT ac.*, u.email, u.nombre, u.telegram_chat_id, u.whatsapp_numero, u.whatsapp_verificado, e.plan
     FROM alert_configs ac
     JOIN users u ON u.id = ac.user_id
     JOIN empresas e ON e.id = u.empresa_id
