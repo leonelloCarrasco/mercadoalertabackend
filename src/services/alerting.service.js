@@ -31,6 +31,17 @@ function puedeRecibirWhatsapp(config) {
 }
 
 /**
+ * Arma el texto de la variable {{2}} de la plantilla "alerta_resumen":
+ * "una licitación", "2 compras ágiles", "5 licitaciones", etc. — singular
+ * sin número ("una X"), plural con número ("N Xs").
+ */
+function describirCantidadYTipo(cantidad, tipoProceso) {
+  const singular = tipoProceso === 'compra_agil' ? 'compra ágil' : 'licitación';
+  const plural = tipoProceso === 'compra_agil' ? 'compras ágiles' : 'licitaciones';
+  return cantidad === 1 ? `una ${singular}` : `${cantidad} ${plural}`;
+}
+
+/**
  * Recorre los items nuevos, hace matching contra las configuraciones activas,
  * y agrupa por usuario + canal los items que le corresponden a cada uno —
  * reservando atómicamente cada (usuario, item, canal) antes de agregarlo al grupo,
@@ -126,14 +137,16 @@ async function enviarResumenesPorTelegram(porUsuarioTelegram, armarTextoFn) {
 
 /**
  * A diferencia de email/Telegram, WhatsApp no manda el detalle de cada
- * ítem — solo la CANTIDAD (ver enviarResumenAlertaWhatsapp), porque las
- * plantillas de Meta no admiten armar una lista dinámica con links.
+ * ítem — solo un resumen con nombre + cantidad/tipo (ver
+ * enviarResumenAlertaWhatsapp), porque las plantillas de Meta no admiten
+ * armar una lista dinámica con links.
  */
-async function enviarResumenesPorWhatsapp(porUsuarioWhatsapp) {
+async function enviarResumenesPorWhatsapp(porUsuarioWhatsapp, tipoProceso) {
   let enviados = 0;
   for (const [, bucket] of porUsuarioWhatsapp) {
     try {
-      await enviarResumenAlertaWhatsapp(bucket.config.whatsapp_numero, bucket.items.length);
+      const descripcion = describirCantidadYTipo(bucket.items.length, tipoProceso);
+      await enviarResumenAlertaWhatsapp(bucket.config.whatsapp_numero, bucket.config.nombre, descripcion);
       enviados++;
     } catch (err) {
       console.error(`[alerting] Error enviando resumen por WhatsApp a user ${bucket.config.user_id}:`, err.message);
@@ -247,7 +260,7 @@ async function procesarAlertasLicitaciones(licitacionesNuevas) {
 
   const emailsEnviados = await enviarResumenesPorEmail(porUsuarioEmail, armarResumenLicitaciones);
   const telegramsEnviados = await enviarResumenesPorTelegram(porUsuarioTelegram, armarTextoTelegramLicitaciones);
-  const whatsappsEnviados = await enviarResumenesPorWhatsapp(porUsuarioWhatsapp);
+  const whatsappsEnviados = await enviarResumenesPorWhatsapp(porUsuarioWhatsapp, 'licitacion');
 
   console.log(`[alerting] ${emailsEnviados} emails resumen, ${telegramsEnviados} mensajes de Telegram y ${whatsappsEnviados} mensajes de WhatsApp enviados (licitaciones).`);
 }
@@ -281,7 +294,7 @@ async function procesarAlertasCompraAgil(comprasAgilesNuevas) {
 
   const emailsEnviados = await enviarResumenesPorEmail(porUsuarioEmail, armarResumenCompraAgil);
   const telegramsEnviados = await enviarResumenesPorTelegram(porUsuarioTelegram, armarTextoTelegramCompraAgil);
-  const whatsappsEnviados = await enviarResumenesPorWhatsapp(porUsuarioWhatsapp);
+  const whatsappsEnviados = await enviarResumenesPorWhatsapp(porUsuarioWhatsapp, 'compra_agil');
 
   console.log(`[alerting] ${emailsEnviados} emails resumen, ${telegramsEnviados} mensajes de Telegram y ${whatsappsEnviados} mensajes de WhatsApp enviados (Compra Ágil).`);
 }
@@ -419,11 +432,18 @@ async function procesarBackfillNuevaAlerta(config) {
     if (comprasAgilesAEnviarTelegram.length > 0) {
       await enviarTelegramAlertaMulti(config.telegram_chat_id, armarTextoTelegramCompraAgil(comprasAgilesAEnviarTelegram));
     }
-    // Un solo mensaje de WhatsApp con el total combinado (no uno por tipo de
-    // proceso) — mismo criterio de "resumen simple" que el resto de WhatsApp.
-    const totalWhatsapp = licitacionesAEnviarWhatsapp.length + comprasAgilesAEnviarWhatsapp.length;
-    if (totalWhatsapp > 0) {
-      await enviarResumenAlertaWhatsapp(config.whatsapp_numero, totalWhatsapp);
+    // A diferencia del resto de canales acá, WhatsApp manda UN mensaje por
+    // tipo de proceso (no un total combinado) — porque la plantilla ahora
+    // necesita la descripción de tipo ("una licitación", "2 compras
+    // ágiles"), que no tendría sentido mezclada si hay de los dos tipos a
+    // la vez en el mismo backfill.
+    if (licitacionesAEnviarWhatsapp.length > 0) {
+      const descripcion = describirCantidadYTipo(licitacionesAEnviarWhatsapp.length, 'licitacion');
+      await enviarResumenAlertaWhatsapp(config.whatsapp_numero, config.nombre, descripcion);
+    }
+    if (comprasAgilesAEnviarWhatsapp.length > 0) {
+      const descripcion = describirCantidadYTipo(comprasAgilesAEnviarWhatsapp.length, 'compra_agil');
+      await enviarResumenAlertaWhatsapp(config.whatsapp_numero, config.nombre, descripcion);
     }
 
     console.log(`[alerting] Backfill de alerta nueva (config ${config.id}): ${licitacionesMatch.length} licitaciones + ${comprasAgilesMatch.length} Compras Ágiles ya publicadas encontradas y notificadas.`);

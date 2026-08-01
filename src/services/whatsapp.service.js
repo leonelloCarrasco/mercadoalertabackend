@@ -70,10 +70,17 @@ async function enviarPlantillaWhatsapp(numero, nombrePlantilla, variables = []) 
  * Mensaje resumen (no el detalle de cada oportunidad) — decisión tomada a
  * propósito dado que las plantillas de WhatsApp no admiten armar una lista
  * dinámica de N ítems con links.
+ *
+ * La plantilla "alerta_resumen" recibe DOS variables:
+ *   {{1}} = nombre de pila del usuario (sin apellido)
+ *   {{2}} = cantidad y tipo de proceso ya armado como texto, ej. "una
+ *           licitación", "2 compras ágiles", "5 licitaciones" — ver
+ *           describirCantidadYTipo() en alerting.service.js, que es quien
+ *           arma ese texto antes de llamar a esta función.
  */
-async function enviarResumenAlertaWhatsapp(numero, cantidadNuevas) {
+async function enviarResumenAlertaWhatsapp(numero, nombre, descripcionCantidadTipo) {
   const plantilla = process.env.WHATSAPP_TEMPLATE_ALERTA_RESUMEN || 'alerta_resumen';
-  return enviarPlantillaWhatsapp(numero, plantilla, [String(cantidadNuevas)]);
+  return enviarPlantillaWhatsapp(numero, plantilla, [nombre, descripcionCantidadTipo]);
 }
 
 /**
