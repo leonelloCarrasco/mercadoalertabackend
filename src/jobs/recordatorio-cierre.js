@@ -1,6 +1,8 @@
 const { listarRecordatoriosPendientes, marcarRecordatorioNotificado } = require('../db/recordatorios.queries');
-const { enviarEmailAlerta, armarEmailRecordatorio } = require('../services/email.service');
+const { enviarEmailAlerta, armarEmailRecordatorio, formatFechaHoraCL } = require('../services/email.service');
 const { enviarTelegramAlerta } = require('../services/telegram.service');
+const { enviarRecordatorioCierreWhatsapp } = require('../services/whatsapp.service');
+const { puedeRecibirWhatsapp } = require('../utils/planes');
 
 function armarTextoTelegramRecordatorio(r) {
   const emoji = r.tipo_proceso === 'compra_agil' ? '⚡' : '📋';
@@ -32,6 +34,20 @@ async function correrRecordatorioCierre() {
 
       if (r.telegram_chat_id) {
         await enviarTelegramAlerta(r.telegram_chat_id, armarTextoTelegramRecordatorio(r));
+      }
+
+      // Mismo criterio que en seguimiento-estado.js: WhatsApp cobra por
+      // mensaje entregado y necesita plantilla pre-aprobada por Meta, así
+      // que se manda la fecha ya formateada (es-CL) en vez del timestamp
+      // crudo que usa el texto de Telegram.
+      if (puedeRecibirWhatsapp(r)) {
+        await enviarRecordatorioCierreWhatsapp(
+          r.whatsapp_numero,
+          r.nombre_usuario,
+          r.nombre,
+          r.codigo_externo,
+          formatFechaHoraCL(r.fecha_cierre)
+        );
       }
 
       await marcarRecordatorioNotificado(r.id);

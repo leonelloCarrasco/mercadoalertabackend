@@ -96,14 +96,18 @@ async function listarCodigosSeguidosUnicos() {
 
 /**
  * Todos los seguimientos (de cualquier usuario) de un código puntual, con el
- * email/telegram_chat_id de cada usuario ya resuelto — para notificar a cada
- * uno que corresponda en esta corrida (ver seguimiento-estado.js).
+ * email/telegram_chat_id/whatsapp de cada usuario ya resuelto (mismo JOIN
+ * con empresas que alert-configs.queries.js, para tener el plan a mano y
+ * poder chequear puedeRecibirWhatsapp) — para notificar a cada uno que
+ * corresponda en esta corrida (ver seguimiento-estado.js).
  */
 async function listarSeguidoresPorCodigo(codigoExterno) {
   const result = await pool.query(
-    `SELECT s.id, s.user_id, s.ultimo_estado_notificado, u.email, u.telegram_chat_id
+    `SELECT s.id, s.user_id, s.ultimo_estado_notificado,
+            u.nombre, u.email, u.telegram_chat_id, u.whatsapp_numero, u.whatsapp_verificado, e.plan
      FROM seguimientos_licitacion s
      JOIN users u ON u.id = s.user_id
+     JOIN empresas e ON e.id = u.empresa_id
      WHERE s.codigo_externo = $1`,
     [codigoExterno]
   );

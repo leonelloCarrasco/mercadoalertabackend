@@ -16,19 +16,7 @@ const {
 } = require('./email.service');
 const { enviarTelegramAlerta } = require('./telegram.service');
 const { enviarResumenAlertaWhatsapp } = require('./whatsapp.service');
-const { obtenerPlan } = require('../utils/planes');
-
-/**
- * WhatsApp solo se manda si: el usuario vinculó y verificó su número, Y su
- * plan actual incluye WhatsApp en su mensajería (ver planes.js — hoy
- * Básico/Full sí, Trial no). Se chequea el plan en cada envío (no solo al
- * vincular) porque alguien pudo haber bajado de plan después de vincular.
- */
-function puedeRecibirWhatsapp(config) {
-  if (!config.whatsapp_verificado || !config.whatsapp_numero) return false;
-  const plan = obtenerPlan(config.plan);
-  return Boolean(plan?.mensajeria?.includes('WhatsApp'));
-}
+const { puedeRecibirWhatsapp } = require('../utils/planes');
 
 /**
  * Arma el texto de la variable {{2}} de la plantilla "alerta_resumen":

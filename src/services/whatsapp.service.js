@@ -84,6 +84,40 @@ async function enviarResumenAlertaWhatsapp(numero, nombre, descripcionCantidadTi
 }
 
 /**
+ * Cambio de estado de una licitación seguida — mismo patrón que
+ * enviarResumenAlertaWhatsapp (una plantilla por envío, sin lista dinámica,
+ * porque Meta no lo permite). A diferencia del resumen, acá no hay
+ * agrupación: seguimiento-estado.js ya notifica de a un cambio por vez por
+ * cada seguidor, así que también es un mensaje de WhatsApp por vez.
+ *
+ * La plantilla "cambio_estado" recibe CUATRO variables:
+ *   {{1}} = nombre de pila del usuario
+ *   {{2}} = nombre del proceso (licitación)
+ *   {{3}} = código externo
+ *   {{4}} = estado nuevo
+ */
+async function enviarCambioEstadoWhatsapp(numero, nombre, nombreProceso, codigoExterno, estadoNuevo) {
+  const plantilla = process.env.WHATSAPP_TEMPLATE_CAMBIO_ESTADO || 'cambio_estado';
+  return enviarPlantillaWhatsapp(numero, plantilla, [nombre, nombreProceso, codigoExterno, estadoNuevo]);
+}
+
+/**
+ * Recordatorio de cierre — mismo criterio que enviarCambioEstadoWhatsapp.
+ *
+ * La plantilla "recordatorio_cierre" recibe CUATRO variables:
+ *   {{1}} = nombre de pila del usuario
+ *   {{2}} = nombre del proceso
+ *   {{3}} = código externo
+ *   {{4}} = fecha de cierre ya formateada (es-CL) — se recibe formateada
+ *           desde quien llama, no acá, para no duplicar ese formateo (ver
+ *           formatFechaHoraCL en email.service.js).
+ */
+async function enviarRecordatorioCierreWhatsapp(numero, nombre, nombreProceso, codigoExterno, fechaCierre) {
+  const plantilla = process.env.WHATSAPP_TEMPLATE_RECORDATORIO_CIERRE || 'recordatorio_cierre';
+  return enviarPlantillaWhatsapp(numero, plantilla, [nombre, nombreProceso, codigoExterno, fechaCierre]);
+}
+
+/**
  * Texto libre, SIN plantilla — solo válido dentro de las 24hs después de
  * que el número de destino le escribió primero a nuestro WhatsApp (por eso
  * se usa únicamente para responder dentro del webhook de vinculación).
@@ -112,4 +146,10 @@ async function enviarMensajeWhatsappCrudo(numero, texto) {
   }
 }
 
-module.exports = { enviarPlantillaWhatsapp, enviarResumenAlertaWhatsapp, enviarMensajeWhatsappCrudo };
+module.exports = {
+  enviarPlantillaWhatsapp,
+  enviarResumenAlertaWhatsapp,
+  enviarCambioEstadoWhatsapp,
+  enviarRecordatorioCierreWhatsapp,
+  enviarMensajeWhatsappCrudo,
+};
