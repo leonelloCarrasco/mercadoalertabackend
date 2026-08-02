@@ -107,4 +107,23 @@ function obtenerPlan(nombrePlan) {
   return PLANES[nombrePlan];
 }
 
-module.exports = { PLANES, obtenerPlan };
+/**
+ * ¿Este usuario puede recibir un mensaje de WhatsApp ahora mismo? Requiere
+ * número vinculado y verificado, Y que su plan actual incluya WhatsApp en
+ * su mensajería (hoy Básico/Full sí, Trial no). Se revisa el plan en cada
+ * envío (no solo al vincular) porque pudo haber bajado de plan después.
+ *
+ * Centralizada acá porque la usan los tres puntos que mandan WhatsApp:
+ * alerting.service.js (licitaciones/Compras Ágiles nuevas),
+ * seguimiento-estado.js (cambio de estado) y recordatorio-cierre.js
+ * (recordatorio de cierre) — todos reciben una fila con los mismos nombres
+ * de campo (whatsapp_verificado, whatsapp_numero, plan) porque sus queries
+ * hacen el mismo JOIN con empresas.
+ */
+function puedeRecibirWhatsapp(fila) {
+  if (!fila.whatsapp_verificado || !fila.whatsapp_numero) return false;
+  const plan = obtenerPlan(fila.plan);
+  return Boolean(plan?.mensajeria?.includes('WhatsApp'));
+}
+
+module.exports = { PLANES, obtenerPlan, puedeRecibirWhatsapp };

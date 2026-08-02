@@ -12,6 +12,8 @@ const { extraerItemsConAdjudicacion } = require('../utils/adjudicacion');
 const { normalizarRut } = require('../utils/rut');
 const { enviarEmailAlerta, armarEmailSeguimiento } = require('../services/email.service');
 const { enviarTelegramAlerta } = require('../services/telegram.service');
+const { enviarCambioEstadoWhatsapp } = require('../services/whatsapp.service');
+const { puedeRecibirWhatsapp } = require('../utils/planes');
 
 const DELAY_LICITACIONES_MS = 3100; // mismo mínimo que exige la API de licitaciones
 
@@ -132,6 +134,13 @@ async function correrSeguimientoEstado() {
               estadoAnterior: s.ultimo_estado_notificado,
               estadoNuevo: nuevoEstado,
             }));
+          }
+
+          // A diferencia de email/Telegram, WhatsApp cobra por mensaje
+          // entregado (ver alerting.service.js) y requiere plantilla
+          // pre-aprobada por Meta, sin lista ni link — solo el dato mínimo.
+          if (puedeRecibirWhatsapp(s)) {
+            await enviarCambioEstadoWhatsapp(s.whatsapp_numero, s.nombre, detalle.Nombre, codigo, nuevoEstado);
           }
 
           await actualizarUltimoEstadoNotificado(s.id, nuevoEstado);

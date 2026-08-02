@@ -60,13 +60,15 @@ async function listarRecordatoriosPendientes() {
   const result = await pool.query(
     `SELECT
        r.id, r.user_id, r.tipo_proceso, r.codigo_externo, r.horas_antes,
-       u.email, u.telegram_chat_id,
+       u.nombre AS nombre_usuario, u.email, u.telegram_chat_id,
+       u.whatsapp_numero, u.whatsapp_verificado, e.plan,
        COALESCE(l.nombre, c.nombre) AS nombre,
        COALESCE(l.nombre_organismo, c.nombre_institucion) AS organismo,
        COALESCE(l.monto_estimado, c.monto_estimado) AS monto,
        COALESCE(l.fecha_cierre, c.fecha_cierre) AS fecha_cierre
      FROM recordatorios_cierre r
      JOIN users u ON u.id = r.user_id
+     JOIN empresas e ON e.id = u.empresa_id
      LEFT JOIN licitaciones_vistas l ON r.tipo_proceso = 'licitacion' AND r.codigo_externo = l.codigo_externo
      LEFT JOIN compras_agiles_vistas c ON r.tipo_proceso = 'compra_agil' AND r.codigo_externo = c.codigo_externo
      WHERE r.notificado_at IS NULL

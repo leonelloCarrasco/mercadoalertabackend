@@ -15,15 +15,24 @@
  *
  * Uso:
  *   node scripts/probar-whatsapp.js resumen {numero} {nombre} {cantidad} {tipo}
+ *   node scripts/probar-whatsapp.js cambio-estado {numero} {nombre} {nombreProceso} {codigo} {estadoNuevo}
+ *   node scripts/probar-whatsapp.js recordatorio {numero} {nombre} {nombreProceso} {codigo} {fechaCierre}
  *   node scripts/probar-whatsapp.js texto {numero} {mensaje}
  *
  * Ejemplos:
  *   node scripts/probar-whatsapp.js resumen 56912345678 Juan 3 licitacion
  *   node scripts/probar-whatsapp.js resumen 56912345678 Juan 1 compra_agil
+ *   node scripts/probar-whatsapp.js cambio-estado 56912345678 Juan "Compra de notebooks" 1234-5-LE24 Adjudicada
+ *   node scripts/probar-whatsapp.js recordatorio 56912345678 Juan "Compra de notebooks" 1234-5-LE24 "01 ago. 2026, 18:00"
  *   node scripts/probar-whatsapp.js texto 56912345678 "Hola, esto es una prueba"
  */
 require('dotenv').config({ quiet: true });
-const { enviarResumenAlertaWhatsapp, enviarMensajeWhatsappCrudo } = require('../src/services/whatsapp.service');
+const {
+  enviarResumenAlertaWhatsapp,
+  enviarCambioEstadoWhatsapp,
+  enviarRecordatorioCierreWhatsapp,
+  enviarMensajeWhatsappCrudo,
+} = require('../src/services/whatsapp.service');
 
 /** Mismo criterio que describirCantidadYTipo() en alerting.service.js — duplicado acá a propósito, es solo para la prueba, no vale la pena importar todo alerting.service.js (que necesita conexión a la base) solo por esta función. */
 function describirCantidadYTipo(cantidad, tipoProceso) {
@@ -36,9 +45,12 @@ async function main() {
   const tipo = process.argv[2];
   const numero = process.argv[3];
 
-  if (!tipo || !numero || !['resumen', 'texto'].includes(tipo)) {
+  const tiposValidos = ['resumen', 'cambio-estado', 'recordatorio', 'texto'];
+  if (!tipo || !numero || !tiposValidos.includes(tipo)) {
     console.error('Uso:');
     console.error('  node scripts/probar-whatsapp.js resumen {numero} {nombre} {cantidad} {tipo}');
+    console.error('  node scripts/probar-whatsapp.js cambio-estado {numero} {nombre} {nombreProceso} {codigo} {estadoNuevo}');
+    console.error('  node scripts/probar-whatsapp.js recordatorio {numero} {nombre} {nombreProceso} {codigo} {fechaCierre}');
     console.error('  node scripts/probar-whatsapp.js texto {numero} {mensaje}');
     process.exit(1);
   }
@@ -50,6 +62,20 @@ async function main() {
     const descripcion = describirCantidadYTipo(cantidad, tipoProceso);
     console.log(`Mandando plantilla "alerta_resumen" a ${numero} con nombre="${nombre}", descripcion="${descripcion}"...\n`);
     await enviarResumenAlertaWhatsapp(numero, nombre, descripcion);
+  } else if (tipo === 'cambio-estado') {
+    const nombre = process.argv[4] || 'Juan';
+    const nombreProceso = process.argv[5] || 'Compra de notebooks';
+    const codigo = process.argv[6] || '1234-5-LE24';
+    const estadoNuevo = process.argv[7] || 'Adjudicada';
+    console.log(`Mandando plantilla "cambio_estado" a ${numero}: ${nombre} / ${nombreProceso} (${codigo}) → ${estadoNuevo}...\n`);
+    await enviarCambioEstadoWhatsapp(numero, nombre, nombreProceso, codigo, estadoNuevo);
+  } else if (tipo === 'recordatorio') {
+    const nombre = process.argv[4] || 'Juan';
+    const nombreProceso = process.argv[5] || 'Compra de notebooks';
+    const codigo = process.argv[6] || '1234-5-LE24';
+    const fechaCierre = process.argv[7] || '01 ago. 2026, 18:00';
+    console.log(`Mandando plantilla "recordatorio_cierre" a ${numero}: ${nombre} / ${nombreProceso} (${codigo}) cierra ${fechaCierre}...\n`);
+    await enviarRecordatorioCierreWhatsapp(numero, nombre, nombreProceso, codigo, fechaCierre);
   } else {
     const mensaje = process.argv.slice(4).join(' ') || 'Mensaje de prueba de MercadoAlerta.';
     // Ojo: esto es texto libre SIN plantilla — solo funciona de verdad si
