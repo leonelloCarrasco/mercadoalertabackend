@@ -46,7 +46,8 @@ async function correrRecordatorioCierre() {
           r.nombre_usuario,
           r.nombre,
           r.codigo_externo,
-          formatFechaHoraCL(r.fecha_cierre)
+          formatFechaHoraCL(r.fecha_cierre),
+          r.tipo_proceso
         );
       }
 
