@@ -16,14 +16,15 @@
  * Uso:
  *   node scripts/probar-whatsapp.js resumen {numero} {nombre} {cantidad} {tipo}
  *   node scripts/probar-whatsapp.js cambio-estado {numero} {nombre} {nombreProceso} {codigo} {estadoNuevo}
- *   node scripts/probar-whatsapp.js recordatorio {numero} {nombre} {nombreProceso} {codigo} {fechaCierre}
+ *   node scripts/probar-whatsapp.js recordatorio {numero} {nombre} {nombreProceso} {codigo} {fechaCierre} {tipoProceso}
  *   node scripts/probar-whatsapp.js texto {numero} {mensaje}
  *
  * Ejemplos:
  *   node scripts/probar-whatsapp.js resumen 56912345678 Juan 3 licitacion
  *   node scripts/probar-whatsapp.js resumen 56912345678 Juan 1 compra_agil
  *   node scripts/probar-whatsapp.js cambio-estado 56912345678 Juan "Compra de notebooks" 1234-5-LE24 Adjudicada
- *   node scripts/probar-whatsapp.js recordatorio 56912345678 Juan "Compra de notebooks" 1234-5-LE24 "01 ago. 2026, 18:00"
+ *   node scripts/probar-whatsapp.js recordatorio 56912345678 Juan "Compra de notebooks" 1234-5-LE24 "01 ago. 2026, 18:00" licitacion
+ *   node scripts/probar-whatsapp.js recordatorio 56912345678 Juan "Insumos de aseo" 987-6-CM24 "01 ago. 2026, 18:00" compra_agil
  *   node scripts/probar-whatsapp.js texto 56912345678 "Hola, esto es una prueba"
  */
 require('dotenv').config({ quiet: true });
@@ -74,8 +75,10 @@ async function main() {
     const nombreProceso = process.argv[5] || 'Compra de notebooks';
     const codigo = process.argv[6] || '1234-5-LE24';
     const fechaCierre = process.argv[7] || '01 ago. 2026, 18:00';
-    console.log(`Mandando plantilla "recordatorio_cierre" a ${numero}: ${nombre} / ${nombreProceso} (${codigo}) cierra ${fechaCierre}...\n`);
-    await enviarRecordatorioCierreWhatsapp(numero, nombre, nombreProceso, codigo, fechaCierre);
+    const tipoProceso = process.argv[8] || 'licitacion';
+    const plantilla = tipoProceso === 'compra_agil' ? 'recordatorio_cierre_compra_agil' : 'recordatorio_cierre_licitacion';
+    console.log(`Mandando plantilla "${plantilla}" a ${numero}: ${nombre} / ${nombreProceso} (${codigo}) cierra ${fechaCierre}...\n`);
+    await enviarRecordatorioCierreWhatsapp(numero, nombre, nombreProceso, codigo, fechaCierre, tipoProceso);
   } else {
     const mensaje = process.argv.slice(4).join(' ') || 'Mensaje de prueba de MercadoAlerta.';
     // Ojo: esto es texto libre SIN plantilla — solo funciona de verdad si
@@ -85,7 +88,7 @@ async function main() {
     await enviarMensajeWhatsappCrudo(numero, mensaje);
   }
 
-  console.log('\nListo — revisá tu WhatsApp (o el log de arriba si estás en modo simulación).');
+  console.log('\nListo — revisa tu WhatsApp (o el log de arriba si estás en modo simulación).');
 }
 
 main().catch((err) => {
