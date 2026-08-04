@@ -47,7 +47,9 @@ async function correrRecordatorioCierre() {
           r.nombre,
           r.codigo_externo,
           formatFechaHoraCL(r.fecha_cierre),
-          r.tipo_proceso
+          r.tipo_proceso,
+          r.empresa_id,
+          r.plan
         );
       }
 

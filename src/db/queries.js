@@ -1,4 +1,5 @@
 const pool = require('./pool');
+const { asegurarCicloVigenteWhatsapp } = require('./whatsapp-cuota.queries');
 
 /**
  * Crea el usuario de una empresa recién registrada. `estado` arranca en
@@ -105,10 +106,14 @@ async function obtenerEstadoTelegram(userId) {
 async function vincularWhatsapp(userId, numero) {
   await pool.query('UPDATE users SET whatsapp_numero = NULL, whatsapp_verificado = false WHERE whatsapp_numero = $1', [numero]);
   const result = await pool.query(
-    'UPDATE users SET whatsapp_numero = $1, whatsapp_verificado = true WHERE id = $2 RETURNING id, whatsapp_numero, whatsapp_verificado',
+    'UPDATE users SET whatsapp_numero = $1, whatsapp_verificado = true WHERE id = $2 RETURNING id, whatsapp_numero, whatsapp_verificado, empresa_id',
     [numero, userId]
   );
-  return result.rows[0] || null;
+  const fila = result.rows[0] || null;
+  // Ver whatsapp-cuota.queries.js: NO reinicia el ciclo si ya había uno
+  // vigente — solo abre uno nuevo si nunca hubo o si el anterior venció.
+  if (fila) await asegurarCicloVigenteWhatsapp(fila.empresa_id);
+  return fila;
 }
 
 async function desvincularWhatsapp(userId) {

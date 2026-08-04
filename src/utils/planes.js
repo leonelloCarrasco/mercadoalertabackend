@@ -8,9 +8,14 @@
  *
  * limiteAlertas: cuántas configuraciones de alerta ACTIVAS puede tener el
  * usuario en simultáneo (las pausadas no cuentan, ver contarConfigsActivasDeUsuario).
- * limiteCategorias: cuántas categorías/productos puede elegir por alerta —
- * ahora es 1 para todos los planes (antes variaba); además, desde este cambio
- * la categoría/producto es OBLIGATORIA (no puede quedar vacía), ver alerts.routes.js.
+ * limiteCategorias: cuántas categorías/productos puede elegir el usuario
+ * POR ALERTA — a diferencia del resto de los límites, esto no es "más
+ * cupo total", es "una alerta puede cubrir más de un producto/rubro a la
+ * vez". Escalonado por plan (Trial 1, Basic 2, Full 3) como un segundo eje
+ * de valor entre planes, además de las cantidades — antes estaba fijo en 1
+ * para los tres, decisión que se revisó y se abrió a partir de este cambio.
+ * La categoría/producto sigue siendo OBLIGATORIA (no puede quedar vacía),
+ * ver alerts.routes.js.
  * limiteBusquedas (migración 033): cuántas búsquedas guardadas puede tener el
  * usuario en total (no hay concepto de "activa/pausada" acá, a diferencia de
  * las alertas — todas las guardadas cuentan contra el límite).
@@ -60,7 +65,7 @@ const PLANES = {
     descripcion: 'Para equipos chicos que ya postulan seguido.',
     limiteUsuarios: 1,
     limiteAlertas: 10,
-    limiteCategorias: 1,
+    limiteCategorias: 2,
     limiteBusquedas: 15,
     limiteRecordatorios: 10,
     limiteSeguimientos: 10,
@@ -77,7 +82,7 @@ const PLANES = {
     descripcion: 'Para equipos que postulan a diario.',
     limiteUsuarios: 1,
     limiteAlertas: 20,
-    limiteCategorias: 1,
+    limiteCategorias: 3,
     limiteBusquedas: 30,
     limiteRecordatorios: 20,
     limiteSeguimientos: 20,

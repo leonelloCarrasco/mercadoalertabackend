@@ -104,7 +104,7 @@ async function listarCodigosSeguidosUnicos() {
 async function listarSeguidoresPorCodigo(codigoExterno) {
   const result = await pool.query(
     `SELECT s.id, s.user_id, s.ultimo_estado_notificado,
-            u.nombre, u.email, u.telegram_chat_id, u.whatsapp_numero, u.whatsapp_verificado, e.plan
+            u.nombre, u.email, u.telegram_chat_id, u.whatsapp_numero, u.whatsapp_verificado, u.empresa_id, e.plan
      FROM seguimientos_licitacion s
      JOIN users u ON u.id = s.user_id
      JOIN empresas e ON e.id = u.empresa_id

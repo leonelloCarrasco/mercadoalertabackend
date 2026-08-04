@@ -61,7 +61,7 @@ async function listarRecordatoriosPendientes() {
     `SELECT
        r.id, r.user_id, r.tipo_proceso, r.codigo_externo, r.horas_antes,
        u.nombre AS nombre_usuario, u.email, u.telegram_chat_id,
-       u.whatsapp_numero, u.whatsapp_verificado, e.plan,
+       u.whatsapp_numero, u.whatsapp_verificado, u.empresa_id, e.plan,
        COALESCE(l.nombre, c.nombre) AS nombre,
        COALESCE(l.nombre_organismo, c.nombre_institucion) AS organismo,
        COALESCE(l.monto_estimado, c.monto_estimado) AS monto,

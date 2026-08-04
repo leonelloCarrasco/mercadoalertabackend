@@ -152,17 +152,20 @@ router.get('/config', async (req, res) => {
 });
 
 /**
- * El único campo obligatorio es el producto/rubro (categorias, máximo 1).
- * Monto mínimo/máximo, regiones, tipos de proceso, tramo de licitación y
- * organismo comprador son todos opcionales — "no elegir nada" en cualquiera
- * de ellos significa "no filtrar por eso" (ver matching.service.js).
+ * El único campo obligatorio es el producto/rubro (categorias). El máximo
+ * permitido depende del plan (limiteCategorias, ver planes.js — Trial 1,
+ * Basic 2, Full 3), por eso `limite` se recibe como parámetro en vez de
+ * estar hardcodeado acá. Monto mínimo/máximo, regiones, tipos de proceso,
+ * tramo de licitación y organismo comprador son todos opcionales — "no
+ * elegir nada" en cualquiera de ellos significa "no filtrar por eso" (ver
+ * matching.service.js).
  */
-function validarCamposObligatorios({ categorias }) {
+function validarCamposObligatorios({ categorias }, limite) {
   if (!categorias || categorias.length === 0) {
     return 'Debes elegir un producto o rubro para la alerta.';
   }
-  if (categorias.length > 1) {
-    return 'Solo puedes elegir un producto o rubro por alerta.';
+  if (categorias.length > limite) {
+    return `Tu plan permite hasta ${limite} producto${limite === 1 ? '' : 's'} o rubro${limite === 1 ? '' : 's'} por alerta.`;
   }
   return null;
 }
@@ -202,14 +205,16 @@ function mismoConjunto(a, b) {
  * dejar crear dos alertas idénticas aunque una esté en pausa.
  */
 function buscarDuplicada(configsExistentes, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos }, excludeId = null) {
-  const categoriaNueva = (categorias || [])[0];
   const montoMinNuevo = montoMinimo ? Number(montoMinimo) : null;
   const montoMaxNuevo = montoMaximo ? Number(montoMaximo) : null;
 
   return configsExistentes.find((existente) => {
     if (excludeId && String(existente.id) === String(excludeId)) return false;
-    const categoriaExistente = (existente.categorias || [])[0];
-    if (categoriaExistente !== categoriaNueva) return false;
+    // mismoConjunto (no comparar solo el primer elemento) — desde que se
+    // permite más de 1 categoría por alerta (ver limiteCategorias), dos
+    // alertas con las mismas 2-3 categorías pero en otro orden también
+    // cuentan como duplicadas.
+    if (!mismoConjunto(existente.categorias, categorias)) return false;
     const montoMinExistente = existente.monto_minimo ? Number(existente.monto_minimo) : null;
     if (montoMinExistente !== montoMinNuevo) return false;
     const montoMaxExistente = existente.monto_maximo ? Number(existente.monto_maximo) : null;
@@ -226,7 +231,11 @@ function buscarDuplicada(configsExistentes, { categorias, montoMinimo, montoMaxi
 router.post('/config', async (req, res) => {
   const { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos: organismosNombres } = req.body;
 
-  const errorCampos = validarCamposObligatorios({ categorias });
+  const limites = obtenerPlan(req.usuarioActual.plan);
+  const limiteAlertas = limites?.limiteAlertas ?? 1;
+  const limiteCategorias = limites?.limiteCategorias ?? 1;
+
+  const errorCampos = validarCamposObligatorios({ categorias }, limiteCategorias);
   if (errorCampos) {
     return res.status(400).json({ error: errorCampos });
   }
@@ -235,9 +244,6 @@ router.post('/config', async (req, res) => {
   if (errorOpcionales) {
     return res.status(400).json({ error: errorOpcionales });
   }
-
-  const limites = obtenerPlan(req.usuarioActual.plan);
-  const limiteAlertas = limites?.limiteAlertas ?? 1;
 
   try {
     // El picker manda NOMBRES (no cambia el frontend) — se traducen a código acá,
@@ -301,7 +307,7 @@ router.put('/config/:id', async (req, res) => {
     const montoEfectivo = montoMinimo !== undefined ? montoMinimo : existente.monto_minimo;
     const montoMaxEfectivo = montoMaximo !== undefined ? montoMaximo : existente.monto_maximo;
 
-    const errorCampos = validarCamposObligatorios({ categorias: categoriasEfectivas });
+    const errorCampos = validarCamposObligatorios({ categorias: categoriasEfectivas }, obtenerPlan(req.usuarioActual.plan)?.limiteCategorias ?? 1);
     if (errorCampos) {
       return res.status(400).json({ error: errorCampos });
     }

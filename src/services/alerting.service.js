@@ -134,7 +134,7 @@ async function enviarResumenesPorWhatsapp(porUsuarioWhatsapp, tipoProceso) {
   for (const [, bucket] of porUsuarioWhatsapp) {
     try {
       const descripcion = describirCantidadYTipo(bucket.items.length, tipoProceso);
-      await enviarResumenAlertaWhatsapp(bucket.config.whatsapp_numero, bucket.config.nombre, descripcion);
+      await enviarResumenAlertaWhatsapp(bucket.config.whatsapp_numero, bucket.config.nombre, descripcion, bucket.config.empresa_id, bucket.config.plan);
       enviados++;
     } catch (err) {
       console.error(`[alerting] Error enviando resumen por WhatsApp a user ${bucket.config.user_id}:`, err.message);
@@ -427,11 +427,11 @@ async function procesarBackfillNuevaAlerta(config) {
     // la vez en el mismo backfill.
     if (licitacionesAEnviarWhatsapp.length > 0) {
       const descripcion = describirCantidadYTipo(licitacionesAEnviarWhatsapp.length, 'licitacion');
-      await enviarResumenAlertaWhatsapp(config.whatsapp_numero, config.nombre, descripcion);
+      await enviarResumenAlertaWhatsapp(config.whatsapp_numero, config.nombre, descripcion, config.empresa_id, config.plan);
     }
     if (comprasAgilesAEnviarWhatsapp.length > 0) {
       const descripcion = describirCantidadYTipo(comprasAgilesAEnviarWhatsapp.length, 'compra_agil');
-      await enviarResumenAlertaWhatsapp(config.whatsapp_numero, config.nombre, descripcion);
+      await enviarResumenAlertaWhatsapp(config.whatsapp_numero, config.nombre, descripcion, config.empresa_id, config.plan);
     }
 
     console.log(`[alerting] Backfill de alerta nueva (config ${config.id}): ${licitacionesMatch.length} licitaciones + ${comprasAgilesMatch.length} Compras Ágiles ya publicadas encontradas y notificadas.`);
