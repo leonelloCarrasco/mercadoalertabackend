@@ -35,7 +35,12 @@
  * no afecta a empresas que ya contrataron.
  *
  * accesoAnalisisPrecios: gatea /api/analisis/* (ver analisis.routes.js) —
- * hoy solo Full tiene acceso al análisis de precios de Mercado Público.
+ * Basic y Full tienen acceso, Trial no. El NIVEL de detalle lo define
+ * detalleAnalisisPrecios ('resumen' | 'completo'): 'resumen' (Basic) solo
+ * devuelve el rango de precios (mínimo/máximo/promedio) en /precios, sin la
+ * lista de registros individuales (proveedor, organismo, precio exacto por
+ * contrato) ni acceso a /proveedores, /rechazos, /organismos — esos cuatro
+ * puntos son la "inteligencia competitiva" que se reserva para Full.
  * portafolio: gatea POST /api/pipeline (ver pipeline.routes.js) — hoy es
  * true en los tres planes; lo que varía es la cantidad. Trial tiene su
  * propio limitePortafolio (2, para poder probar la función antes de pagar
@@ -76,7 +81,8 @@ const PLANES = {
     limiteRecordatorios: 10,
     limiteSeguimientos: 10,
     limiteAnalisisIA: 10,
-    accesoAnalisisPrecios: false,
+    accesoAnalisisPrecios: true,
+    detalleAnalisisPrecios: 'resumen', // solo rango de precios en /precios — sin registros individuales ni /proveedores, /rechazos, /organismos
     requierePago: true,
     monto: 9990, // IVA incluido
     montoRegular: 14990, // solo informativo, para mostrar "antes/ahora" en la landing — IVA incluido
@@ -94,6 +100,7 @@ const PLANES = {
     limiteSeguimientos: 20,
     limiteAnalisisIA: 20,
     accesoAnalisisPrecios: true,
+    detalleAnalisisPrecios: 'completo',
     requierePago: true,
     monto: 16990, // IVA incluido
     montoRegular: 22990, // IVA incluido

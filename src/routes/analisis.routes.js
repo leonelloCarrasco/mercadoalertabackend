@@ -8,17 +8,33 @@ const router = express.Router();
 router.use(requireAuth);
 router.use(requireEmpresaActiva); // deja disponible req.usuarioActual
 
-// Análisis de precios de Mercado Público — exclusivo del plan Full. Lee
-// accesoAnalisisPrecios de planes.js (fuente única de verdad) en vez de
-// mantener una lista aparte
-// que se puede desincronizar si algún día cambian los planes.
+// Análisis de precios de Mercado Público — disponible en Basic y Full,
+// pero con distinto nivel de detalle (ver detalleAnalisisPrecios en
+// planes.js): Basic ('resumen') solo ve el rango de precios en /precios,
+// sin los registros individuales ni acceso a /proveedores, /rechazos,
+// /organismos — esos cuatro son la "inteligencia competitiva" reservada
+// para Full ('completo'). Lee de planes.js (fuente única de verdad) en vez
+// de mantener una lista aparte que se puede desincronizar si algún día
+// cambian los planes.
 router.use((req, res, next) => {
   const plan = obtenerPlan(req.usuarioActual.plan);
   if (!plan?.accesoAnalisisPrecios) {
-    return res.status(403).json({ error: 'El análisis de precios de Mercado Público está disponible en el plan Full.' });
+    return res.status(403).json({ error: 'El análisis de precios de Mercado Público está disponible en los planes Basic y Full.' });
   }
+  req.detalleAnalisisPrecios = plan.detalleAnalisisPrecios || 'resumen';
   next();
 });
+
+// Los cuatro endpoints de acá abajo (/proveedores, /rechazos, /organismos, y
+// los registros detallados de /precios) requieren detalle 'completo' — se
+// aplica ANTES de cada ruta que lo necesite, no acá arriba, porque /precios
+// sigue respondiendo (con menos detalle) en nivel 'resumen'.
+function requiereDetalleCompleto(req, res, next) {
+  if (req.detalleAnalisisPrecios !== 'completo') {
+    return res.status(403).json({ error: 'Este nivel de detalle del análisis de precios está disponible en el plan Full.' });
+  }
+  next();
+}
 
 /**
  * Valida el código recibido y arma la condición SQL correcta según su formato:
@@ -135,7 +151,15 @@ router.get('/precios', async (req, res) => {
       precioPromedio: Math.round(precios.reduce((a, b) => a + b, 0) / precios.length),
     } : null;
 
-    res.json({ resumen, registros });
+    // Nivel 'resumen' (Basic): se calcula el resumen con TODOS los registros
+    // (el rango de precios tiene que ser real, no solo de una muestra), pero
+    // no se devuelven los registros individuales — ahí es donde está el
+    // detalle competitivo (qué proveedor, qué organismo, precio exacto por
+    // contrato) que se reserva para 'completo' (Full).
+    res.json({
+      resumen,
+      registros: req.detalleAnalisisPrecios === 'completo' ? registros : undefined,
+    });
   } catch (err) {
     console.error('Error en /analisis/precios:', err);
     res.status(500).json({ error: 'Error al consultar el historial de precios' });
@@ -151,7 +175,7 @@ router.get('/precios', async (req, res) => {
  * Se agrupa por RUT (no por nombre — el nombre puede variar en mayúsculas o
  * espacios entre registros, el RUT es el identificador confiable).
  */
-router.get('/proveedores', async (req, res) => {
+router.get('/proveedores', requiereDetalleCompleto, async (req, res) => {
   const codigo = (req.query.codigo || '').trim();
 
   const prep = prepararCondicionCodigo(codigo);
@@ -241,7 +265,7 @@ router.get('/proveedores', async (req, res) => {
  * Agrupa por el texto de justificacion_inadmisibilidad para responder
  * "¿por qué pierde la gente en esta categoría?".
  */
-router.get('/rechazos', async (req, res) => {
+router.get('/rechazos', requiereDetalleCompleto, async (req, res) => {
   const codigo = (req.query.codigo || '').trim();
 
   const prep = prepararCondicionCodigo(codigo);
@@ -295,7 +319,7 @@ router.get('/rechazos', async (req, res) => {
  * disponible para unificar ambas fuentes). El nombre se normaliza (trim +
  * mayúsculas) solo para agrupar, pero se muestra con su formato original.
  */
-router.get('/organismos', async (req, res) => {
+router.get('/organismos', requiereDetalleCompleto, async (req, res) => {
   const codigo = (req.query.codigo || '').trim();
 
   const prep = prepararCondicionCodigo(codigo);
