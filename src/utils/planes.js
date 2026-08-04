@@ -36,8 +36,13 @@
  *
  * accesoAnalisisPrecios: gatea /api/analisis/* (ver analisis.routes.js) —
  * hoy solo Full tiene acceso al análisis de precios de Mercado Público.
- * portafolio: gatea POST /api/pipeline (ver pipeline.routes.js) — Trial no
- * puede crear ítems de portafolio en absoluto, no es un tema de cantidad.
+ * portafolio: gatea POST /api/pipeline (ver pipeline.routes.js) — hoy es
+ * true en los tres planes; lo que varía es la cantidad. Trial tiene su
+ * propio limitePortafolio (2, para poder probar la función antes de pagar
+ * sin regalar acceso completo); Basic/Full no tienen limitePortafolio
+ * propio, así que comparten cupo con limiteSeguimientos (ver
+ * pipeline.routes.js — cada ítem de Licitación en pipeline consume un
+ * seguimiento por detrás, tiene sentido que compartan el límite).
  * mensajeria: string informativo (no un array) para mostrar en el landing y
  * en la sección de Mensajería de Mi Perfil — se detecta si incluye
  * "WhatsApp" para saber si mostrar ese canal como disponible en el plan.
@@ -58,7 +63,8 @@ const PLANES = {
     monto: null,
     diasTrial: 14,
     mensajeria: "Email y Telegram",
-    portafolio: false
+    portafolio: true,
+    limitePortafolio: 2, // solo Trial tiene este campo — "prueba antes de pagar", no comparte cupo con limiteSeguimientos como sí hacen Basic/Full
   },
   basico: {
     nombreDisplay: 'Basic',
