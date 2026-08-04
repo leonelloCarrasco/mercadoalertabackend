@@ -113,7 +113,7 @@ function envolverPlantillaEmail({ contenidoHtml }) {
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f5f9; }
     .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
     .header { background: linear-gradient(135deg, #12172B 0%, #1B2140 100%); padding: 32px 30px; text-align: center; }
-    .header img { display: block; width: 45px; height: 45px; border: 0; }
+    .header img { display: block; width: 200px; height: 40px; border: 0; max-width: 200px; }
     .header h1 { color: #EDEEF5; margin: 0; font-size: 45px; font-weight: 700; line-height: 45px; }
     .header h1 .acento { color: #EDEEF5; font-family: 'IBM Plex Mono', monospace; }
     .content { padding: 40px 30px; }
@@ -140,13 +140,11 @@ function envolverPlantillaEmail({ contenidoHtml }) {
   <div class="container">
     <div class="header">
       <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
-        <tr>
+        <tr style="max-width: 200px; height: auto; vertical-align: middle; border: 0;">
           <td valign="middle" style="padding-right: 12px;">
-            <img src="https://mercadoalerta.cl/assets/mercadoalerta-icon-email.png" width="45" height="45" alt="MercadoAlerta">
+            <img src="https://mercadoalerta.cl/assets/icon-name.png" width="40 " height="200" alt="MercadoAlerta">
           </td>
-          <td valign="middle">
-            <h1><span class="acento">MercadoAlerta</span></h1>
-          </td>
+
         </tr>
       </table>
     </div>
