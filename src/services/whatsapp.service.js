@@ -25,8 +25,100 @@
  * credenciales.
  */
 const YCLOUD_API_URL = 'https://api.ycloud.com/v2/whatsapp/messages/sendDirectly';
+const { obtenerPlan } = require('../utils/planes');
+const {
+  obtenerCicloVigente,
+  contarEnviosDelCiclo,
+  registrarEnvio,
+  yaSeAvisoOchentaPorciento,
+  marcarAvisoOchentaPorcientoEnviado,
+} = require('../db/whatsapp-cuota.queries');
+const { buscarUsuarioPorEmpresaId } = require('../db/queries');
+const { enviarEmailAlerta } = require('./email.service');
 
 /**
+ * Fecha desde la que el tope realmente CORTA envíos (ver spec: tope
+ * WhatsApp, modo "solo medir"). Sin esta variable configurada, se cuenta y
+ * se avisa igual, pero nunca se bloquea un envío — es el modo seguro por
+ * default mientras se calibra el múltiplo real con datos de uso.
+ */
+function cuotaEstaEnforzada() {
+  const fecha = process.env.WHATSAPP_CUOTA_ENFORZAR_DESDE;
+  if (!fecha) return false;
+  return new Date() >= new Date(fecha);
+}
+
+/** cuota = limiteAlertas × 10 (ver spec) — se calcula desde planes.js, nunca se guarda como número suelto. */
+function calcularCuotaMensual(plan) {
+  const configPlan = obtenerPlan(plan);
+  return (configPlan?.limiteAlertas || 0) * 10;
+}
+
+/**
+ * true = se puede mandar. En modo "solo medir" (cuotaEstaEnforzada() ===
+ * false) siempre devuelve true — nunca bloquea, solo deja que el conteo se
+ * seguirá acumulando igual desde registrarEnvioYAvisar().
+ */
+async function hayCupoDisponible(empresaId, plan) {
+  if (!cuotaEstaEnforzada()) return true;
+  const cicloInicio = await obtenerCicloVigente(empresaId);
+  const usados = await contarEnviosDelCiclo(empresaId, cicloInicio);
+  return usados < calcularCuotaMensual(plan);
+}
+
+/**
+ * Se llama SOLO después de una entrega real y exitosa (nunca en modo
+ * simulación). Registra el envío y, si corresponde, dispara el correo de
+ * aviso de 80% — una sola vez por ciclo (ver whatsapp_aviso_80_enviado).
+ * Durante el modo "solo medir" NO manda el aviso de 80% — el objetivo de
+ * ese período es medir en silencio, no generar alarma antes de tener el
+ * corte real activado.
+ */
+async function registrarEnvioYAvisar(empresaId, plan) {
+  await registrarEnvio(empresaId);
+  if (!cuotaEstaEnforzada()) return;
+
+  const cuota = calcularCuotaMensual(plan);
+  if (cuota <= 0) return;
+
+  const cicloInicio = await obtenerCicloVigente(empresaId);
+  const usados = await contarEnviosDelCiclo(empresaId, cicloInicio);
+  if (usados < Math.ceil(cuota * 0.8)) return;
+
+  const yaAvisado = await yaSeAvisoOchentaPorciento(empresaId);
+  if (yaAvisado) return;
+
+  await marcarAvisoOchentaPorcientoEnviado(empresaId);
+  await avisarPorEmailCercaDelTope(empresaId, usados, cuota).catch((err) => {
+    console.error('[whatsapp.service] Error mandando el aviso de 80% de cuota:', err.message);
+  });
+}
+
+async function avisarPorEmailCercaDelTope(empresaId, usados, cuota) {
+  const usuario = await buscarUsuarioPorEmpresaId(empresaId);
+  if (!usuario?.email) return;
+
+  await enviarEmailAlerta({
+    to: usuario.email,
+    subject: 'Vas llegando al tope de mensajes de WhatsApp de este mes',
+    html: `
+      <p>Hola ${usuario.nombre || ''},</p>
+      <p>Vas en <strong>${usados} de ${cuota}</strong> mensajes de WhatsApp este mes. Si llegas al tope, tus alertas
+      siguen llegando por Email sin ningún corte — solo se pausa el canal de WhatsApp hasta el próximo ciclo.</p>
+      <p>Puedes revisar tu consumo actual en Mi Perfil → Mensajería.</p>
+    `,
+  });
+}
+
+
+/**
+ * `empresaId`/`plan`, si vienen, activan el chequeo de cupo mensual (ver
+ * spec: tope WhatsApp) — si la empresa ya agotó su cuota del ciclo Y el
+ * modo "solo medir" ya terminó (WHATSAPP_CUOTA_ENFORZAR_DESDE), el envío se
+ * omite ANTES de gastar la llamada a YCloud. Quedan opcionales (no
+ * obligatorios) para no romper otros usos de esta función que no tengan
+ * ese contexto a mano.
+ *
  * `botonUrlParametro`, si viene, agrega el componente de botón de tipo URL
  * dinámica (el único tipo de botón que Meta permite en una plantilla que el
  * negocio inicia). Importante: Meta arma la URL final como
@@ -36,7 +128,7 @@ const YCLOUD_API_URL = 'https://api.ycloud.com/v2/whatsapp/messages/sendDirectly
  * eso cambio_estado y recordatorio_cierre_* usan un parámetro por
  * separado en vez de mandar la URL completa armada acá).
  */
-async function enviarPlantillaWhatsapp(numero, nombrePlantilla, variables = [], { botonUrlParametro } = {}) {
+async function enviarPlantillaWhatsapp(numero, nombrePlantilla, variables = [], { botonUrlParametro, empresaId, plan } = {}) {
   const apiKey = process.env.YCLOUD_API_KEY;
   const numeroNegocio = process.env.YCLOUD_BUSINESS_NUMBER;
   const idioma = process.env.WHATSAPP_TEMPLATE_IDIOMA || 'es';
@@ -50,6 +142,11 @@ async function enviarPlantillaWhatsapp(numero, nombrePlantilla, variables = [], 
   if (!numero) {
     console.log('[whatsapp.service] Usuario sin whatsapp_numero verificado — se omite el envío.');
     return { omitido: true };
+  }
+
+  if (empresaId && plan && !(await hayCupoDisponible(empresaId, plan))) {
+    console.log(`[whatsapp.service] Cuota mensual de WhatsApp agotada para empresa ${empresaId} — se omite el envío (Email/Telegram siguen sin restricción).`);
+    return { omitido: true, motivo: 'cuota' };
   }
 
   const components = [];
@@ -80,6 +177,12 @@ async function enviarPlantillaWhatsapp(numero, nombrePlantilla, variables = [], 
     throw new Error(`Error enviando WhatsApp (YCloud): HTTP ${response.status} — ${await response.text()}`);
   }
 
+  if (empresaId) {
+    await registrarEnvioYAvisar(empresaId, plan).catch((err) => {
+      console.error('[whatsapp.service] Error registrando el consumo de cuota (el mensaje SÍ se envió):', err.message);
+    });
+  }
+
   return response.json();
 }
 
@@ -95,9 +198,9 @@ async function enviarPlantillaWhatsapp(numero, nombrePlantilla, variables = [], 
  *           describirCantidadYTipo() en alerting.service.js, que es quien
  *           arma ese texto antes de llamar a esta función.
  */
-async function enviarResumenAlertaWhatsapp(numero, nombre, descripcionCantidadTipo) {
+async function enviarResumenAlertaWhatsapp(numero, nombre, descripcionCantidadTipo, empresaId, plan) {
   const plantilla = process.env.WHATSAPP_TEMPLATE_ALERTA_RESUMEN || 'alerta_resumen';
-  return enviarPlantillaWhatsapp(numero, plantilla, [nombre, descripcionCantidadTipo]);
+  return enviarPlantillaWhatsapp(numero, plantilla, [nombre, descripcionCantidadTipo], { empresaId, plan });
 }
 
 /**
@@ -119,10 +222,12 @@ async function enviarResumenAlertaWhatsapp(numero, nombre, descripcionCantidadTi
  * (http://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?idlicitacion=)
  * y acá solo se manda el código como parámetro dinámico que la completa.
  */
-async function enviarCambioEstadoWhatsapp(numero, nombre, nombreProceso, codigoExterno, estadoNuevo) {
+async function enviarCambioEstadoWhatsapp(numero, nombre, nombreProceso, codigoExterno, estadoNuevo, empresaId, plan) {
   const plantilla = process.env.WHATSAPP_TEMPLATE_CAMBIO_ESTADO || 'cambio_estado';
   return enviarPlantillaWhatsapp(numero, plantilla, [nombre, nombreProceso, codigoExterno, estadoNuevo], {
     botonUrlParametro: codigoExterno,
+    empresaId,
+    plan,
   });
 }
 
@@ -147,13 +252,15 @@ async function enviarCambioEstadoWhatsapp(numero, nombre, nombreProceso, codigoE
  *           desde quien llama, no acá, para no duplicar ese formateo (ver
  *           formatFechaHoraCL en email.service.js).
  */
-async function enviarRecordatorioCierreWhatsapp(numero, nombre, nombreProceso, codigoExterno, fechaCierre, tipoProceso) {
+async function enviarRecordatorioCierreWhatsapp(numero, nombre, nombreProceso, codigoExterno, fechaCierre, tipoProceso, empresaId, plan) {
   const esCompraAgil = tipoProceso === 'compra_agil';
   const plantilla = esCompraAgil
     ? (process.env.WHATSAPP_TEMPLATE_RECORDATORIO_CIERRE_COMPRA_AGIL || 'recordatorio_cierre_compra_agil')
     : (process.env.WHATSAPP_TEMPLATE_RECORDATORIO_CIERRE_LICITACION || 'recordatorio_cierre_licitacion');
   return enviarPlantillaWhatsapp(numero, plantilla, [nombre, nombreProceso, codigoExterno, fechaCierre], {
     botonUrlParametro: codigoExterno,
+    empresaId,
+    plan,
   });
 }
 
@@ -192,4 +299,6 @@ module.exports = {
   enviarCambioEstadoWhatsapp,
   enviarRecordatorioCierreWhatsapp,
   enviarMensajeWhatsappCrudo,
+  calcularCuotaMensual,
+  cuotaEstaEnforzada,
 };

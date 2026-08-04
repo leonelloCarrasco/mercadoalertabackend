@@ -140,7 +140,7 @@ async function correrSeguimientoEstado() {
           // entregado (ver alerting.service.js) y requiere plantilla
           // pre-aprobada por Meta, sin lista ni link — solo el dato mínimo.
           if (puedeRecibirWhatsapp(s)) {
-            await enviarCambioEstadoWhatsapp(s.whatsapp_numero, s.nombre, detalle.Nombre, codigo, nuevoEstado);
+            await enviarCambioEstadoWhatsapp(s.whatsapp_numero, s.nombre, detalle.Nombre, codigo, nuevoEstado, s.empresa_id, s.plan);
           }
 
           await actualizarUltimoEstadoNotificado(s.id, nuevoEstado);

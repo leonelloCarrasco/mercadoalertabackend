@@ -9,8 +9,9 @@ const {
   marcarTokenResetUsado,
   invalidarTokensWhatsappVerificacionDeUsuario,
 } = require('../db/password-reset.queries');
-const { vincularWhatsapp, desvincularWhatsapp, obtenerEstadoWhatsapp } = require('../db/queries');
-const { enviarMensajeWhatsappCrudo } = require('../services/whatsapp.service');
+const { vincularWhatsapp, desvincularWhatsapp, obtenerEstadoWhatsapp, buscarUsuarioPorId } = require('../db/queries');
+const { enviarMensajeWhatsappCrudo, calcularCuotaMensual, cuotaEstaEnforzada } = require('../services/whatsapp.service');
+const { obtenerCicloVigente, contarEnviosDelCiclo } = require('../db/whatsapp-cuota.queries');
 const { obtenerPlan } = require('../utils/planes');
 
 const router = express.Router();
@@ -79,6 +80,42 @@ router.get('/estado', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('[whatsapp.estado] Error:', err);
     res.status(500).json({ error: 'Error al consultar el estado de WhatsApp' });
+  }
+});
+
+// GET /api/whatsapp/cuota — para la barra de progreso en Mi Perfil →
+// Mensajería (ver dashboard.js). requireEmpresaActiva ya deja
+// req.usuarioActual con el plan/empresa_id resueltos, sin una segunda
+// consulta a la base de datos.
+router.get('/cuota', requireAuth, requireEmpresaActiva, async (req, res) => {
+  try {
+    if (!tieneWhatsappEnElPlan(req)) {
+      return res.json({ disponible: false });
+    }
+
+    const { empresa_id: empresaId, plan } = req.usuarioActual;
+    const cicloInicio = await obtenerCicloVigente(empresaId);
+    const usados = await contarEnviosDelCiclo(empresaId, cicloInicio);
+    const limite = calcularCuotaMensual(plan);
+
+    let cicloFin = null;
+    if (cicloInicio) {
+      const fin = new Date(cicloInicio);
+      fin.setMonth(fin.getMonth() + 1);
+      cicloFin = fin.toISOString();
+    }
+
+    res.json({
+      disponible: true,
+      usados,
+      limite,
+      cicloInicio: cicloInicio ? new Date(cicloInicio).toISOString() : null,
+      cicloFin,
+      enforzado: cuotaEstaEnforzada(),
+    });
+  } catch (err) {
+    console.error('[whatsapp.cuota] Error:', err);
+    res.status(500).json({ error: 'Error al consultar la cuota de WhatsApp' });
   }
 });
 
@@ -184,7 +221,10 @@ router.post('/webhook', async (req, res) => {
         if (tokenInfo) {
           await marcarTokenResetUsado(tokenInfo.id);
           await vincularWhatsapp(tokenInfo.user_id, numero);
-          await enviarMensajeWhatsappCrudo(numero, '✅ ¡Listo! Tu cuenta de MercadoAlerta quedó vinculada a este número. Ya vas a empezar a recibir tus alertas por acá.');
+          const usuario = await buscarUsuarioPorId(tokenInfo.user_id);
+          const cuota = calcularCuotaMensual(usuario?.plan);
+          const textoCuota = cuota > 0 ? ` Tu plan incluye hasta ${cuota} notificaciones por WhatsApp al mes — si las superas, sigues recibiendo todo por Email sin cortes.` : '';
+          await enviarMensajeWhatsappCrudo(numero, `✅ ¡Listo! Tu cuenta de MercadoAlerta quedó vinculada a este número. Ya vas a empezar a recibir tus alertas por acá.${textoCuota}`);
         } else {
           await enviarMensajeWhatsappCrudo(numero, '⚠️ Este código de vinculación venció o ya fue usado. Volvé a MercadoAlerta y generá uno nuevo desde Mi Perfil.');
         }
