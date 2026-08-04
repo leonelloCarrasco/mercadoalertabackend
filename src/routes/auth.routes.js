@@ -13,6 +13,7 @@ const {
   actualizarEstadoUsuario,
   eliminarUsuario,
   obtenerPasswordHash,
+  marcarTutorialCompletado,
 } = require('../db/queries');
 const {
   crearEmpresa,
@@ -473,6 +474,21 @@ router.get('/me', requireAuth, async (req, res) => {
     res.json({ usuario });
   } catch (err) {
     console.error('Error en /me:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// POST /auth/me/tutorial-completado — marca el tour de bienvenida como
+// visto. Se llama al cerrarlo por cualquier vía (ver tutorial.js en el
+// frontend) — terminarlo entero, la X, click afuera, o "Saltar" cuentan
+// igual: no se le vuelve a mostrar solo. Es distinto de volver a verlo
+// manualmente desde Ayuda, que dispara el tour sin pasar por este endpoint.
+router.post('/me/tutorial-completado', requireAuth, async (req, res) => {
+  try {
+    const tutorialCompletadoAt = await marcarTutorialCompletado(req.userId);
+    res.json({ tutorial_completado_at: tutorialCompletadoAt });
+  } catch (err) {
+    console.error('Error en /me/tutorial-completado:', err);
     res.status(500).json({ error: 'Error interno' });
   }
 });

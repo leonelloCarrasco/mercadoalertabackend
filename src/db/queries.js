@@ -28,6 +28,7 @@ async function buscarUsuarioPorEmail(email) {
 async function buscarUsuarioPorId(id) {
   const result = await pool.query(
     `SELECT u.id, u.email, u.nombre, u.apellido, u.telefono, u.estado, u.es_admin, u.created_at, u.empresa_id,
+            u.tutorial_completado_at,
             e.rut AS rut_empresa, e.nombre_empresa, e.rut_validado, e.declara_emt,
             e.plan, e.estado_pago, e.fecha_expiracion_trial, e.monto_mensual,
             e.suscripcion_cancelada_en, e.acceso_hasta
@@ -123,6 +124,20 @@ async function obtenerEstadoWhatsapp(userId) {
   return { vinculado: Boolean(result.rows[0]?.whatsapp_verificado) };
 }
 
+/**
+ * Marca el tour de bienvenida como visto — se llama al cerrarlo por
+ * cualquier vía (terminarlo, la X, click afuera, "Saltar"). Es idempotente
+ * a propósito: si ya estaba marcado, un segundo llamado (ej. al volver a
+ * verlo desde Ayuda) no hace nada raro, solo actualiza la fecha.
+ */
+async function marcarTutorialCompletado(userId) {
+  const result = await pool.query(
+    'UPDATE users SET tutorial_completado_at = NOW() WHERE id = $1 RETURNING tutorial_completado_at',
+    [userId]
+  );
+  return result.rows[0]?.tutorial_completado_at || null;
+}
+
 async function obtenerPasswordHash(userId) {
   const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
   return result.rows[0]?.password_hash || null;
@@ -165,4 +180,5 @@ module.exports = {
   vincularWhatsapp,
   desvincularWhatsapp,
   obtenerEstadoWhatsapp,
+  marcarTutorialCompletado,
 };
