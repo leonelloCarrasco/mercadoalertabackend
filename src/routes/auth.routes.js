@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 
 const {
   crearUsuario,
@@ -14,6 +15,8 @@ const {
   eliminarUsuario,
   obtenerPasswordHash,
   marcarTutorialCompletado,
+  guardarAvatar,
+  eliminarAvatar,
 } = require('../db/queries');
 const {
   crearEmpresa,
@@ -489,6 +492,65 @@ router.post('/me/tutorial-completado', requireAuth, async (req, res) => {
     res.json({ tutorial_completado_at: tutorialCompletadoAt });
   } catch (err) {
     console.error('Error en /me/tutorial-completado:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// Avatar de perfil — se guarda como data-URI base64 en la base de datos
+// (ver migración 048, con la justificación de por qué no es disco/S3).
+// Mismo patrón de multer que ya usa analisis-ia.routes.js: memoryStorage
+// (nunca toca el disco) + fileFilter + wrapper para devolver JSON en vez
+// de la página de error HTML por defecto de Express ante un error de multer.
+const MIMETYPES_AVATAR_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
+
+function filtrarTipoAvatar(req, file, cb) {
+  if (MIMETYPES_AVATAR_PERMITIDOS.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Solo se aceptan imágenes JPG, PNG o WEBP.'));
+  }
+}
+
+const uploadAvatar = multer({
+  storage: multer.memoryStorage(),
+  // 1MB — el frontend ya redimensiona/comprime la imagen a ~256x256 antes
+  // de mandarla (ver dashboard.js, subirAvatar), así que este límite es
+  // sobre todo una protección contra un cliente que no pase por ese paso
+  // (ej. alguien pegando el request directo a la API).
+  limits: { fileSize: 1 * 1024 * 1024 },
+  fileFilter: filtrarTipoAvatar,
+});
+
+function subirAvatarMiddleware(req, res, next) {
+  uploadAvatar.single('avatar')(req, res, (err) => {
+    if (err) {
+      const esTamano = err.code === 'LIMIT_FILE_SIZE';
+      return res.status(400).json({ error: esTamano ? 'La imagen supera el máximo de 1MB.' : err.message });
+    }
+    next();
+  });
+}
+
+router.post('/me/avatar', requireAuth, subirAvatarMiddleware, async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
+  }
+  try {
+    const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    const avatarData = await guardarAvatar(req.userId, dataUri);
+    res.json({ avatar_data: avatarData });
+  } catch (err) {
+    console.error('Error en POST /me/avatar:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+router.delete('/me/avatar', requireAuth, async (req, res) => {
+  try {
+    await eliminarAvatar(req.userId);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Error en DELETE /me/avatar:', err);
     res.status(500).json({ error: 'Error interno' });
   }
 });
