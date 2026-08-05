@@ -29,7 +29,7 @@ async function buscarUsuarioPorEmail(email) {
 async function buscarUsuarioPorId(id) {
   const result = await pool.query(
     `SELECT u.id, u.email, u.nombre, u.apellido, u.telefono, u.estado, u.es_admin, u.created_at, u.empresa_id,
-            u.tutorial_completado_at,
+            u.tutorial_completado_at, u.avatar_data,
             e.rut AS rut_empresa, e.nombre_empresa, e.rut_validado, e.declara_emt,
             e.plan, e.estado_pago, e.fecha_expiracion_trial, e.monto_mensual,
             e.suscripcion_cancelada_en, e.acceso_hasta
@@ -143,6 +143,19 @@ async function marcarTutorialCompletado(userId) {
   return result.rows[0]?.tutorial_completado_at || null;
 }
 
+/** avatarData ya viene armado como data-URI completo (data:image/...;base64,...) — ver auth.routes.js. */
+async function guardarAvatar(userId, avatarData) {
+  const result = await pool.query(
+    'UPDATE users SET avatar_data = $1 WHERE id = $2 RETURNING avatar_data',
+    [avatarData, userId]
+  );
+  return result.rows[0]?.avatar_data || null;
+}
+
+async function eliminarAvatar(userId) {
+  await pool.query('UPDATE users SET avatar_data = NULL WHERE id = $1', [userId]);
+}
+
 async function obtenerPasswordHash(userId) {
   const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
   return result.rows[0]?.password_hash || null;
@@ -186,4 +199,6 @@ module.exports = {
   desvincularWhatsapp,
   obtenerEstadoWhatsapp,
   marcarTutorialCompletado,
+  guardarAvatar,
+  eliminarAvatar,
 };
