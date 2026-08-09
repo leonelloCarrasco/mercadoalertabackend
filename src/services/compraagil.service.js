@@ -56,8 +56,18 @@ async function listarCambiosRecientes(ttlMs, opciones = {}) {
 }
 
 /**
- * Recorre todas las páginas de un listado de cambios recientes y devuelve el array completo de items.
+ * Recorre las páginas de un listado de cambios recientes y devuelve el array de items.
  * Se detiene si se agota la cuota a mitad de camino, devolviendo lo que alcanzó a traer.
+ *
+ * `opciones.detenerSiPaginaCompleta`, si viene, es una función async
+ * `(codigos: string[]) => boolean` — se llama con los códigos de cada
+ * página, y si devuelve true, se corta la paginación ahí (sin pedir la
+ * página siguiente). Se apoya en que los ítems vienen ordenados por
+ * fecha_ultimo_cambio DESCENDENTE (confirmado contra la API real en
+ * agosto 2026) — si una página completa ya es conocida, todo lo que sigue
+ * es más viejo todavía, no hace falta seguir. Es lo que hace viable usar
+ * un ttl_cambio_ms ancho (ver poll-compra-agil.js) sin tener que recorrer
+ * cientos de páginas en cada corrida.
  */
 async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
   let numeroPagina = 1;
@@ -82,6 +92,16 @@ async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
 
     items.push(...payload.items);
     totalPaginas = payload.paginacion.total_paginas;
+
+    if (opciones.detenerSiPaginaCompleta && payload.items.length > 0) {
+      const codigosPagina = payload.items.map((item) => item.codigo);
+      const paginaCompletaConocida = await opciones.detenerSiPaginaCompleta(codigosPagina);
+      if (paginaCompletaConocida) {
+        console.log(`[compraagil.service] Página ${numeroPagina} ya era 100% conocida — se corta la paginación acá (de ${totalPaginas} páginas totales).`);
+        break;
+      }
+    }
+
     numeroPagina += 1;
   } while (numeroPagina <= totalPaginas);
 
@@ -93,6 +113,57 @@ async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
  */
 async function obtenerDetalleCompraAgil(codigo) {
   return llamarApi(`/v2/compra-agil/${encodeURIComponent(codigo)}`);
+}
+
+/**
+ * Lista Compras Ágiles con cambios en un rango de fechas EXACTO
+ * (cambio_desde/cambio_hasta, ISO 8601) — a diferencia de ttl_cambio_ms
+ * (relativo a "ahora", y con el bug de ventana corta documentado en
+ * poll-compra-agil.js), este filtro apunta a un rango de calendario fijo.
+ * Ojo: igual que ttl_cambio_ms, filtra por fecha_ultimo_cambio, no por
+ * fecha_publicacion — un ítem publicado ese día pero modificado después no
+ * va a aparecer acá buscando ese día, y uno publicado antes pero modificado
+ * ese día sí. Para "qué se publicó tal día" es una aproximación, no exacto.
+ */
+async function listarCambiosPorRangoFecha(cambioDesde, cambioHasta, opciones = {}) {
+  return llamarApi('/v2/compra-agil', {
+    cambio_desde: cambioDesde,
+    cambio_hasta: cambioHasta,
+    tamano_pagina: opciones.tamanoPagina || 50,
+    numero_pagina: opciones.numeroPagina || 1,
+    ...(opciones.estado ? { estado: opciones.estado } : {}),
+    ...(opciones.region ? { region: opciones.region } : {}),
+  });
+}
+
+/** Recorre todas las páginas de un rango de fechas exacto y devuelve el array completo de items. */
+async function listarTodosLosCambiosPorRangoFecha(cambioDesde, cambioHasta, opciones = {}) {
+  let numeroPagina = 1;
+  let totalPaginas = 1;
+  const items = [];
+
+  do {
+    let payload;
+    try {
+      payload = await listarCambiosPorRangoFecha(cambioDesde, cambioHasta, { ...opciones, numeroPagina });
+    } catch (err) {
+      if (err instanceof CuotaAgotadaError) {
+        console.warn('Cuota agotada durante la paginación, se corta con lo obtenido hasta ahora.');
+        break;
+      }
+      throw err;
+    }
+
+    if (numeroPagina === 1) {
+      console.log(`[compraagil.service] Rango ${cambioDesde} a ${cambioHasta}: total_resultados=${payload.paginacion.total_resultados}, total_paginas=${payload.paginacion.total_paginas}`);
+    }
+
+    items.push(...payload.items);
+    totalPaginas = payload.paginacion.total_paginas;
+    numeroPagina += 1;
+  } while (numeroPagina <= totalPaginas);
+
+  return items;
 }
 
 /**
@@ -119,6 +190,8 @@ module.exports = {
   CuotaAgotadaError,
   listarCambiosRecientes,
   listarTodosLosCambiosRecientes,
+  listarCambiosPorRangoFecha,
+  listarTodosLosCambiosPorRangoFecha,
   obtenerDetalleCompraAgil,
   buscarComprasAgiles,
 };

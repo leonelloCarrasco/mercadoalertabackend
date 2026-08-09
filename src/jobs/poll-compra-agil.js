@@ -6,15 +6,26 @@ const {
 const { obtenerCodigosCompraAgilYaVistos, guardarCompraAgil } = require('../db/compra-agil.queries');
 const { procesarAlertasCompraAgil } = require('../services/alerting.service');
 
-// Debe ser mayor al intervalo real entre corridas del cron, para no dejar huecos
-// si una corrida se atrasa o falla. En pruebas, una ventana de 90 min a veces dio 0
-// resultados (posible irregularidad en la frecuencia de actualización del índice de
-// cambios de esta API Beta) — se usa 3 horas de margen para mayor confiabilidad.
-const TTL_CAMBIO_MS = 3 * 60 * 60 * 1000;
+// La ventana corta (antes 90 min, después 3hs) dejó de funcionar del todo
+// en agosto 2026 — la API Beta de Compra Ágil devuelve total_resultados=0
+// de forma consistente para ttl_cambio_ms chico (confirmado con logs de
+// producción durante una semana entera + prueba manual directa contra la
+// API). Con ttl_cambio_ms=30 días la API SÍ responde con datos reales y
+// recientes (confirmado manualmente) — el parámetro además es obligatorio,
+// omitirlo tira ERROR_INTERNO, así que no se puede sacar sin más.
+//
+// Recorrer 1000 páginas cada corrida sería absurdo — por eso
+// listarTodosLosCambiosRecientes ahora corta la paginación apenas
+// encuentra una página 100% conocida (ver detenerSiPaginaCompleta más
+// abajo), apoyándose en que la API ordena por fecha_ultimo_cambio
+// descendente. En la práctica, cada corrida solo pagina hasta donde
+// alcanzan los cambios genuinamente nuevos desde la corrida anterior.
+const TTL_CAMBIO_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
  * Corre una pasada de detección de Compras Ágiles nuevas:
- * 1. Trae los cambios de los últimos TTL_CAMBIO_MS milisegundos (todas las páginas).
+ * 1. Trae los cambios de los últimos TTL_CAMBIO_MS milisegundos, paginando
+ *    hasta encontrar una página 100% ya conocida (no todas las páginas).
  * 2. Filtra las que ya conocemos.
  * 3. Para las nuevas, intenta traer el detalle completo (proveedores_cotizando incluido).
  * 4. Las guarda en la base de datos.
@@ -30,7 +41,17 @@ async function correrPollingCompraAgil(opciones = {}) {
 
   let items;
   try {
-    items = await listarTodosLosCambiosRecientes(ttlMs);
+    items = await listarTodosLosCambiosRecientes(ttlMs, {
+      // Corte temprano de paginación — ver el comentario largo en
+      // TTL_CAMBIO_MS más arriba y el de listarTodosLosCambiosRecientes en
+      // compraagil.service.js. Reusa la misma función que ya se usaba más
+      // abajo para filtrar — acá se llama por página en vez de una sola
+      // vez al final, así se puede cortar apenas ya no hay nada nuevo.
+      detenerSiPaginaCompleta: async (codigosPagina) => {
+        const yaVistosPagina = await obtenerCodigosCompraAgilYaVistos(codigosPagina);
+        return codigosPagina.every((c) => yaVistosPagina.has(c));
+      },
+    });
   } catch (err) {
     if (err instanceof CuotaAgotadaError) {
       console.warn('[poll-compra-agil] Cuota diaria agotada, se omite esta corrida.');
