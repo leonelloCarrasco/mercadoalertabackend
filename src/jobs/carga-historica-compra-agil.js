@@ -48,6 +48,9 @@ async function correrCargaHistoricaCompraAgil() {
     console.warn('[carga-historica] Ya hay una carga en curso — se ignora este disparo.');
     return { yaEnCurso: true };
   }
+  
+  const ticket = process.env.MERCADOPUBLICO_TICKET;
+  console.warn(`[carga-historica] Ticket : ${ticket}.`);
 
   cargaEnCurso = true;
   console.log(`[carga-historica] Iniciando — recorre día por día desde ${FECHA_INICIO_CARGA_HISTORICA} hasta hoy, saltando lo que ya está guardado.`);
@@ -71,7 +74,7 @@ async function correrCargaHistoricaCompraAgil() {
         items = await listarTodosLosCambiosPorRangoFecha(cambioDesde, cambioHasta);
       } catch (err) {
         if (err instanceof CuotaAgotadaError) {
-          console.warn(`[carga-historica] Cuota agotada listando el día ${fechaISO} — se corta acá.`);
+          console.warn(`[carga-historica] Cuota agotada listando el día ${fechaISO} — se corta acá (1).`);
           cortadoPorCuota = true;
           break;
         }
