@@ -148,7 +148,7 @@ async function listarTodosLosCambiosPorRangoFecha(cambioDesde, cambioHasta, opci
       payload = await listarCambiosPorRangoFecha(cambioDesde, cambioHasta, { ...opciones, numeroPagina });
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {
-        console.warn('Cuota agotada durante la paginación, se corta con lo obtenido hasta ahora (2).');
+        console.warn('Cuota agotada durante la paginación, se corta con lo obtenido hasta ahora.');
         break;
       }
       throw err;
