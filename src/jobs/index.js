@@ -19,13 +19,13 @@ function iniciarCronJobs() {
 
   // Compra Ágil: cada 1 hora (con TTL de 3h en el job, da 2h de margen si alguna corrida se atrasa).
   // Puede cerrar en 24hs, así que sigue siendo bastante seguido. Cuidado con la cuota diaria del ticket.
-  cron.schedule('0 */1 * * *', async () => {
-    try {
-      await correrPollingCompraAgil();
-    } catch (err) {
-      console.error('[cron] Error en polling de Compra Ágil:', err);
-    }
-  });
+  //cron.schedule('0 */1 * * *', async () => {
+  //  try {
+  //    await correrPollingCompraAgil();
+  //  } catch (err) {
+  //    console.error('[cron] Error en polling de Compra Ágil:', err);
+  //  }
+  //});
 
   // Revisión de adjudicaciones: una vez al día (03:00) — no hay apuro, la
   // adjudicación puede tardar días o semanas en publicarse, así que no vale
