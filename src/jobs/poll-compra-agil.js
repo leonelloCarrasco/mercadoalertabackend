@@ -10,7 +10,7 @@ const { procesarAlertasCompraAgil } = require('../services/alerting.service');
 // en agosto 2026 — la API Beta de Compra Ágil devuelve total_resultados=0
 // de forma consistente para ttl_cambio_ms chico (confirmado con logs de
 // producción durante una semana entera + prueba manual directa contra la
-// API). Con ttl_cambio_ms=30 días la API SÍ responde con datos reales y
+// API). Con ttl_cambio_ms=7 días la API SÍ responde con datos reales y
 // recientes (confirmado manualmente) — el parámetro además es obligatorio,
 // omitirlo tira ERROR_INTERNO, así que no se puede sacar sin más.
 //
@@ -20,7 +20,7 @@ const { procesarAlertasCompraAgil } = require('../services/alerting.service');
 // abajo), apoyándose en que la API ordena por fecha_ultimo_cambio
 // descendente. En la práctica, cada corrida solo pagina hasta donde
 // alcanzan los cambios genuinamente nuevos desde la corrida anterior.
-const TTL_CAMBIO_MS = 30 * 24 * 60 * 60 * 1000;
+const TTL_CAMBIO_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Corre una pasada de detección de Compras Ágiles nuevas:
