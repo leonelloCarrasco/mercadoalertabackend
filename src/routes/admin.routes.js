@@ -2,7 +2,7 @@ const express = require('express');
 const { correrPollingLicitaciones } = require('../jobs/poll-licitaciones');
 const { correrPollingCompraAgil } = require('../jobs/poll-compra-agil');
 const { correrRevisionResoluciones } = require('../jobs/revisar-resoluciones');
-const { correrCargaHistoricaCompraAgil } = require('../jobs/carga-historica-compra-agil');
+const { correrCargaHistoricaCompraAgil, correrCargaHistoricaCompraAgilUnDia } = require('../jobs/carga-historica-compra-agil');
 const { requireAdminKey } = require('../middleware/admin.middleware');
 
 const router = express.Router();
@@ -61,6 +61,30 @@ router.post('/revisar-resoluciones', async (req, res) => {
 router.post('/carga-historica-compra-agil', (req, res) => {
   res.json({ mensaje: 'Carga histórica iniciada en segundo plano. Revisa los logs del servidor para ver el progreso.' });
   correrCargaHistoricaCompraAgil().catch((err) => {
+    console.error('[carga-historica] Error no manejado:', err);
+  });
+});
+
+// Variante de un solo día — /carga-historica-compra-agil/ddmmaaaa. Registrada
+// aparte (no como ":fecha?" opcional) porque Express 5 cambió la sintaxis
+// de parámetros opcionales (path-to-regexp v8) y dos rutas explícitas es
+// inequívoco en cualquier versión. Mismo patrón asíncrono que la de arriba
+// — responde al toque, sigue en segundo plano — pero acá se corta después
+// de ESE día puntual, nunca sigue a los días siguientes.
+router.post('/carga-historica-compra-agil/:fecha', (req, res) => {
+  const { fecha } = req.params;
+
+  if (!/^\d{8}$/.test(fecha)) {
+    return res.status(400).json({ error: 'La fecha debe tener formato ddmmaaaa (8 dígitos), ej. 08082026.' });
+  }
+
+  const dia = fecha.slice(0, 2);
+  const mes = fecha.slice(2, 4);
+  const anio = fecha.slice(4, 8);
+  const fechaISO = `${anio}-${mes}-${dia}`;
+
+  res.json({ mensaje: `Carga histórica del día ${fechaISO} iniciada en segundo plano. Revisa los logs del servidor para ver el progreso.` });
+  correrCargaHistoricaCompraAgilUnDia(fechaISO).catch((err) => {
     console.error('[carga-historica] Error no manejado:', err);
   });
 });
