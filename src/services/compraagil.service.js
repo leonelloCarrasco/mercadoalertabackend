@@ -64,15 +64,15 @@ async function llamarApi(path, params = {}) {
     //  a) con un cuerpo de error normal, cuyo texto menciona cuota/límite/
     //     exceso — se detecta por palabra clave.
     //  b) SIN ningún detalle de error (data.errors vacío o ausente) — el
-    //     caso real que rompió el corte prolijo del job de carga histórica
-    //     (agosto 2026): "[undefined]: undefined", nada de texto para
-    //     buscarle palabra clave. Una respuesta success != 'OK' pero sin
-    //     ningún detalle de error es en sí misma una señal rara — más
-    //     probable que sea un proxy/gateway cortando la conexión por
-    //     exceso de pedidos que un error real y bien formado de la API. El
-    //     log de arriba deja rastro por si esta suposición alguna vez
-    //     resulta equivocada (sería un caso genuinamente distinto, no
-    //     cuota) — así queda algo para diagnosticar, no falla en silencio.
+    //     caso real que rompió el corte prolijo de estos jobs (agosto
+    //     2026): "[undefined]: undefined", nada de texto para buscarle
+    //     palabra clave. Una respuesta success != 'OK' pero sin ningún
+    //     detalle de error es en sí misma una señal rara — más probable
+    //     que sea un proxy/gateway cortando la conexión por exceso de
+    //     pedidos que un error real y bien formado de la API. El log de
+    //     arriba deja rastro por si esta suposición alguna vez resulta
+    //     equivocada — así queda algo para diagnosticar, no falla en
+    //     silencio.
     const pareceLimiteDeCuota = /cuota|límite|limite|exceso|demasiad|rate.?limit/.test(mensajeCompleto) || sinDetalleDeError;
     if (pareceLimiteDeCuota) {
       throw new CuotaAgotadaError(`Posible límite de la API de Compra Ágil: [${err.codigo}] ${err.mensaje}`);

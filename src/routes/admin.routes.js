@@ -2,21 +2,42 @@ const express = require('express');
 const { correrPollingLicitaciones } = require('../jobs/poll-licitaciones');
 const { correrPollingCompraAgil } = require('../jobs/poll-compra-agil');
 const { correrRevisionResoluciones } = require('../jobs/revisar-resoluciones');
-const { correrCargaHistoricaCompraAgil, correrCargaHistoricaCompraAgilUnDia } = require('../jobs/carga-historica-compra-agil');
+const { correrCargaHistoricaCompraAgil } = require('../jobs/carga-historica-compra-agil');
 const { requireAdminKey } = require('../middleware/admin.middleware');
 
 const router = express.Router();
 router.use(requireAdminKey);
 
-router.post('/poll-licitaciones', async (req, res) => {
-  try {
-    const limite = req.query.limite ? parseInt(req.query.limite, 10) : undefined;
-    const nuevas = await correrPollingLicitaciones({ limite });
-    res.json({ nuevasEncontradas: nuevas.length, detalle: nuevas.map(n => n.CodigoExterno) });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+// Evita que dos corridas de poll-licitaciones se pisen si se dispara dos
+// veces mientras la anterior sigue corriendo — mismo criterio que ya usa
+// carga-historica-compra-agil.
+let pollLicitacionesEnCurso = false;
+
+// Asíncrono: responde al toque y sigue corriendo en segundo plano — igual
+// que carga-historica-compra-agil. Antes esperaba a terminar antes de
+// responder (podía tardar bastante con el delay de 3s entre detalles), lo
+// que arriesgaba un timeout del lado del cliente/proxy sin que el proceso
+// en sí hubiera fallado. Ver el progreso real en los logs del servidor.
+router.post('/poll-licitaciones', (req, res) => {
+  if (pollLicitacionesEnCurso) {
+    return res.status(409).json({ error: 'Ya hay un poll-licitaciones en curso — esperá a que termine antes de disparar otro.' });
   }
+
+  const limite = req.query.limite ? parseInt(req.query.limite, 10) : undefined;
+
+  res.json({ mensaje: 'poll-licitaciones iniciado en segundo plano. Revisa los logs del servidor para ver el progreso.' });
+
+  pollLicitacionesEnCurso = true;
+  correrPollingLicitaciones({ limite })
+    .then((nuevas) => {
+      console.log(`[poll-licitaciones] Terminado — ${nuevas.length} nuevas: ${nuevas.map((n) => n.CodigoExterno).join(', ') || '(ninguna)'}`);
+    })
+    .catch((err) => {
+      console.error('[poll-licitaciones] Error no manejado:', err);
+    })
+    .finally(() => {
+      pollLicitacionesEnCurso = false;
+    });
 });
 
 router.post('/poll-compra-agil', async (req, res) => {
@@ -61,30 +82,6 @@ router.post('/revisar-resoluciones', async (req, res) => {
 router.post('/carga-historica-compra-agil', (req, res) => {
   res.json({ mensaje: 'Carga histórica iniciada en segundo plano. Revisa los logs del servidor para ver el progreso.' });
   correrCargaHistoricaCompraAgil().catch((err) => {
-    console.error('[carga-historica] Error no manejado:', err);
-  });
-});
-
-// Variante de un solo día — /carga-historica-compra-agil/ddmmaaaa. Registrada
-// aparte (no como ":fecha?" opcional) porque Express 5 cambió la sintaxis
-// de parámetros opcionales (path-to-regexp v8) y dos rutas explícitas es
-// inequívoco en cualquier versión. Mismo patrón asíncrono que la de arriba
-// — responde al toque, sigue en segundo plano — pero acá se corta después
-// de ESE día puntual, nunca sigue a los días siguientes.
-router.post('/carga-historica-compra-agil/:fecha', (req, res) => {
-  const { fecha } = req.params;
-
-  if (!/^\d{8}$/.test(fecha)) {
-    return res.status(400).json({ error: 'La fecha debe tener formato ddmmaaaa (8 dígitos), ej. 08082026.' });
-  }
-
-  const dia = fecha.slice(0, 2);
-  const mes = fecha.slice(2, 4);
-  const anio = fecha.slice(4, 8);
-  const fechaISO = `${anio}-${mes}-${dia}`;
-
-  res.json({ mensaje: `Carga histórica del día ${fechaISO} iniciada en segundo plano. Revisa los logs del servidor para ver el progreso.` });
-  correrCargaHistoricaCompraAgilUnDia(fechaISO).catch((err) => {
     console.error('[carga-historica] Error no manejado:', err);
   });
 });
