@@ -8,15 +8,36 @@ const { requireAdminKey } = require('../middleware/admin.middleware');
 const router = express.Router();
 router.use(requireAdminKey);
 
-router.post('/poll-licitaciones', async (req, res) => {
-  try {
-    const limite = req.query.limite ? parseInt(req.query.limite, 10) : undefined;
-    const nuevas = await correrPollingLicitaciones({ limite });
-    res.json({ nuevasEncontradas: nuevas.length, detalle: nuevas.map(n => n.CodigoExterno) });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+// Evita que dos corridas de poll-licitaciones se pisen si se dispara dos
+// veces mientras la anterior sigue corriendo — mismo criterio que ya usa
+// carga-historica-compra-agil.
+let pollLicitacionesEnCurso = false;
+
+// Asíncrono: responde al toque y sigue corriendo en segundo plano — igual
+// que carga-historica-compra-agil. Antes esperaba a terminar antes de
+// responder (podía tardar bastante con el delay de 3s entre detalles), lo
+// que arriesgaba un timeout del lado del cliente/proxy sin que el proceso
+// en sí hubiera fallado. Ver el progreso real en los logs del servidor.
+router.post('/poll-licitaciones', (req, res) => {
+  if (pollLicitacionesEnCurso) {
+    return res.status(409).json({ error: 'Ya hay un poll-licitaciones en curso — esperá a que termine antes de disparar otro.' });
   }
+
+  const limite = req.query.limite ? parseInt(req.query.limite, 10) : undefined;
+
+  res.json({ mensaje: 'poll-licitaciones iniciado en segundo plano. Revisa los logs del servidor para ver el progreso.' });
+
+  pollLicitacionesEnCurso = true;
+  correrPollingLicitaciones({ limite })
+    .then((nuevas) => {
+      console.log(`[poll-licitaciones] Terminado — ${nuevas.length} nuevas: ${nuevas.map((n) => n.CodigoExterno).join(', ') || '(ninguna)'}`);
+    })
+    .catch((err) => {
+      console.error('[poll-licitaciones] Error no manejado:', err);
+    })
+    .finally(() => {
+      pollLicitacionesEnCurso = false;
+    });
 });
 
 router.post('/poll-compra-agil', async (req, res) => {

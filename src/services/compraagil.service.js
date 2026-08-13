@@ -7,6 +7,16 @@ class CuotaAgotadaError extends Error {
   }
 }
 
+// Pausa entre página y página al recorrer un listado completo — sin esto,
+// una ventana con muchas páginas (ej. un solo día con 90 páginas) dispara
+// pedidos en ráfaga que Mercado Público puede frenar con un límite de
+// corto plazo, distinto de la cuota diaria (y que no siempre se anuncia
+// como HTTP 429, ver el manejo de errores en llamarApi más abajo).
+const PAUSA_ENTRE_PAGINAS_MS = 300;
+function esperar(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function llamarApi(path, params = {}) {
   const ticket = process.env.COMPRAAGIL_TICKET;
   const query = new URLSearchParams();
@@ -31,10 +41,43 @@ async function llamarApi(path, params = {}) {
     throw new CuotaAgotadaError('Se agotó la cuota diaria de la API de Compra Ágil. Reintentar mañana.');
   }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (err) {
+    // La respuesta no fue JSON válido — pasa con algunos límites de ráfaga
+    // (proxy/gateway que corta la conexión y devuelve HTML o texto plano en
+    // vez del JSON esperado). Se trata como cuota agotada en vez de reventar
+    // con un error genérico, que es lo más probable dado el contexto.
+    throw new CuotaAgotadaError(`Respuesta no válida de la API de Compra Ágil (HTTP ${response.status}) — probablemente un límite de ráfaga, no la cuota diaria formal. Mensaje original: ${err.message}`);
+  }
 
   if (data.success !== 'OK') {
     const err = (data.errors && data.errors[0]) || {};
+    const mensajeCompleto = `${err.codigo || ''} ${err.mensaje || ''}`.toLowerCase();
+    const sinDetalleDeError = !err.codigo && !err.mensaje;
+
+    console.error(`[compraagil.service] success != 'OK' — HTTP ${response.status}, body:`, JSON.stringify(data).slice(0, 500));
+
+    // Además del 429 explícito de arriba, algunos límites de ráfaga vuelven
+    // con HTTP 200 y success != 'OK', pero de dos formas distintas:
+    //  a) con un cuerpo de error normal, cuyo texto menciona cuota/límite/
+    //     exceso — se detecta por palabra clave.
+    //  b) SIN ningún detalle de error (data.errors vacío o ausente) — el
+    //     caso real que rompió el corte prolijo de estos jobs (agosto
+    //     2026): "[undefined]: undefined", nada de texto para buscarle
+    //     palabra clave. Una respuesta success != 'OK' pero sin ningún
+    //     detalle de error es en sí misma una señal rara — más probable
+    //     que sea un proxy/gateway cortando la conexión por exceso de
+    //     pedidos que un error real y bien formado de la API. El log de
+    //     arriba deja rastro por si esta suposición alguna vez resulta
+    //     equivocada — así queda algo para diagnosticar, no falla en
+    //     silencio.
+    const pareceLimiteDeCuota = /cuota|límite|limite|exceso|demasiad|rate.?limit/.test(mensajeCompleto) || sinDetalleDeError;
+    if (pareceLimiteDeCuota) {
+      throw new CuotaAgotadaError(`Posible límite de la API de Compra Ágil: [${err.codigo}] ${err.mensaje}`);
+    }
+
     throw new Error(`Error de la API de Compra Ágil [${err.codigo}]: ${err.mensaje}`);
   }
 
@@ -103,6 +146,7 @@ async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
     }
 
     numeroPagina += 1;
+    if (numeroPagina <= totalPaginas) await esperar(PAUSA_ENTRE_PAGINAS_MS);
   } while (numeroPagina <= totalPaginas);
 
   return items;
@@ -148,7 +192,7 @@ async function listarTodosLosCambiosPorRangoFecha(cambioDesde, cambioHasta, opci
       payload = await listarCambiosPorRangoFecha(cambioDesde, cambioHasta, { ...opciones, numeroPagina });
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {
-        console.warn('Cuota agotada durante la paginación, se corta con lo obtenido hasta ahora (2).');
+        console.warn('Cuota agotada durante la paginación, se corta con lo obtenido hasta ahora.');
         break;
       }
       throw err;
@@ -161,6 +205,7 @@ async function listarTodosLosCambiosPorRangoFecha(cambioDesde, cambioHasta, opci
     items.push(...payload.items);
     totalPaginas = payload.paginacion.total_paginas;
     numeroPagina += 1;
+    if (numeroPagina <= totalPaginas) await esperar(PAUSA_ENTRE_PAGINAS_MS);
   } while (numeroPagina <= totalPaginas);
 
   return items;
