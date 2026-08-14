@@ -215,15 +215,28 @@ async function obtenerLicitacionPorCodigo(codigoExterno) {
  *    pero dejaría a un usuario con ese ítem guardado viendo datos
  *    incompletos (nombre/organismo/monto en blanco) — se prefiere no
  *    borrar antes que romper algo que alguien todavía tiene activo.
- *  - El precio ya quedó archivado en historico_precios en el momento de la
- *    resolución (revisar-resoluciones.js) — este borrado no necesita
- *    archivar nada, solo limpiar el dato operativo pesado.
+ *
+ * RED DE SEGURIDAD DE PRECIOS: antes de borrar cada candidato, se chequea
+ * si ya tiene algo en historico_precios (lo normal — ya se archivó en
+ * revisar-resoluciones.js, en el momento de la resolución). Si NO tiene
+ * nada archivado (se coló por otro camino — ej. algo que se guarda YA
+ * resuelto desde el principio, ver guardarLicitacion), se archiva ACÁ,
+ * usando los datos que ya están en la propia fila (sin pedirle nada a la
+ * API) — recién ahí se borra. Si el archivado falla, esa fila puntual NO
+ * se borra esta corrida (mejor una fila vieja de más que perder un precio
+ * para siempre) — se reintenta sola en la próxima corrida del cron.
  *
  * Devuelve la cantidad de filas borradas.
  */
 async function eliminarLicitacionesAntiguas(mesesAntiguedad = 6) {
-  const result = await pool.query(
-    `DELETE FROM licitaciones_vistas lv
+  // Import acá adentro (no arriba del archivo) para no crear una dependencia
+  // circular entre los dos módulos de queries.
+  const { tienePreciosArchivados, archivarPreciosLicitacion } = require('./historico-precios.queries');
+
+  const candidatos = await pool.query(
+    `SELECT codigo_externo, nombre, nombre_organismo, fecha_adjudicacion,
+            fecha_ultima_revision, numero_oferentes, url_acta, items
+     FROM licitaciones_vistas lv
      WHERE lv.estado IN ('Adjudicada', 'Desierta (o art. 3 ó 9 Ley 19.886)', 'Revocada')
        AND COALESCE(lv.fecha_adjudicacion, lv.fecha_ultima_revision) < NOW() - ($1 || ' months')::INTERVAL
        AND NOT EXISTS (SELECT 1 FROM seguimientos_licitacion s WHERE s.codigo_externo = lv.codigo_externo)
@@ -232,6 +245,43 @@ async function eliminarLicitacionesAntiguas(mesesAntiguedad = 6) {
        AND NOT EXISTS (SELECT 1 FROM analisis_ia a WHERE a.codigo_externo = lv.codigo_externo AND a.tipo_proceso = 'licitacion')`,
     [mesesAntiguedad]
   );
+
+  if (candidatos.rows.length === 0) return 0;
+
+  const codigosABorrar = [];
+  let archivadosPorRedDeSeguridad = 0;
+
+  for (const fila of candidatos.rows) {
+    const yaArchivado = await tienePreciosArchivados(fila.codigo_externo);
+    if (yaArchivado) {
+      codigosABorrar.push(fila.codigo_externo);
+      continue;
+    }
+
+    try {
+      const guardadas = await archivarPreciosLicitacion({
+        codigoExterno: fila.codigo_externo,
+        nombre: fila.nombre,
+        organismo: fila.nombre_organismo,
+        fechaAdjudicacion: fila.fecha_adjudicacion || fila.fecha_ultima_revision,
+        numeroOferentes: fila.numero_oferentes,
+        urlActa: fila.url_acta,
+        items: fila.items || [],
+      });
+      if (guardadas > 0) archivadosPorRedDeSeguridad++;
+      codigosABorrar.push(fila.codigo_externo);
+    } catch (err) {
+      console.error(`[limpieza-datos-antiguos] Error en la red de seguridad archivando ${fila.codigo_externo} — esta fila NO se borra esta corrida:`, err.message);
+    }
+  }
+
+  if (archivadosPorRedDeSeguridad > 0) {
+    console.log(`[limpieza-datos-antiguos] Red de seguridad: ${archivadosPorRedDeSeguridad} licitaciones se archivaron recién ahora, antes de borrar (no habían pasado por revisar-resoluciones.js).`);
+  }
+
+  if (codigosABorrar.length === 0) return 0;
+
+  const result = await pool.query('DELETE FROM licitaciones_vistas WHERE codigo_externo = ANY($1)', [codigosABorrar]);
   return result.rowCount;
 }
 
