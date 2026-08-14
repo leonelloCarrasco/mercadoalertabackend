@@ -160,6 +160,34 @@ async function obtenerCompraAgilPorCodigo(codigoExterno) {
   return result.rows[0] || null;
 }
 
+/**
+ * Limpieza de Compras Ágiles viejas — ver src/jobs/limpieza-datos-antiguos.js.
+ *
+ * A diferencia de licitaciones, acá es INDEPENDIENTE del estado — se borra
+ * igual esté publicada, cerrada, o lo que sea, siempre que sea vieja.
+ * COALESCE(fecha_publicacion, primera_vez_vista): por si algún registro
+ * viejo se guardó sin fecha_publicacion poblada.
+ * NOT EXISTS: mismo criterio que licitaciones — no hay foreign key, pero se
+ * prefiere no borrar lo que un usuario todavía tiene referenciado en
+ * Portafolio/Recordatorio/Análisis IA (acá no aplica seguimientos_licitacion,
+ * esa tabla es exclusiva de licitaciones).
+ * El precio ya quedó archivado en historico_precios en el momento de la
+ * resolución (revisar-resoluciones.js) — este borrado no archiva nada.
+ *
+ * Devuelve la cantidad de filas borradas.
+ */
+async function eliminarComprasAgilesAntiguas(mesesAntiguedad = 3) {
+  const result = await pool.query(
+    `DELETE FROM compras_agiles_vistas cav
+     WHERE COALESCE(cav.fecha_publicacion, cav.primera_vez_vista) < NOW() - ($1 || ' months')::INTERVAL
+       AND NOT EXISTS (SELECT 1 FROM recordatorios_cierre r WHERE r.codigo_externo = cav.codigo_externo AND r.tipo_proceso = 'compra_agil')
+       AND NOT EXISTS (SELECT 1 FROM pipeline_oportunidades p WHERE p.codigo_externo = cav.codigo_externo AND p.tipo_proceso = 'compra_agil')
+       AND NOT EXISTS (SELECT 1 FROM analisis_ia a WHERE a.codigo_externo = cav.codigo_externo AND a.tipo_proceso = 'compra_agil')`,
+    [mesesAntiguedad]
+  );
+  return result.rowCount;
+}
+
 module.exports = {
   compraAgilYaVista,
   obtenerCompraAgilPorCodigo,
@@ -172,4 +200,5 @@ module.exports = {
   listarCompraAgilPendienteDeResolucion,
   actualizarResolucionCompraAgil,
   listarCompraAgilResueltaSinProveedores,
+  eliminarComprasAgilesAntiguas,
 };

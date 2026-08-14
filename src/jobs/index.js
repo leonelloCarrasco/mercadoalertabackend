@@ -5,6 +5,7 @@ const { correrRevisionResoluciones } = require('./revisar-resoluciones');
 const { correrRecordatorioCierre } = require('./recordatorio-cierre');
 const { correrSeguimientoEstado } = require('./seguimiento-estado');
 const { correrAvisosTrial } = require('./avisos-trial');
+const { correrLimpiezaDatosAntiguos } = require('./limpieza-datos-antiguos');
 
 function iniciarCronJobs() {
   // Licitaciones: cada 3 horas (el volumen de detalle a traer puede tardar varios minutos
@@ -79,7 +80,20 @@ function iniciarCronJobs() {
     }
   });
 
-  console.log('[cron] Jobs programados: licitaciones cada 3h (hora 0,3,6...), Compra Ágil cada 3h (hora 1,4,7...), revisión de adjudicaciones diaria a las 03:00, recordatorios cada 15 min, seguimiento de estado cada 3h (min 30), avisos de trial diarios a las 08:00.');
+  // Limpieza de datos antiguos: una vez al día (04:00, justo después de la
+  // revisión de adjudicaciones de las 03:00). Solo lee/borra de la base
+  // local, no pega contra ninguna API externa — no compite por cuota con
+  // ningún otro job, así que la hora exacta no es crítica, solo se eligió
+  // 04:00 para que corra de madrugada como los demás jobs de bajo tráfico.
+  cron.schedule('0 4 * * *', async () => {
+    try {
+      await correrLimpiezaDatosAntiguos();
+    } catch (err) {
+      console.error('[cron] Error en limpieza de datos antiguos:', err);
+    }
+  });
+
+  console.log('[cron] Jobs programados: licitaciones cada 3h (hora 0,3,6...), Compra Ágil cada 3h (hora 1,4,7...), revisión de adjudicaciones diaria a las 03:00, limpieza de datos antiguos diaria a las 04:00, recordatorios cada 15 min, seguimiento de estado cada 3h (min 30), avisos de trial diarios a las 08:00.');
 }
 
 module.exports = { iniciarCronJobs };

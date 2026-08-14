@@ -197,6 +197,44 @@ async function obtenerLicitacionPorCodigo(codigoExterno) {
   return result.rows[0] || null;
 }
 
+/**
+ * Limpieza de licitaciones viejas — ver src/jobs/limpieza-datos-antiguos.js.
+ *
+ * Criterio (decidido explícitamente, no todos los "finales"):
+ *  - Solo Adjudicada/Desierta/Revocada — 'Cerrada' queda AFUERA a propósito,
+ *    porque el propio sistema no la trata como resuelta todavía (puede
+ *    cambiar de estado más adelante, ver ESTADOS_FINALES_LICITACION en
+ *    estados-finales.js) — borrarla sería perder algo que quizás todavía
+ *    hay que revisar.
+ *  - COALESCE(fecha_adjudicacion, fecha_ultima_revision): Desierta/Revocada
+ *    a veces no traen fecha_adjudicacion real de la API (nunca hubo
+ *    adjudicación) — se usa fecha_ultima_revision como respaldo en vez de
+ *    dejar esas filas sin límite de antigüedad para siempre.
+ *  - NOT EXISTS contra seguimientos/recordatorios/pipeline/análisis IA: no
+ *    hay foreign key hacia licitaciones_vistas, así que borrar no falla,
+ *    pero dejaría a un usuario con ese ítem guardado viendo datos
+ *    incompletos (nombre/organismo/monto en blanco) — se prefiere no
+ *    borrar antes que romper algo que alguien todavía tiene activo.
+ *  - El precio ya quedó archivado en historico_precios en el momento de la
+ *    resolución (revisar-resoluciones.js) — este borrado no necesita
+ *    archivar nada, solo limpiar el dato operativo pesado.
+ *
+ * Devuelve la cantidad de filas borradas.
+ */
+async function eliminarLicitacionesAntiguas(mesesAntiguedad = 6) {
+  const result = await pool.query(
+    `DELETE FROM licitaciones_vistas lv
+     WHERE lv.estado IN ('Adjudicada', 'Desierta (o art. 3 ó 9 Ley 19.886)', 'Revocada')
+       AND COALESCE(lv.fecha_adjudicacion, lv.fecha_ultima_revision) < NOW() - ($1 || ' months')::INTERVAL
+       AND NOT EXISTS (SELECT 1 FROM seguimientos_licitacion s WHERE s.codigo_externo = lv.codigo_externo)
+       AND NOT EXISTS (SELECT 1 FROM recordatorios_cierre r WHERE r.codigo_externo = lv.codigo_externo AND r.tipo_proceso = 'licitacion')
+       AND NOT EXISTS (SELECT 1 FROM pipeline_oportunidades p WHERE p.codigo_externo = lv.codigo_externo AND p.tipo_proceso = 'licitacion')
+       AND NOT EXISTS (SELECT 1 FROM analisis_ia a WHERE a.codigo_externo = lv.codigo_externo AND a.tipo_proceso = 'licitacion')`,
+    [mesesAntiguedad]
+  );
+  return result.rowCount;
+}
+
 module.exports = {
   licitacionYaVista,
   obtenerEstadoLicitacion,
@@ -209,4 +247,5 @@ module.exports = {
   actualizarItemsLicitacion,
   listarLicitacionesPendientesDeResolucion,
   actualizarResolucionLicitacion,
+  eliminarLicitacionesAntiguas,
 };
