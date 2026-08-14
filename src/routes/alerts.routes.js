@@ -16,6 +16,8 @@ const { buscarCategorias, obtenerTitulosPorCodigos, obtenerArbolRubros } = requi
 const { obtenerPlan } = require('../utils/planes');
 const { TRAMOS_LICITACION } = require('../utils/tramos-licitacion');
 const { procesarBackfillNuevaAlerta } = require('../services/alerting.service');
+const { sugerirPalabrasClave } = require('../services/sugerencia-palabras-clave.service');
+const { contarSugerenciasDeHoy, registrarSugerencia } = require('../db/sugerencias-palabras-clave.queries');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -152,20 +154,51 @@ router.get('/config', async (req, res) => {
 });
 
 /**
- * El único campo obligatorio es el producto/rubro (categorias). El máximo
- * permitido depende del plan (limiteCategorias, ver planes.js — Trial 1,
- * Basic 2, Full 3), por eso `limite` se recibe como parámetro en vez de
- * estar hardcodeado acá. Monto mínimo/máximo, regiones, tipos de proceso,
- * tramo de licitación y organismo comprador son todos opcionales — "no
- * elegir nada" en cualquiera de ellos significa "no filtrar por eso" (ver
- * matching.service.js).
+ * El producto/rubro (categorias) O las palabras clave positivas — al menos
+ * uno de los dos tiene que venir con contenido (relajado desde "categorias
+ * siempre obligatorio", ver conversación de diseño de agosto 2026: las
+ * palabras clave son una forma alternativa de definir qué buscar, para
+ * casos donde el texto real de una licitación no calza con ningún código
+ * UNSPSC esperable). El máximo de categorías permitido depende del plan
+ * (limiteCategorias, ver planes.js — Trial 1, Basic 2, Full 3), por eso
+ * `limite` se recibe como parámetro en vez de estar hardcodeado acá. Monto
+ * mínimo/máximo, regiones, tipos de proceso, tramo de licitación y
+ * organismo comprador son todos opcionales — "no elegir nada" en cualquiera
+ * de ellos significa "no filtrar por eso" (ver matching.service.js).
  */
-function validarCamposObligatorios({ categorias }, limite) {
-  if (!categorias || categorias.length === 0) {
-    return 'Debes elegir un producto o rubro para la alerta.';
+function validarCamposObligatorios({ categorias, palabrasClave }, limite) {
+  const tieneCategoria = categorias && categorias.length > 0;
+  const tienePalabrasClave = palabrasClave && palabrasClave.length > 0;
+
+  if (!tieneCategoria && !tienePalabrasClave) {
+    return 'Debes elegir un producto/rubro o escribir palabras clave para la alerta.';
   }
-  if (categorias.length > limite) {
+  if (tieneCategoria && categorias.length > limite) {
     return `Tu plan permite hasta ${limite} producto${limite === 1 ? '' : 's'} o rubro${limite === 1 ? '' : 's'} por alerta.`;
+  }
+  return null;
+}
+
+/**
+ * Palabras clave (positivas y negativas) — tope por lista (mismo para los
+ * tres planes, ver limitePalabrasClave en planes.js) y la regla de que las
+ * negativas solo tienen sentido si ya hay categoría y/o positivas definidas
+ * (si no, "excluir X" sin nada más seguiría matcheando casi todo Mercado
+ * Público, no tiene sentido como única forma de definir la alerta).
+ */
+function validarPalabrasClave({ categorias, palabrasClave, palabrasClaveExcluir }, limite) {
+  if (palabrasClave && palabrasClave.length > limite) {
+    return `Puedes elegir hasta ${limite} palabras clave por alerta.`;
+  }
+  if (palabrasClaveExcluir && palabrasClaveExcluir.length > limite) {
+    return `Puedes excluir hasta ${limite} palabras por alerta.`;
+  }
+  if (palabrasClaveExcluir && palabrasClaveExcluir.length > 0) {
+    const tieneCategoria = categorias && categorias.length > 0;
+    const tienePalabrasClave = palabrasClave && palabrasClave.length > 0;
+    if (!tieneCategoria && !tienePalabrasClave) {
+      return 'Las palabras a excluir necesitan que definas antes qué buscar (categoría o palabras clave).';
+    }
   }
   return null;
 }
@@ -204,7 +237,7 @@ function mismoConjunto(a, b) {
  * opcionales). No importa si la otra está activa o pausada — no tiene sentido
  * dejar crear dos alertas idénticas aunque una esté en pausa.
  */
-function buscarDuplicada(configsExistentes, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos }, excludeId = null) {
+function buscarDuplicada(configsExistentes, { categorias, palabrasClave, palabrasClaveExcluir, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos }, excludeId = null) {
   const montoMinNuevo = montoMinimo ? Number(montoMinimo) : null;
   const montoMaxNuevo = montoMaximo ? Number(montoMaximo) : null;
 
@@ -215,6 +248,8 @@ function buscarDuplicada(configsExistentes, { categorias, montoMinimo, montoMaxi
     // alertas con las mismas 2-3 categorías pero en otro orden también
     // cuentan como duplicadas.
     if (!mismoConjunto(existente.categorias, categorias)) return false;
+    if (!mismoConjunto(existente.palabras_clave, palabrasClave)) return false;
+    if (!mismoConjunto(existente.palabras_clave_excluir, palabrasClaveExcluir)) return false;
     const montoMinExistente = existente.monto_minimo ? Number(existente.monto_minimo) : null;
     if (montoMinExistente !== montoMinNuevo) return false;
     const montoMaxExistente = existente.monto_maximo ? Number(existente.monto_maximo) : null;
@@ -227,17 +262,63 @@ function buscarDuplicada(configsExistentes, { categorias, montoMinimo, montoMaxi
   });
 }
 
+// POST /api/alerts/sugerir-palabras-clave — le pide a la IA una lista de
+// ~10-12 palabras candidatas a partir de una descripción en lenguaje
+// natural. NO guarda nada — el usuario elige hasta el tope de su plan entre
+// las candidatas, en el frontend, y esas quedan recién al crear/editar la
+// alerta (POST/PUT /config de acá arriba/abajo).
+//
+// El tope "por alerta" (2 Trial, 5 Basic/Full) se controla en el frontend,
+// contando los clics dentro de la sesión del modal — acá solo se aplica el
+// tope DIARIO (5 Trial, 20 Basic/Full, sumando todas las alertas), que es
+// el único resguardo real del lado del servidor contra un uso descontrolado.
+router.post('/sugerir-palabras-clave', async (req, res) => {
+  const { descripcion } = req.body;
+
+  if (!descripcion || !descripcion.trim()) {
+    return res.status(400).json({ error: 'Describe qué buscas para poder sugerir palabras clave.' });
+  }
+
+  const limites = obtenerPlan(req.usuarioActual.plan);
+  if (!limites?.accesoPalabrasClave) {
+    return res.status(403).json({ error: 'Las palabras clave no están disponibles en tu plan.' });
+  }
+
+  const limiteDia = limites.limiteSugerenciasIADia ?? 5;
+
+  try {
+    const usadasHoy = await contarSugerenciasDeHoy(req.userId);
+    if (usadasHoy >= limiteDia) {
+      return res.status(429).json({ error: `Alcanzaste el máximo de ${limiteDia} sugerencias por día. Volvé a intentar mañana.` });
+    }
+
+    const candidatas = await sugerirPalabrasClave(descripcion.trim());
+    await registrarSugerencia(req.userId);
+
+    res.json({ candidatas });
+  } catch (err) {
+    console.error('[alerts.sugerir-palabras-clave] Error:', err);
+    res.status(500).json({ error: 'No se pudo generar la sugerencia. Intenta de nuevo.' });
+  }
+});
+
 // POST /api/alerts/config — crea una nueva configuración
 router.post('/config', async (req, res) => {
-  const { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos: organismosNombres } = req.body;
+  const { categorias, palabrasClave, palabrasClaveExcluir, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos: organismosNombres } = req.body;
 
   const limites = obtenerPlan(req.usuarioActual.plan);
   const limiteAlertas = limites?.limiteAlertas ?? 1;
   const limiteCategorias = limites?.limiteCategorias ?? 1;
+  const limitePalabrasClave = limites?.limitePalabrasClave ?? 5;
 
-  const errorCampos = validarCamposObligatorios({ categorias }, limiteCategorias);
+  const errorCampos = validarCamposObligatorios({ categorias, palabrasClave }, limiteCategorias);
   if (errorCampos) {
     return res.status(400).json({ error: errorCampos });
+  }
+
+  const errorPalabrasClave = validarPalabrasClave({ categorias, palabrasClave, palabrasClaveExcluir }, limitePalabrasClave);
+  if (errorPalabrasClave) {
+    return res.status(400).json({ error: errorPalabrasClave });
   }
 
   const errorOpcionales = validarCriteriosOpcionales({ tiposProceso, tramosLicitacion, montoMinimo, montoMaximo });
@@ -252,7 +333,7 @@ router.post('/config', async (req, res) => {
 
     const configsExistentes = await listarAlertConfigsDeUsuario(req.userId);
 
-    if (buscarDuplicada(configsExistentes, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos })) {
+    if (buscarDuplicada(configsExistentes, { categorias, palabrasClave, palabrasClaveExcluir, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos })) {
       return res.status(409).json({
         error: 'Ya tienes una alerta configurada con estos mismos criterios.',
       });
@@ -265,7 +346,7 @@ router.post('/config', async (req, res) => {
       });
     }
 
-    const config = await crearAlertConfig(req.userId, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos });
+    const config = await crearAlertConfig(req.userId, { categorias, palabrasClave, palabrasClaveExcluir, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos });
     res.status(201).json({ config: await adjuntarNombresOrganismos(config) });
 
     // Fire-and-forget: busca entre lo que YA estaba "Publicada"/"publicada"
@@ -286,7 +367,7 @@ router.post('/config', async (req, res) => {
 
 // PUT /api/alerts/config/:id — actualiza una configuración existente
 router.put('/config/:id', async (req, res) => {
-  const { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos: organismosNombres, activo } = req.body;
+  const { categorias, palabrasClave, palabrasClaveExcluir, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos: organismosNombres, activo } = req.body;
 
   try {
     const existente = await obtenerAlertConfigPorId(req.params.id, req.userId);
@@ -299,17 +380,30 @@ router.put('/config/:id', async (req, res) => {
     // ya viene en código desde la base, así que no hace falta traducirlo de nuevo.
     const organismos = await traducirOrganismosACodigos(organismosNombres);
 
-    // Si se está tocando categorías, se valida de nuevo con el valor efectivo
-    // (el nuevo si viene, si no el que ya tenía) — no se puede dejar una
-    // alerta existente sin producto/rubro a través de un PUT parcial.
+    // Si se está tocando categorías/palabras clave, se valida de nuevo con el
+    // valor efectivo (el nuevo si viene, si no el que ya tenía) — no se
+    // puede dejar una alerta existente sin ninguna forma de definir qué
+    // buscar a través de un PUT parcial.
     const categoriasEfectivas = categorias !== undefined ? categorias : existente.categorias;
+    const palabrasClaveEfectivas = palabrasClave !== undefined ? palabrasClave : existente.palabras_clave;
+    const palabrasClaveExcluirEfectivas = palabrasClaveExcluir !== undefined ? palabrasClaveExcluir : existente.palabras_clave_excluir;
     const activoEfectivo = activo !== undefined ? activo : existente.activo;
     const montoEfectivo = montoMinimo !== undefined ? montoMinimo : existente.monto_minimo;
     const montoMaxEfectivo = montoMaximo !== undefined ? montoMaximo : existente.monto_maximo;
 
-    const errorCampos = validarCamposObligatorios({ categorias: categoriasEfectivas }, obtenerPlan(req.usuarioActual.plan)?.limiteCategorias ?? 1);
+    const limitesPlan = obtenerPlan(req.usuarioActual.plan);
+
+    const errorCampos = validarCamposObligatorios({ categorias: categoriasEfectivas, palabrasClave: palabrasClaveEfectivas }, limitesPlan?.limiteCategorias ?? 1);
     if (errorCampos) {
       return res.status(400).json({ error: errorCampos });
+    }
+
+    const errorPalabrasClave = validarPalabrasClave(
+      { categorias: categoriasEfectivas, palabrasClave: palabrasClaveEfectivas, palabrasClaveExcluir: palabrasClaveExcluirEfectivas },
+      limitesPlan?.limitePalabrasClave ?? 5
+    );
+    if (errorPalabrasClave) {
+      return res.status(400).json({ error: errorPalabrasClave });
     }
 
     const errorOpcionales = validarCriteriosOpcionales({ tiposProceso, tramosLicitacion, montoMinimo: montoEfectivo, montoMaximo: montoMaxEfectivo });
@@ -324,7 +418,8 @@ router.put('/config/:id', async (req, res) => {
 
     const configsExistentes = await listarAlertConfigsDeUsuario(req.userId);
     if (buscarDuplicada(configsExistentes, {
-      categorias: categoriasEfectivas, montoMinimo: montoEfectivo, montoMaximo: montoMaxEfectivo, regiones: regionesEfectivas,
+      categorias: categoriasEfectivas, palabrasClave: palabrasClaveEfectivas, palabrasClaveExcluir: palabrasClaveExcluirEfectivas,
+      montoMinimo: montoEfectivo, montoMaximo: montoMaxEfectivo, regiones: regionesEfectivas,
       tiposProceso: tiposProcesoEfectivos, tramosLicitacion: tramosLicitacionEfectivos, organismos: organismosEfectivos,
     }, req.params.id)) {
       return res.status(409).json({
@@ -346,7 +441,7 @@ router.put('/config/:id', async (req, res) => {
       }
     }
 
-    const config = await actualizarAlertConfig(req.params.id, req.userId, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos, activo });
+    const config = await actualizarAlertConfig(req.params.id, req.userId, { categorias, palabrasClave, palabrasClaveExcluir, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos, activo });
     res.json({ config: await adjuntarNombresOrganismos(config) });
   } catch (err) {
     console.error(err);

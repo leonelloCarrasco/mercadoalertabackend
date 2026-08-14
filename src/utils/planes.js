@@ -51,6 +51,20 @@
  * mensajeria: string informativo (no un array) para mostrar en el landing y
  * en la sección de Mensajería de Mi Perfil — se detecta si incluye
  * "WhatsApp" para saber si mostrar ese canal como disponible en el plan.
+ *
+ * accesoPalabrasClave (migración 050): a diferencia de accesoAnalisisPrecios,
+ * los TRES planes tienen acceso (incluido Trial) — la idea es que se conozca
+ * la función desde la prueba gratuita, con una cuota más chica.
+ * limiteSugerenciasIAAlerta / limiteSugerenciasIADia: topes sobre el botón
+ * "Sugerir palabras clave" (llamada a la IA) — por alerta (dentro de la
+ * misma sesión de creación, se controla en el frontend) y por día (total,
+ * sumando todas las alertas, controlado en el backend vía
+ * sugerencias_palabras_clave_consumos). Sin ciclo mensual como Análisis IA
+ * — el costo por llamada acá es bajo (una lista corta de palabras, no un
+ * documento), así que un contador diario simple alcanza.
+ * limitePalabrasClave: tope de palabras por lista (positivas y negativas,
+ * por separado) — igual para los tres planes a propósito, no es lo que
+ * controla el costo (eso lo hacen los dos límites de arriba).
  */
 const PLANES = {
   trial: {
@@ -70,6 +84,10 @@ const PLANES = {
     mensajeria: "Email y Telegram",
     portafolio: true,
     limitePortafolio: 2, // solo Trial tiene este campo — "prueba antes de pagar", no comparte cupo con limiteSeguimientos como sí hacen Basic/Full
+    accesoPalabrasClave: true,
+    limiteSugerenciasIAAlerta: 2,
+    limiteSugerenciasIADia: 5,
+    limitePalabrasClave: 5,
   },
   basico: {
     nombreDisplay: 'Basic',
@@ -87,7 +105,11 @@ const PLANES = {
     monto: 9990, // IVA incluido
     montoRegular: 14990, // solo informativo, para mostrar "antes/ahora" en la landing — IVA incluido
     mensajeria: "Email, Telegram y WhatsApp",
-    portafolio: true
+    portafolio: true,
+    accesoPalabrasClave: true,
+    limiteSugerenciasIAAlerta: 5,
+    limiteSugerenciasIADia: 20,
+    limitePalabrasClave: 5,
   },
   full: {
     nombreDisplay: 'Full',
@@ -105,7 +127,11 @@ const PLANES = {
     monto: 16990, // IVA incluido
     montoRegular: 22990, // IVA incluido
     mensajeria: "Email, Telegram y WhatsApp",
-    portafolio: true
+    portafolio: true,
+    accesoPalabrasClave: true,
+    limiteSugerenciasIAAlerta: 5,
+    limiteSugerenciasIADia: 20,
+    limitePalabrasClave: 5,
   },
 };
 
