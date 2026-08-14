@@ -12,9 +12,12 @@ const MESES_COMPRA_AGIL = 3;
  * en licitaciones.queries.js / compra-agil.queries.js — las dos queries ya
  * hacen todo el trabajo pesado, esto solo las llama y loguea el resultado.
  *
- * El precio ya quedó a salvo en historico_precios antes de que esto corra
- * (se archiva en el momento de la resolución, ver revisar-resoluciones.js)
- * — este job no necesita preocuparse de eso, solo limpia el dato operativo.
+ * El precio queda a salvo en historico_precios ANTES de cada borrado — el
+ * camino principal es archivarlo en el momento de la resolución (ver
+ * revisar-resoluciones.js), pero las dos queries de acá abajo también
+ * traen su propia red de seguridad: si algo se coló sin pasar por ese
+ * camino, se archiva justo antes de borrarlo, nunca después. Nada se borra
+ * sin haberse archivado primero.
  */
 async function correrLimpiezaDatosAntiguos() {
   console.log('[limpieza-datos-antiguos] Iniciando...');

@@ -171,20 +171,62 @@ async function obtenerCompraAgilPorCodigo(codigoExterno) {
  * prefiere no borrar lo que un usuario todavía tiene referenciado en
  * Portafolio/Recordatorio/Análisis IA (acá no aplica seguimientos_licitacion,
  * esa tabla es exclusiva de licitaciones).
- * El precio ya quedó archivado en historico_precios en el momento de la
- * resolución (revisar-resoluciones.js) — este borrado no archiva nada.
+ *
+ * RED DE SEGURIDAD DE PRECIOS: mismo criterio que licitaciones (ver el
+ * comentario largo en eliminarLicitacionesAntiguas) — se chequea si ya está
+ * archivado en historico_precios antes de borrar, y si no, se archiva acá
+ * usando los datos que ya están en la propia fila. Si el archivado falla,
+ * esa fila NO se borra esta corrida.
  *
  * Devuelve la cantidad de filas borradas.
  */
 async function eliminarComprasAgilesAntiguas(mesesAntiguedad = 3) {
-  const result = await pool.query(
-    `DELETE FROM compras_agiles_vistas cav
+  const { tienePreciosArchivados, archivarPreciosCompraAgil } = require('./historico-precios.queries');
+
+  const candidatos = await pool.query(
+    `SELECT codigo_externo, nombre, nombre_institucion, fecha_cierre, proveedores_cotizando
+     FROM compras_agiles_vistas cav
      WHERE COALESCE(cav.fecha_publicacion, cav.primera_vez_vista) < NOW() - ($1 || ' months')::INTERVAL
        AND NOT EXISTS (SELECT 1 FROM recordatorios_cierre r WHERE r.codigo_externo = cav.codigo_externo AND r.tipo_proceso = 'compra_agil')
        AND NOT EXISTS (SELECT 1 FROM pipeline_oportunidades p WHERE p.codigo_externo = cav.codigo_externo AND p.tipo_proceso = 'compra_agil')
        AND NOT EXISTS (SELECT 1 FROM analisis_ia a WHERE a.codigo_externo = cav.codigo_externo AND a.tipo_proceso = 'compra_agil')`,
     [mesesAntiguedad]
   );
+
+  if (candidatos.rows.length === 0) return 0;
+
+  const codigosABorrar = [];
+  let archivadosPorRedDeSeguridad = 0;
+
+  for (const fila of candidatos.rows) {
+    const yaArchivado = await tienePreciosArchivados(fila.codigo_externo);
+    if (yaArchivado) {
+      codigosABorrar.push(fila.codigo_externo);
+      continue;
+    }
+
+    try {
+      const guardadas = await archivarPreciosCompraAgil({
+        codigoExterno: fila.codigo_externo,
+        nombre: fila.nombre,
+        organismo: fila.nombre_institucion,
+        fechaCierre: fila.fecha_cierre,
+        proveedoresCotizando: fila.proveedores_cotizando || [],
+      });
+      if (guardadas > 0) archivadosPorRedDeSeguridad++;
+      codigosABorrar.push(fila.codigo_externo);
+    } catch (err) {
+      console.error(`[limpieza-datos-antiguos] Error en la red de seguridad archivando ${fila.codigo_externo} — esta fila NO se borra esta corrida:`, err.message);
+    }
+  }
+
+  if (archivadosPorRedDeSeguridad > 0) {
+    console.log(`[limpieza-datos-antiguos] Red de seguridad: ${archivadosPorRedDeSeguridad} Compras Ágiles se archivaron recién ahora, antes de borrar (no habían pasado por revisar-resoluciones.js).`);
+  }
+
+  if (codigosABorrar.length === 0) return 0;
+
+  const result = await pool.query('DELETE FROM compras_agiles_vistas WHERE codigo_externo = ANY($1)', [codigosABorrar]);
   return result.rowCount;
 }
 

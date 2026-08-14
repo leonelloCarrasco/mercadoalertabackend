@@ -10,6 +10,7 @@ const {
 } = require('../db/compra-agil.queries');
 const { ESTADOS_FINALES_LICITACION, ESTADOS_FINALES_COMPRA_AGIL } = require('../utils/estados-finales');
 const { extraerItemsConAdjudicacion } = require('../utils/adjudicacion');
+const { archivarPreciosLicitacion, archivarPreciosCompraAgil } = require('../db/historico-precios.queries');
 
 const DELAY_LICITACIONES_MS = 3100; // mismo mínimo que exige la API de licitaciones
 
@@ -39,21 +40,45 @@ async function revisarLicitaciones(limite) {
       const detalle = await obtenerDetalleLicitacion(codigo);
       if (detalle) {
         const esFinal = ESTADOS_FINALES_LICITACION.includes(detalle.Estado);
+        const items = extraerItemsConAdjudicacion(detalle);
+        // Fechas.FechaAdjudicacion trae la hora real; Adjudicacion.Fecha
+        // (separado) siempre viene a medianoche en la API — se prioriza el
+        // que sí tiene hora (mismo fix reutilizado para el archivado de abajo).
+        const fechaAdjudicacion = detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha || null;
 
         await actualizarResolucionLicitacion(codigo, {
-          items: extraerItemsConAdjudicacion(detalle),
+          items,
           estado: detalle.Estado || null,
-          // Fechas.FechaAdjudicacion trae la hora real; Adjudicacion.Fecha
-          // (separado) siempre viene a medianoche en la API — se prioriza el
-          // que sí tiene hora (ver mismo fix en licitaciones.queries.js).
-          fechaAdjudicacion: detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha || null,
+          fechaAdjudicacion,
           numeroOferentes: detalle.Adjudicacion?.NumeroOferentes || null,
           urlActa: detalle.Adjudicacion?.UrlActa || null,
           resuelta: esFinal,
         });
 
-        if (esFinal) resueltas++;
-        else siguenPendientes++;
+        if (esFinal) {
+          resueltas++;
+          // Archivado de precios (Fase 1 del plan de retención) — camino
+          // principal, en el momento exacto en que se sabe el resultado. Si
+          // esto falla, NO se pierde la resolución ya guardada arriba —
+          // solo se pierde este archivado puntual, que igual queda cubierto
+          // más adelante por la red de seguridad del cron de limpieza.
+          try {
+            const guardadas = await archivarPreciosLicitacion({
+              codigoExterno: codigo,
+              nombre: detalle.Nombre,
+              organismo: detalle.Comprador?.NombreOrganismo,
+              fechaAdjudicacion,
+              numeroOferentes: detalle.Adjudicacion?.NumeroOferentes || null,
+              urlActa: detalle.Adjudicacion?.UrlActa || null,
+              items,
+            });
+            if (guardadas > 0) console.log(`[revisar-resoluciones] Archivados ${guardadas} precios de ${codigo} en historico_precios.`);
+          } catch (err) {
+            console.error(`[revisar-resoluciones] Error archivando precios de ${codigo} (no afecta la resolución ya guardada):`, err.message);
+          }
+        } else {
+          siguenPendientes++;
+        }
       }
     } catch (err) {
       console.error(`[revisar-resoluciones] Error revisando licitación ${codigo}:`, err.message);
@@ -91,8 +116,26 @@ async function revisarComprasAgiles() {
         resuelta: esFinal,
       });
 
-      if (esFinal) resueltas++;
-      else siguenPendientes++;
+      if (esFinal) {
+        resueltas++;
+        // Archivado de precios — mismo criterio que licitaciones: camino
+        // principal acá, red de seguridad en el cron de limpieza. Se
+        // guardan TODAS las cotizaciones, no solo la ganadora.
+        try {
+          const guardadas = await archivarPreciosCompraAgil({
+            codigoExterno: codigo,
+            nombre: detalle.nombre,
+            organismo: detalle.institucion?.organismo_comprador,
+            fechaCierre: detalle.fechas?.fecha_cierre || null,
+            proveedoresCotizando: detalle.proveedores_cotizando || [],
+          });
+          if (guardadas > 0) console.log(`[revisar-resoluciones] Archivados ${guardadas} precios de ${codigo} en historico_precios.`);
+        } catch (err) {
+          console.error(`[revisar-resoluciones] Error archivando precios de ${codigo} (no afecta la resolución ya guardada):`, err.message);
+        }
+      } else {
+        siguenPendientes++;
+      }
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {
         console.warn('[revisar-resoluciones] Cuota diaria de Compra Ágil agotada, se corta acá por hoy.');
