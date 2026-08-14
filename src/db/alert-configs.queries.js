@@ -10,18 +10,21 @@ function normalizarArrayOpcional(valores) {
 }
 
 /**
- * Único campo obligatorio: categorias (producto/rubro, máximo 1 — ver
- * validarCamposObligatorios en alerts.routes.js). El resto son criterios
- * opcionales que "no filtran" si vienen vacíos.
+ * categorias/palabrasClave: al menos uno de los dos tiene que venir con
+ * contenido (ver validarCamposObligatorios en alerts.routes.js — ya NO es
+ * "categorias siempre obligatorio", es "categorias O palabrasClave"). El
+ * resto son criterios opcionales que "no filtran" si vienen vacíos.
  */
-async function crearAlertConfig(userId, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos }) {
+async function crearAlertConfig(userId, { categorias, palabrasClave, palabrasClaveExcluir, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos }) {
   const result = await pool.query(
-    `INSERT INTO alert_configs (user_id, categorias, monto_minimo, monto_maximo, regiones, tipos_proceso, tramos_licitacion, organismos)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO alert_configs (user_id, categorias, palabras_clave, palabras_clave_excluir, monto_minimo, monto_maximo, regiones, tipos_proceso, tramos_licitacion, organismos)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING *`,
     [
       userId,
       categorias || [],
+      normalizarArrayOpcional(palabrasClave),
+      normalizarArrayOpcional(palabrasClaveExcluir),
       montoMinimo || null,
       montoMaximo || null,
       normalizarArrayOpcional(regiones),
@@ -104,11 +107,13 @@ async function obtenerAlertConfigPorId(id, userId) {
  * se guarda como NULL ("sin filtrar por esto"). montoMinimo/montoMaximo usan
  * COALESCE simple porque no tienen ese matiz (o se manda un número, o no se toca).
  */
-async function actualizarAlertConfig(id, userId, { categorias, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos, activo }) {
+async function actualizarAlertConfig(id, userId, { categorias, palabrasClave, palabrasClaveExcluir, montoMinimo, montoMaximo, regiones, tiposProceso, tramosLicitacion, organismos, activo }) {
   const regionesAGuardar = regiones !== undefined ? normalizarArrayOpcional(regiones) : undefined;
   const tiposProcesoAGuardar = tiposProceso !== undefined ? normalizarArrayOpcional(tiposProceso) : undefined;
   const tramosLicitacionAGuardar = tramosLicitacion !== undefined ? normalizarArrayOpcional(tramosLicitacion) : undefined;
   const organismosAGuardar = organismos !== undefined ? normalizarArrayOpcional(organismos) : undefined;
+  const palabrasClaveAGuardar = palabrasClave !== undefined ? normalizarArrayOpcional(palabrasClave) : undefined;
+  const palabrasClaveExcluirAGuardar = palabrasClaveExcluir !== undefined ? normalizarArrayOpcional(palabrasClaveExcluir) : undefined;
 
   const result = await pool.query(
     `UPDATE alert_configs
@@ -119,8 +124,10 @@ async function actualizarAlertConfig(id, userId, { categorias, montoMinimo, mont
          tipos_proceso = CASE WHEN $6::boolean THEN $7 ELSE tipos_proceso END,
          tramos_licitacion = CASE WHEN $8::boolean THEN $9 ELSE tramos_licitacion END,
          organismos = CASE WHEN $10::boolean THEN $11 ELSE organismos END,
-         activo = COALESCE($12, activo)
-     WHERE id = $13 AND user_id = $14
+         palabras_clave = CASE WHEN $12::boolean THEN $13 ELSE palabras_clave END,
+         palabras_clave_excluir = CASE WHEN $14::boolean THEN $15 ELSE palabras_clave_excluir END,
+         activo = COALESCE($16, activo)
+     WHERE id = $17 AND user_id = $18
      RETURNING *`,
     [
       categorias, montoMinimo, montoMaximo,
@@ -128,6 +135,8 @@ async function actualizarAlertConfig(id, userId, { categorias, montoMinimo, mont
       tiposProceso !== undefined, tiposProcesoAGuardar,
       tramosLicitacion !== undefined, tramosLicitacionAGuardar,
       organismos !== undefined, organismosAGuardar,
+      palabrasClave !== undefined, palabrasClaveAGuardar,
+      palabrasClaveExcluir !== undefined, palabrasClaveExcluirAGuardar,
       activo, id, userId,
     ]
   );

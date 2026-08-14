@@ -2,6 +2,58 @@ const { obtenerHijosPorCodigo } = require('../db/categorias-unspsc.queries');
 const { obtenerMapaNombreCodigo } = require('../db/organismos.queries');
 
 /**
+ * Saca acentos y pasa a minúscula — para que "médicos" (como probablemente
+ * lo escriba la IA, con tilde correcta) matchee igual contra "medicos" (como
+ * a veces aparece en texto redactado a mano por un organismo, sin tilde).
+ */
+function normalizarTexto(texto) {
+  return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+/**
+ * ¿Alguna palabra clave aparece como PALABRA COMPLETA en el texto? — no
+ * substring libre, para evitar falsos positivos (ej. "mesa" matcheando
+ * dentro de "represento" o "mesada"). Usa \b (límite de palabra) de
+ * expresiones regulares, sobre texto normalizado (sin acentos, minúscula)
+ * en los dos lados de la comparación.
+ *
+ * Se usa tanto para positivas (¿matchea alguna?) como negativas (¿aparece
+ * alguna palabra a excluir?) — misma función, mismo criterio de alcance.
+ */
+function algunaPalabraCoincide(texto, palabras) {
+  if (!palabras || palabras.length === 0) return false;
+  const textoNormalizado = normalizarTexto(texto);
+
+  return palabras.some((palabra) => {
+    const palabraNormalizada = normalizarTexto(String(palabra).trim());
+    if (!palabraNormalizada) return false;
+    // Escapa caracteres especiales de regex — una palabra clave es texto
+    // libre del usuario/IA, no un patrón, así que cualquier caracter especial
+    // que traiga debe tratarse literal, no como sintaxis de regex.
+    const escapada = palabraNormalizada.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`\\b${escapada}\\b`, 'i').test(textoNormalizado);
+  });
+}
+
+/**
+ * Texto sobre el que se buscan palabras clave en una licitación — título +
+ * nombre de cada ítem/producto (mismo alcance que ya usa algunCodigoCoincide
+ * para categorías: revisar TODOS los ítems, no solo el título general).
+ */
+function textoBuscableLicitacion(detalle) {
+  const nombre = detalle.Nombre || '';
+  const nombresItems = (detalle.Items?.Listado || []).map((it) => it.NombreProducto || '').join(' ');
+  return `${nombre} ${nombresItems}`;
+}
+
+/** Igual que textoBuscableLicitacion, pero para Compra Ágil. */
+function textoBuscableCompraAgil(item) {
+  const nombre = item.nombre || '';
+  const nombresProductos = (item.productos_solicitados || []).map((p) => p.nombre_producto || '').join(' ');
+  return `${nombre} ${nombresProductos}`;
+}
+
+/**
  * Compara los códigos disponibles (de una licitación o Compra Ágil) contra las
  * categorías/productos elegidos en una alerta.
  *
@@ -55,6 +107,28 @@ function algunCodigoCoincide(codigosDisponibles, codigosSeleccionados, hijosPorC
 }
 
 /**
+ * ¿Esta config matchea por categoría o por palabras clave positivas? — el
+ * criterio "de entrada" es un OR entre las dos (ver conversación de diseño):
+ * una config puede tener categoría, palabras clave, o las dos; alcanza con
+ * que UNA matchee. Si la config no tiene NINGUNA de las dos, no filtra por
+ * este criterio (mismo comportamiento de siempre para configs viejas).
+ *
+ * Las palabras clave NEGATIVAS se manejan aparte (ver algunaPalabraCoincide
+ * llamado directo en matchLicitacion/matchCompraAgil) — cancelan el match
+ * sin importar lo que haya pasado acá, incluso si matcheó por categoría exacta.
+ */
+function matcheaCategoriaOPalabrasClave(codigosDisponibles, textoBuscable, config, hijosPorCodigo) {
+  const tieneCategoria = config.categorias && config.categorias.length > 0;
+  const tienePalabrasClave = config.palabras_clave && config.palabras_clave.length > 0;
+
+  if (!tieneCategoria && !tienePalabrasClave) return true; // sin ninguno de los dos, no filtra (config vieja o solo con otros criterios)
+
+  const matcheaCategoria = tieneCategoria && algunCodigoCoincide(codigosDisponibles, config.categorias, hijosPorCodigo);
+  const matcheaPalabraClave = tienePalabrasClave && algunaPalabraCoincide(textoBuscable, config.palabras_clave);
+  return matcheaCategoria || matcheaPalabraClave;
+}
+
+/**
  * Dado el detalle de una licitación y la lista de configuraciones activas,
  * devuelve las configuraciones (con su usuario) que hacen match.
  *
@@ -68,10 +142,13 @@ function algunCodigoCoincide(codigosDisponibles, codigosSeleccionados, hijosPorC
  * valores posibles de Estado — la fecha es un resguardo que no depende de eso.
  *
  * Criterios de matching (todos opcionales; una config sin ningún criterio matchea con todo):
- * - categorias: una licitación puede tener VARIOS ítems (productos), cada uno con su propio
- *   codigo_producto y codigo_categoria — antes solo mirábamos el primer ítem, lo que hacía
- *   perder matches reales. Ahora se revisan TODOS los ítems, comparando tanto por código de
- *   producto como de categoría contra lo elegido en la alerta (ver algunCodigoCoincide).
+ * - categorias / palabras_clave: ver matcheaCategoriaOPalabrasClave — es un OR entre las
+ *   dos, no un AND. Una licitación puede tener VARIOS ítems (productos), cada uno con su
+ *   propio codigo_producto y codigo_categoria — se revisan TODOS los ítems, no solo el
+ *   primero (mismo criterio para las palabras clave: título + nombre de cada ítem).
+ * - palabras_clave_excluir: si aparece alguna en el texto (título o algún ítem), cancela
+ *   el match — incluso si matcheó por categoría exacta o por palabra clave positiva. Es
+ *   una exclusión dura, se evalúa DESPUÉS y por encima de todo lo demás.
  * - regiones: si la config tiene regiones (una o más), la región de la licitación debe
  *   estar incluida en esa lista. Si la config no tiene regiones (NULL o array vacío —
  *   el usuario no marcó ningún checkbox al crear la alerta), se entiende que aplica a
@@ -104,6 +181,7 @@ async function matchLicitacion(detalle, configs) {
     it.CodigoCategoria ? String(it.CodigoCategoria) : null,
   ]).filter(Boolean);
 
+  const textoBuscable = textoBuscableLicitacion(detalle);
   const region = detalle.Comprador?.RegionUnidad || null;
   const organismo = detalle.Comprador?.NombreOrganismo || null;
   const codigoOrganismo = detalle.Comprador?.CodigoOrganismo ? String(detalle.Comprador.CodigoOrganismo) : null;
@@ -116,9 +194,8 @@ async function matchLicitacion(detalle, configs) {
   const codigoOrganismoEfectivo = codigoOrganismo || (organismo ? mapaNombreCodigo.get(organismo.trim()) : null);
 
   return configs.filter((config) => {
-    if (config.categorias && config.categorias.length > 0) {
-      if (!algunCodigoCoincide(codigosDisponibles, config.categorias, hijosPorCodigo)) return false;
-    }
+    if (!matcheaCategoriaOPalabrasClave(codigosDisponibles, textoBuscable, config, hijosPorCodigo)) return false;
+    if (algunaPalabraCoincide(textoBuscable, config.palabras_clave_excluir)) return false;
     if (config.regiones && config.regiones.length > 0 && region && !config.regiones.includes(region.trim())) return false;
     if (config.tipos_proceso && config.tipos_proceso.length > 0 && !config.tipos_proceso.includes('licitacion')) return false;
     if (config.tramos_licitacion && config.tramos_licitacion.length > 0 && tipoLicitacion && !config.tramos_licitacion.includes(tipoLicitacion)) return false;
@@ -136,10 +213,13 @@ async function matchLicitacion(detalle, configs) {
  * Igual se guardan en la base de datos sin importar el estado (ver poll-compra-agil.js),
  * esto solo afecta si generan una alerta o no.
  *
- * categorias: cada Compra Ágil puede pedir VARIOS productos a la vez (`productos_solicitados`),
- * cada uno con su propio codigo_producto (8 dígitos). La API de Compra Ágil NO expone
- * categoría (solo producto), pero igual funciona: si el usuario eligió una categoría en su
- * alerta, se compara por prefijo contra estos códigos de producto (ver algunCodigoCoincide).
+ * categorias / palabras_clave / palabras_clave_excluir: mismo criterio que
+ * matchLicitacion (ver matcheaCategoriaOPalabrasClave) — cada Compra Ágil puede pedir
+ * VARIOS productos a la vez (`productos_solicitados`), cada uno con su propio
+ * codigo_producto (8 dígitos) y nombre_producto. La API de Compra Ágil NO expone
+ * categoría (solo producto) para el matching por código, pero igual funciona: si el
+ * usuario eligió una categoría en su alerta, se compara por prefijo contra estos
+ * códigos de producto (ver algunCodigoCoincide).
  *
  * tipos_proceso: análogo a matchLicitacion, pero exige incluir 'compra_agil'.
  * tramos_licitacion: NO aplica acá — Compra Ágil no tiene el concepto de tramo UTM.
@@ -161,15 +241,15 @@ async function matchCompraAgil(item, configs) {
   const codigosDisponibles = (item.productos_solicitados || [])
     .map((p) => (p.codigo_producto ? String(p.codigo_producto) : null))
     .filter(Boolean);
+  const textoBuscable = textoBuscableCompraAgil(item);
 
   const hijosPorCodigo = await obtenerHijosPorCodigo();
   const mapaNombreCodigo = await obtenerMapaNombreCodigo();
   const codigoOrganismo = organismo ? mapaNombreCodigo.get(organismo.trim()) : null;
 
   return configs.filter((config) => {
-    if (config.categorias && config.categorias.length > 0) {
-      if (!algunCodigoCoincide(codigosDisponibles, config.categorias, hijosPorCodigo)) return false;
-    }
+    if (!matcheaCategoriaOPalabrasClave(codigosDisponibles, textoBuscable, config, hijosPorCodigo)) return false;
+    if (algunaPalabraCoincide(textoBuscable, config.palabras_clave_excluir)) return false;
     if (config.monto_minimo && montoDisponible < config.monto_minimo) return false;
     if (config.monto_maximo && montoDisponible > config.monto_maximo) return false;
     if (config.regiones && config.regiones.length > 0 && region && !config.regiones.includes(region.trim())) return false;
@@ -179,4 +259,4 @@ async function matchCompraAgil(item, configs) {
   });
 }
 
-module.exports = { matchLicitacion, matchCompraAgil, algunCodigoCoincide };
+module.exports = { matchLicitacion, matchCompraAgil, algunCodigoCoincide, algunaPalabraCoincide };
