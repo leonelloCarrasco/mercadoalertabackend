@@ -25,9 +25,14 @@ router.post('/:id/upgrade', requireAuth, async (req, res) => {
   console.log(`[empresas.upgrade] Solicitud recibida — empresaId=${empresaId}, plan=${plan}, userId=${req.userId}`);
 
   const configPlan = obtenerPlan(plan);
-  if (!configPlan || !configPlan.requierePago) {
-    console.warn(`[empresas.upgrade] Plan inválido: '${plan}'`);
-    return res.status(400).json({ error: 'Plan inválido. Debe ser basico o full.' });
+  // Estrategia de un solo plan pago (ver conversación de agosto 2026) —
+  // 'basico' sigue siendo un plan válido en planes.js (requierePago: true),
+  // así que no alcanza con chequear configPlan.requierePago solo: hay que
+  // exigir específicamente 'full', o alguien podría seguir activando Basic
+  // por acá aunque ya no se ofrezca en ningún lado de la UI.
+  if (!configPlan || !configPlan.requierePago || plan !== 'full') {
+    console.warn(`[empresas.upgrade] Plan inválido o ya no ofrecido: '${plan}'`);
+    return res.status(400).json({ error: 'Plan inválido. Debe ser full.' });
   }
 
   try {

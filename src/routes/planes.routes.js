@@ -12,9 +12,16 @@ const router = express.Router();
  * campo interno/sensible en PLANES que no debería ser público (son
  * precios y cuotas, información que de todas formas ya se muestra en el
  * sitio).
+ *
+ * 'basico' se excluye a propósito (estrategia de un solo plan pago, ver
+ * conversación de agosto 2026) — el objeto sigue existiendo entero en
+ * planes.js por si hace falta revertir rápido, pero no se expone acá ni se
+ * ofrece en ningún flujo nuevo (registro, upgrade). No hay ninguna empresa
+ * con ese plan hoy, así que no hay nada que journal/migrar.
  */
 router.get('/', (req, res) => {
-  res.json({ planes: PLANES });
+  const { basico, ...planesPublicos } = PLANES;
+  res.json({ planes: planesPublicos });
 });
 
 module.exports = router;

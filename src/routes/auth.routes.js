@@ -151,9 +151,20 @@ router.post('/register', registerLimiter, async (req, res) => {
     return res.status(400).json({ error: 'El RUT ingresado no es válido. Verifica el formato (ej. 12.345.678-9).' });
   }
 
-  const configPlan = obtenerPlan(plan);
+  // Estrategia de un solo plan pago (Full) — el registro directo YA NO
+  // acepta 'basico' ni 'full', todo nuevo registro arranca en Trial, y el
+  // upgrade a Full se hace después vía POST /empresas/:id/upgrade (ver
+  // empresas.routes.js, que también quedó restringido solo a 'full').
+  // 'basico'/'full' siguen siendo valores válidos de obtenerPlan() — el
+  // chequeo extra de acá es a propósito, no alcanza con "es un plan que
+  // existe", tiene que ser específicamente 'trial'.
+  if (plan && plan !== 'trial') {
+    return res.status(400).json({ error: 'El registro directo ya no acepta un plan pago — todo empieza con el trial gratis de 14 días.' });
+  }
+
+  const configPlan = obtenerPlan('trial');
   if (!configPlan) {
-    return res.status(400).json({ error: 'Plan inválido. Debe ser trial, basico o full.' });
+    return res.status(500).json({ error: 'No se pudo cargar la configuración del plan Trial.' });
   }
 
   const captchaOk = await verificarCaptcha(captchaToken, req.ip);
@@ -208,7 +219,7 @@ router.post('/register', registerLimiter, async (req, res) => {
     const empresa = await crearEmpresa({
       rut: rutNormalizado,
       nombreEmpresa: validacion.nombreEmpresa,
-      plan,
+      plan: 'trial',
       montoMensual: configPlan.monto,
       fechaExpiracionTrial,
       estadoPago: configPlan.requierePago ? 'pendiente' : 'activo',
