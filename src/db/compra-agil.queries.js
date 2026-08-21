@@ -60,13 +60,6 @@ async function guardarCompraAgil(item, detalle = null) {
   );
 }
 
-async function listarComprasAgilesNuevas() {
-  const result = await pool.query(
-    `SELECT * FROM compras_agiles_vistas ORDER BY primera_vez_vista DESC LIMIT 50`
-  );
-  return result.rows;
-}
-
 /**
  * Compras Ágiles "publicada" y todavía vigentes — equivalente a
  * listarLicitacionesPublicadasVigentes, usada por el mismo backfill al
@@ -78,27 +71,6 @@ async function listarComprasAgilesPublicadasVigentes() {
      WHERE estado = 'publicada' AND (fecha_cierre IS NULL OR fecha_cierre > NOW())`
   );
   return result.rows;
-}
-
-/**
- * Compras Ágiles guardadas ANTES de que empezáramos a guardar productos_solicitados
- * (migración 015) — solo las que siguen "publicada", ya que las cerradas/canceladas
- * nunca más van a generar una alerta, y no vale la pena gastar cuota de la API en ellas.
- */
-async function listarCompraAgilSinProductos() {
-  const result = await pool.query(
-    `SELECT codigo_externo FROM compras_agiles_vistas
-     WHERE productos_solicitados IS NULL
-     ORDER BY primera_vez_vista DESC`
-  );
-  return result.rows.map((r) => r.codigo_externo);
-}
-
-async function actualizarProductosSolicitados(codigoExterno, productosSolicitados) {
-  await pool.query(
-    'UPDATE compras_agiles_vistas SET productos_solicitados = $1 WHERE codigo_externo = $2',
-    [JSON.stringify(productosSolicitados), codigoExterno]
-  );
 }
 
 /**
@@ -134,21 +106,6 @@ async function actualizarResolucionCompraAgil(codigoExterno, {
      WHERE codigo_externo = $6`,
     [estado, idOrdenCompra, JSON.stringify(proveedoresCotizando || []), JSON.stringify(productosSolicitados || []), resuelta, codigoExterno]
   );
-}
-
-/**
- * Compras Ágiles marcadas resuelta=true pero con proveedores_cotizando en
- * NULL — quedaron atascadas por un detalle incompleto al momento de marcarse
- * como resueltas (ver guardarCompraAgil). Como el job de revisión diario solo
- * mira resuelta=false, estas nunca se autoreparan solas.
- */
-async function listarCompraAgilResueltaSinProveedores() {
-  const result = await pool.query(
-    `SELECT codigo_externo FROM compras_agiles_vistas
-     WHERE resuelta = true AND proveedores_cotizando IS NULL
-     ORDER BY primera_vez_vista DESC`
-  );
-  return result.rows.map((r) => r.codigo_externo);
 }
 
 /**
@@ -235,12 +192,8 @@ module.exports = {
   obtenerCompraAgilPorCodigo,
   obtenerCodigosCompraAgilYaVistos,
   guardarCompraAgil,
-  listarComprasAgilesNuevas,
   listarComprasAgilesPublicadasVigentes,
-  listarCompraAgilSinProductos,
-  actualizarProductosSolicitados,
   listarCompraAgilPendienteDeResolucion,
   actualizarResolucionCompraAgil,
-  listarCompraAgilResueltaSinProveedores,
   eliminarComprasAgilesAntiguas,
 };

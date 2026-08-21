@@ -126,34 +126,41 @@ async function llamarApi(path, params = {}) {
 }
 
 /**
- * Lista Compras Ágiles con cambios en los últimos `ttlMs` milisegundos.
- * Ideal para el polling periódico (Grupo 1, opción A de la doc).
+ * Lista Compras Ágiles con estado "publicada" — TODAS las que están activas
+ * ahora mismo, no las que "cambiaron" en una ventana de tiempo. Confirmado
+ * contra la API real (agosto 2026) que estado=publicada funciona SIN
+ * ttl_cambio_ms (que en cualquier otro contexto es obligatorio) — es el
+ * equivalente de esta API a obtenerLicitacionesActivas() para licitaciones.
  */
-async function listarCambiosRecientes(ttlMs, opciones = {}) {
+async function listarPublicadas(opciones = {}) {
   return llamarApi('/v2/compra-agil', {
-    ttl_cambio_ms: ttlMs,
+    estado: 'publicada',
     tamano_pagina: opciones.tamanoPagina || TAMANO_PAGINA_DEFECTO,
     numero_pagina: opciones.numeroPagina || 1,
-    ...(opciones.estado ? { estado: opciones.estado } : {}),
     ...(opciones.region ? { region: opciones.region } : {}),
   });
 }
 
 /**
- * Recorre las páginas de un listado de cambios recientes y devuelve el array de items.
- * Se detiene si se agota la cuota a mitad de camino, devolviendo lo que alcanzó a traer.
+ * Recorre las páginas de "publicada" y devuelve el array de items. Mismo
+ * mecanismo de corte temprano y manejo de errores que la versión anterior
+ * basada en ttl_cambio_ms (ver historial de este archivo) — confirmado
+ * contra la API real (agosto 2026) que estado=publicada TAMBIÉN ordena por
+ * fecha_ultimo_cambio descendente, así que el mismo truco de "cortar apenas
+ * una página está 100% conocida" sigue siendo válido acá.
  *
- * `opciones.detenerSiPaginaCompleta`, si viene, es una función async
- * `(codigos: string[]) => boolean` — se llama con los códigos de cada
- * página, y si devuelve true, se corta la paginación ahí (sin pedir la
- * página siguiente). Se apoya en que los ítems vienen ordenados por
- * fecha_ultimo_cambio DESCENDENTE (confirmado contra la API real en
- * agosto 2026) — si una página completa ya es conocida, todo lo que sigue
- * es más viejo todavía, no hace falta seguir. Es lo que hace viable usar
- * un ttl_cambio_ms ancho (ver poll-compra-agil.js) sin tener que recorrer
- * cientos de páginas en cada corrida.
+ * Por qué se reemplazó ttl_cambio_ms por esto (ver conversación de diseño,
+ * agosto 2026): con una ventana de tiempo, algo que no se llega a procesar
+ * en una corrida (por un error transitorio, por ejemplo) corre el riesgo de
+ * quedar fuera de la ventana en la corrida siguiente, y perderse para
+ * siempre. Con "publicada" no hay ventana de la que salirse — mientras algo
+ * siga activo, va a seguir apareciendo en cada corrida hasta que se procese
+ * bien o cierre. Autocorrección estructural, no un parche.
+ *
+ * `opciones.detenerSiPaginaCompleta`: misma función que antes, ver el
+ * comentario de la versión vieja en el historial de git de este archivo.
  */
-async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
+async function listarTodasLasPublicadas(opciones = {}) {
   let numeroPagina = 1;
   let totalPaginas = 1;
   const items = [];
@@ -161,19 +168,9 @@ async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
   do {
     let payload;
     try {
-      payload = await listarCambiosRecientes(ttlMs, { ...opciones, numeroPagina });
+      payload = await listarPublicadas({ ...opciones, numeroPagina });
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {
-        // Se usa err.message (la razón real y específica que arma
-        // llamarApi — puede ser cuota diaria de verdad, límite de ráfaga,
-        // o un 5xx transitorio del servidor) en vez de un texto fijo acá.
-        // CuotaAgotadaError terminó siendo, con los ajustes de agosto
-        // 2026, un tipo de error genérico para "esto es recuperable, hay
-        // que cortar prolijo y reintentar después" — no exclusivo de la
-        // cuota diaria real, así que el nombre de la clase quedó
-        // desactualizado respecto a lo que representa hoy. Loguear el
-        // texto genérico acá en vez del mensaje real fue justo lo que
-        // generó la confusión de un 504 mostrándose como "cuota agotada".
         console.warn(`[compraagil.service] Se corta la paginación: ${err.message}`);
         break;
       }
@@ -181,7 +178,7 @@ async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
     }
 
     if (numeroPagina === 1) {
-      console.log(`[compraagil.service] Respuesta cruda: total_resultados=${payload.paginacion.total_resultados}, total_paginas=${payload.paginacion.total_paginas}, items en esta página=${payload.items.length}`);
+      console.log(`[compraagil.service] Respuesta cruda (estado=publicada): total_resultados=${payload.paginacion.total_resultados}, total_paginas=${payload.paginacion.total_paginas}, items en esta página=${payload.items.length}`);
     }
 
     items.push(...payload.items);
@@ -201,6 +198,22 @@ async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
   } while (numeroPagina <= totalPaginas);
 
   return items;
+}
+
+/**
+ * Lista Compras Ágiles con cambios en los últimos `ttlMs` milisegundos.
+ * Ya NO la usa el polling (ver listarPublicadas/listarTodasLasPublicadas más
+ * arriba) — queda para busqueda-admin.service.js, que sigue necesitando
+ * "buscar cambios en los últimos N días" como modo de búsqueda manual.
+ */
+async function listarCambiosRecientes(ttlMs, opciones = {}) {
+  return llamarApi('/v2/compra-agil', {
+    ttl_cambio_ms: ttlMs,
+    tamano_pagina: opciones.tamanoPagina || TAMANO_PAGINA_DEFECTO,
+    numero_pagina: opciones.numeroPagina || 1,
+    ...(opciones.estado ? { estado: opciones.estado } : {}),
+    ...(opciones.region ? { region: opciones.region } : {}),
+  });
 }
 
 /**
@@ -294,8 +307,9 @@ async function buscarComprasAgiles({ texto, codigoRegion, estados, horasReciente
 
 module.exports = {
   CuotaAgotadaError,
+  listarPublicadas,
+  listarTodasLasPublicadas,
   listarCambiosRecientes,
-  listarTodosLosCambiosRecientes,
   listarCambiosPorRangoFecha,
   listarTodosLosCambiosPorRangoFecha,
   obtenerDetalleCompraAgil,
