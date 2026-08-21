@@ -155,20 +155,19 @@ async function buscarComprasAgiles({ ventanaDias, codigo, producto }) {
   }
   // Solo se trae la primera página (hasta 50 resultados) — a diferencia del
   // polling automático (que sí recorre todas las páginas para no perderse
-  // nada), acá es una búsqueda manual del admin: si hay más de 50 cambios en
+  // nada), acá es una búsqueda manual del admin: si hay más de 20 cambios en
   // la ventana elegida, conviene acotar la ventana en vez de traer miles.
   //
-  // OJO: tamano_pagina=100 dispara "400: Parámetros de consulta inválidos"
-  // en esta API — encontrado en producción (agosto 2026). 50 es el único
-  // valor que se usa en el resto del código (polling, carga histórica,
-  // búsquedas normales) y siempre funcionó, así que se asume que es el
-  // máximo real que acepta la API, aunque no está documentado en ningún
-  // lado — si en algún momento se confirma el máximo real (puede ser más
-  // de 50), este comentario y el valor de acá abajo son el lugar a ajustar.
+  // tamano_pagina=100 disparaba "400: Parámetros de consulta inválidos"
+  // (encontrado en producción, agosto 2026). Después se confirmó a mano
+  // contra la API real que INCLUSO 50 dispara "Endpoint request timed out"
+  // (504) en algunas consultas — 20 y 15 responden bien de forma
+  // consistente. Se deja en 20 acá, igual que el valor por defecto del
+  // resto del código (TAMANO_PAGINA_DEFECTO en compraagil.service.js).
   const ttlMs = (ventanaDias || 1) * 24 * 60 * 60 * 1000;
   let payload;
   try {
-    payload = await listarCambiosRecientes(ttlMs, { tamanoPagina: 50 });
+    payload = await listarCambiosRecientes(ttlMs, { tamanoPagina: 20 });
   } catch (err) {
     if (err instanceof CuotaAgotadaError) throw err;
     throw err;

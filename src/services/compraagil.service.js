@@ -1,5 +1,17 @@
 const BASE_URL = 'https://api2.mercadopublico.cl';
 
+// Tamaño de página por defecto para las 3 funciones de listado de acá abajo
+// (listarCambiosRecientes, listarCambiosPorRangoFecha, buscarComprasAgiles).
+// Antes 50 — bajado a 20 (agosto 2026) porque se confirmó a mano contra la
+// API real que tamano_pagina=50 dispara "Endpoint request timed out" (504)
+// en algunas consultas, mientras que 20 y 15 responden bien de forma
+// consistente. Página más chica = más páginas totales para recorrer el
+// mismo volumen de datos (ver el corte temprano de paginación y la pausa
+// entre páginas, pensados justo para que eso no sea un problema), pero
+// cada pedido individual tiene mucha menos chance de superar el timeout
+// del gateway de Mercado Público.
+const TAMANO_PAGINA_DEFECTO = 20;
+
 class CuotaAgotadaError extends Error {
   constructor(mensaje) {
     super(mensaje);
@@ -120,7 +132,7 @@ async function llamarApi(path, params = {}) {
 async function listarCambiosRecientes(ttlMs, opciones = {}) {
   return llamarApi('/v2/compra-agil', {
     ttl_cambio_ms: ttlMs,
-    tamano_pagina: opciones.tamanoPagina || 50,
+    tamano_pagina: opciones.tamanoPagina || TAMANO_PAGINA_DEFECTO,
     numero_pagina: opciones.numeroPagina || 1,
     ...(opciones.estado ? { estado: opciones.estado } : {}),
     ...(opciones.region ? { region: opciones.region } : {}),
@@ -212,7 +224,7 @@ async function listarCambiosPorRangoFecha(cambioDesde, cambioHasta, opciones = {
   return llamarApi('/v2/compra-agil', {
     cambio_desde: cambioDesde,
     cambio_hasta: cambioHasta,
-    tamano_pagina: opciones.tamanoPagina || 50,
+    tamano_pagina: opciones.tamanoPagina || TAMANO_PAGINA_DEFECTO,
     numero_pagina: opciones.numeroPagina || 1,
     ...(opciones.estado ? { estado: opciones.estado } : {}),
     ...(opciones.region ? { region: opciones.region } : {}),
@@ -275,7 +287,7 @@ async function buscarComprasAgiles({ texto, codigoRegion, estados, horasReciente
     region: codigoRegion || undefined,
     estado: (estados && estados.length > 0) ? estados : undefined,
     ttl_cambio_ms: horasRecientes ? horasRecientes * 60 * 60 * 1000 : undefined,
-    tamano_pagina: tamanoPagina || 50,
+    tamano_pagina: tamanoPagina || TAMANO_PAGINA_DEFECTO,
     numero_pagina: numeroPagina || 1,
   });
 }
