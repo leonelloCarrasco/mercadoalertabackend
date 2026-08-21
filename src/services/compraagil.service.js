@@ -17,6 +17,18 @@ function esperar(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Reintentos para errores 5xx (502/503/504) — estos son fallas transitorias
+// de infraestructura del LADO DE MERCADO PÚBLICO (gateway/proxy que no
+// llegó a tiempo, no necesariamente por exceso de pedidos nuestro), muy
+// distintas en naturaleza a un 429 o a un límite de cuota: lo normal es que
+// se resuelvan solas en segundos, no que haga falta esperar hasta la
+// próxima corrida programada del cron (horas después). Un 504 real
+// observado en producción (agosto 2026): body {"message":"Endpoint request
+// timed out"} — formato típico de un timeout de API Gateway de AWS, ni
+// siquiera trae el shape {success, errors} propio de la API.
+const REINTENTOS_5XX = 2;
+const PAUSA_ENTRE_REINTENTOS_5XX_MS = 1500;
+
 async function llamarApi(path, params = {}) {
   const ticket = process.env.COMPRAAGIL_TICKET;
   const query = new URLSearchParams();
@@ -33,12 +45,29 @@ async function llamarApi(path, params = {}) {
   }
   const url = `${BASE_URL}${path}${query.toString() ? `?${query.toString()}` : ''}`;
 
-  const response = await fetch(url, {
-    headers: { ticket },
-  });
+  let response;
+  for (let intento = 0; intento <= REINTENTOS_5XX; intento++) {
+    response = await fetch(url, { headers: { ticket } });
+
+    if (response.status < 500) break; // no es un 5xx, no hace falta reintentar
+
+    if (intento < REINTENTOS_5XX) {
+      console.warn(`[compraagil.service] HTTP ${response.status} (intento ${intento + 1}/${REINTENTOS_5XX + 1}) — probablemente transitorio, reintentando en ${PAUSA_ENTRE_REINTENTOS_5XX_MS}ms...`);
+      await esperar(PAUSA_ENTRE_REINTENTOS_5XX_MS);
+    }
+  }
 
   if (response.status === 429) {
     throw new CuotaAgotadaError('Se agotó la cuota diaria de la API de Compra Ágil. Reintentar mañana.');
+  }
+
+  if (response.status >= 500) {
+    // Se agotaron los reintentos y sigue fallando — se trata como transitorio
+    // igual (CuotaAgotadaError es, en la práctica, "error recuperable, el
+    // que llama debe cortar prolijo y reintentar en el próximo ciclo
+    // programado"), pero con un mensaje que deja claro que NO es un tema de
+    // cuota, para no confundir el diagnóstico la próxima vez.
+    throw new CuotaAgotadaError(`Servidor de Mercado Público no respondió (HTTP ${response.status}) tras ${REINTENTOS_5XX + 1} intentos — probablemente transitorio, no un tema de cuota. Va a reintentar en el próximo ciclo programado.`);
   }
 
   let data;
