@@ -152,7 +152,17 @@ async function listarTodosLosCambiosRecientes(ttlMs, opciones = {}) {
       payload = await listarCambiosRecientes(ttlMs, { ...opciones, numeroPagina });
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {
-        console.warn('Cuota agotada durante la paginación, se corta con lo obtenido hasta ahora.');
+        // Se usa err.message (la razón real y específica que arma
+        // llamarApi — puede ser cuota diaria de verdad, límite de ráfaga,
+        // o un 5xx transitorio del servidor) en vez de un texto fijo acá.
+        // CuotaAgotadaError terminó siendo, con los ajustes de agosto
+        // 2026, un tipo de error genérico para "esto es recuperable, hay
+        // que cortar prolijo y reintentar después" — no exclusivo de la
+        // cuota diaria real, así que el nombre de la clase quedó
+        // desactualizado respecto a lo que representa hoy. Loguear el
+        // texto genérico acá en vez del mensaje real fue justo lo que
+        // generó la confusión de un 504 mostrándose como "cuota agotada".
+        console.warn(`[compraagil.service] Se corta la paginación: ${err.message}`);
         break;
       }
       throw err;
@@ -221,7 +231,17 @@ async function listarTodosLosCambiosPorRangoFecha(cambioDesde, cambioHasta, opci
       payload = await listarCambiosPorRangoFecha(cambioDesde, cambioHasta, { ...opciones, numeroPagina });
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {
-        console.warn('Cuota agotada durante la paginación, se corta con lo obtenido hasta ahora.');
+        // Se usa err.message (la razón real y específica que arma
+        // llamarApi — puede ser cuota diaria de verdad, límite de ráfaga,
+        // o un 5xx transitorio del servidor) en vez de un texto fijo acá.
+        // CuotaAgotadaError terminó siendo, con los ajustes de agosto
+        // 2026, un tipo de error genérico para "esto es recuperable, hay
+        // que cortar prolijo y reintentar después" — no exclusivo de la
+        // cuota diaria real, así que el nombre de la clase quedó
+        // desactualizado respecto a lo que representa hoy. Loguear el
+        // texto genérico acá en vez del mensaje real fue justo lo que
+        // generó la confusión de un 504 mostrándose como "cuota agotada".
+        console.warn(`[compraagil.service] Se corta la paginación: ${err.message}`);
         break;
       }
       throw err;
