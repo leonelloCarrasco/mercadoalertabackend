@@ -10,9 +10,8 @@ const { procesarAlertasCompraAgil } = require('../services/alerting.service');
 // en agosto 2026 — la API Beta de Compra Ágil devuelve total_resultados=0
 // de forma consistente para ttl_cambio_ms chico (confirmado con logs de
 // producción durante una semana entera + prueba manual directa contra la
-// API). Con ttl_cambio_ms=7 días la API SÍ responde con datos reales y
-// recientes (confirmado manualmente) — el parámetro además es obligatorio,
-// omitirlo tira ERROR_INTERNO, así que no se puede sacar sin más.
+// API). El parámetro además es obligatorio, omitirlo tira ERROR_INTERNO,
+// así que no se puede sacar sin más.
 //
 // Recorrer 1000 páginas cada corrida sería absurdo — por eso
 // listarTodosLosCambiosRecientes ahora corta la paginación apenas
@@ -21,6 +20,14 @@ const { procesarAlertasCompraAgil } = require('../services/alerting.service');
 // descendente. En la práctica, cada corrida solo pagina hasta donde
 // alcanzan los cambios genuinamente nuevos desde la corrida anterior.
 const TTL_CAMBIO_MS = 6 * 60 * 60 * 1000;
+
+// Evita que dos corridas se pisen si el cron (cada 3h) y un disparo manual
+// vía /api/admin/poll-compra-agil caen al mismo tiempo — sin esto, las dos
+// pagean en paralelo compitiendo por la misma cuota, y los logs de las dos
+// quedan entrelazados (visto en producción: reintentos de 5xx duplicados
+// en el mismo bloque de log, agosto 2026 — parecía un solo intento
+// fallando 4 veces, pero eran dos corridas superpuestas).
+let pollEnCurso = false;
 
 /**
  * Corre una pasada de detección de Compras Ágiles nuevas:
@@ -34,67 +41,77 @@ const TTL_CAMBIO_MS = 6 * 60 * 60 * 1000;
  * si el detalle falla por cuota agotada, igual se guarda el resumen y se sigue.
  */
 async function correrPollingCompraAgil(opciones = {}) {
-  console.log('[poll-compra-agil] Iniciando...');
-
-  const ttlMs = opciones.ttlMs || TTL_CAMBIO_MS;
-  console.log(`[poll-compra-agil] Usando ttl_cambio_ms=${ttlMs}`);
-
-  let items;
-  try {
-    items = await listarTodosLosCambiosRecientes(ttlMs, {
-      // Corte temprano de paginación — ver el comentario largo en
-      // TTL_CAMBIO_MS más arriba y el de listarTodosLosCambiosRecientes en
-      // compraagil.service.js. Reusa la misma función que ya se usaba más
-      // abajo para filtrar — acá se llama por página en vez de una sola
-      // vez al final, así se puede cortar apenas ya no hay nada nuevo.
-      detenerSiPaginaCompleta: async (codigosPagina) => {
-        const yaVistosPagina = await obtenerCodigosCompraAgilYaVistos(codigosPagina);
-        return codigosPagina.every((c) => yaVistosPagina.has(c));
-      },
-    });
-  } catch (err) {
-    if (err instanceof CuotaAgotadaError) {
-      console.warn('[poll-compra-agil] Cuota diaria agotada, se omite esta corrida.');
-      return [];
-    }
-    throw err;
-  }
-
-  console.log(`[poll-compra-agil] ${items.length} procesos con cambios recientes.`);
-
-  const codigos = items.map((item) => item.codigo);
-  const yaVistos = await obtenerCodigosCompraAgilYaVistos(codigos);
-  const nuevas = items.filter((item) => !yaVistos.has(item.codigo));
-
-  if (nuevas.length === 0) {
-    console.log('[poll-compra-agil] No hay Compras Ágiles nuevas.');
+  if (pollEnCurso) {
+    console.warn('[poll-compra-agil] Ya hay una corrida en curso (cron o disparo manual) — se ignora este disparo para no competir por la misma cuota.');
     return [];
   }
+  pollEnCurso = true;
 
-  console.log(`[poll-compra-agil] ${nuevas.length} Compras Ágiles nuevas — guardando...`);
+  try {
+    console.log('[poll-compra-agil] Iniciando...');
 
-  const guardadas = [];
-  for (const item of nuevas) {
-    let detalle = null;
+    const ttlMs = opciones.ttlMs || TTL_CAMBIO_MS;
+    console.log(`[poll-compra-agil] Usando ttl_cambio_ms=${ttlMs}`);
+
+    let items;
     try {
-      detalle = await obtenerDetalleCompraAgil(item.codigo);
+      items = await listarTodosLosCambiosRecientes(ttlMs, {
+        // Corte temprano de paginación — ver el comentario largo en
+        // TTL_CAMBIO_MS más arriba y el de listarTodosLosCambiosRecientes en
+        // compraagil.service.js. Reusa la misma función que ya se usaba más
+        // abajo para filtrar — acá se llama por página en vez de una sola
+        // vez al final, así se puede cortar apenas ya no hay nada nuevo.
+        detenerSiPaginaCompleta: async (codigosPagina) => {
+          const yaVistosPagina = await obtenerCodigosCompraAgilYaVistos(codigosPagina);
+          return codigosPagina.every((c) => yaVistosPagina.has(c));
+        },
+      });
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {
-        console.warn(`[poll-compra-agil] Cuota agotada al pedir detalle de ${item.codigo}, se guarda solo el resumen.`);
-      } else {
-        console.error(`[poll-compra-agil] Error al pedir detalle de ${item.codigo}:`, err.message);
+        console.warn('[poll-compra-agil] Cuota diaria agotada, se omite esta corrida.');
+        return [];
       }
+      throw err;
     }
 
-    await guardarCompraAgil(item, detalle);
-    guardadas.push({ item, detalle });
+    console.log(`[poll-compra-agil] ${items.length} procesos con cambios recientes.`);
+
+    const codigos = items.map((item) => item.codigo);
+    const yaVistos = await obtenerCodigosCompraAgilYaVistos(codigos);
+    const nuevas = items.filter((item) => !yaVistos.has(item.codigo));
+
+    if (nuevas.length === 0) {
+      console.log('[poll-compra-agil] No hay Compras Ágiles nuevas.');
+      return [];
+    }
+
+    console.log(`[poll-compra-agil] ${nuevas.length} Compras Ágiles nuevas — guardando...`);
+
+    const guardadas = [];
+    for (const item of nuevas) {
+      let detalle = null;
+      try {
+        detalle = await obtenerDetalleCompraAgil(item.codigo);
+      } catch (err) {
+        if (err instanceof CuotaAgotadaError) {
+          console.warn(`[poll-compra-agil] Cuota agotada al pedir detalle de ${item.codigo}, se guarda solo el resumen.`);
+        } else {
+          console.error(`[poll-compra-agil] Error al pedir detalle de ${item.codigo}:`, err.message);
+        }
+      }
+
+      await guardarCompraAgil(item, detalle);
+      guardadas.push({ item, detalle });
+    }
+
+    console.log(`[poll-compra-agil] ${guardadas.length} Compras Ágiles nuevas guardadas.`);
+
+    await procesarAlertasCompraAgil(guardadas);
+
+    return guardadas;
+  } finally {
+    pollEnCurso = false;
   }
-
-  console.log(`[poll-compra-agil] ${guardadas.length} Compras Ágiles nuevas guardadas.`);
-
-  await procesarAlertasCompraAgil(guardadas);
-
-  return guardadas;
 }
 
 module.exports = { correrPollingCompraAgil };
