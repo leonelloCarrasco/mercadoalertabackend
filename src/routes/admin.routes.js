@@ -13,6 +13,10 @@ router.use(requireAdminKey);
 // carga-historica-compra-agil.
 let pollLicitacionesEnCurso = false;
 
+// poll-compra-agil.js ya trae su propio guard interno (pollEnCurso, evita
+// que el cron y un disparo manual se pisen) — acá solo hace falta que el
+// endpoint responda rápido y no espere el resultado completo.
+
 // Asíncrono: responde al toque y sigue corriendo en segundo plano — igual
 // que carga-historica-compra-agil. Antes esperaba a terminar antes de
 // responder (podía tardar bastante con el delay de 3s entre detalles), lo
@@ -40,15 +44,24 @@ router.post('/poll-licitaciones', (req, res) => {
     });
 });
 
-router.post('/poll-compra-agil', async (req, res) => {
-  try {
-    const ttlMs = req.query.ttlMs ? parseInt(req.query.ttlMs, 10) : undefined;
-    const nuevas = await correrPollingCompraAgil({ ttlMs });
-    res.json({ nuevasEncontradas: nuevas.length, detalle: nuevas.map(n => n.item.codigo) });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
+// Asíncrono, igual que poll-licitaciones de acá arriba — responde al toque
+// y sigue corriendo en segundo plano. Antes esperaba a terminar antes de
+// responder; con el rediseño a estado=publicada (agosto 2026) una corrida
+// puede recorrer bastantes páginas la primera vez que se corre (hasta que
+// se pone al día), así que el mismo riesgo de timeout del lado del
+// cliente/proxy que ya se corrigió para poll-licitaciones aplica acá
+// también. El parámetro ttlMs quedó sin uso — el diseño nuevo ya no se basa
+// en una ventana de tiempo (ver poll-compra-agil.js), así que se sacó de acá.
+router.post('/poll-compra-agil', (req, res) => {
+  res.json({ mensaje: 'poll-compra-agil iniciado en segundo plano. Revisa los logs del servidor para ver el progreso.' });
+
+  correrPollingCompraAgil()
+    .then((guardadas) => {
+      console.log(`[poll-compra-agil] Terminado — ${guardadas.length} nuevas: ${guardadas.map((g) => g.item.codigo).join(', ') || '(ninguna)'}`);
+    })
+    .catch((err) => {
+      console.error('[poll-compra-agil] Error no manejado:', err);
+    });
 });
 
 // Dispara manualmente la revisión de licitaciones/Compras Ágiles cerradas
