@@ -1,25 +1,23 @@
 const {
-  listarTodosLosCambiosRecientes,
+  listarTodasLasPublicadas,
   obtenerDetalleCompraAgil,
   CuotaAgotadaError,
 } = require('../services/compraagil.service');
 const { obtenerCodigosCompraAgilYaVistos, guardarCompraAgil } = require('../db/compra-agil.queries');
 const { procesarAlertasCompraAgil } = require('../services/alerting.service');
 
-// La ventana corta (antes 90 min, después 6hs) dejó de funcionar del todo
-// en agosto 2026 — la API Beta de Compra Ágil devuelve total_resultados=0
-// de forma consistente para ttl_cambio_ms chico (confirmado con logs de
-// producción durante una semana entera + prueba manual directa contra la
-// API). El parámetro además es obligatorio, omitirlo tira ERROR_INTERNO,
-// así que no se puede sacar sin más.
-//
-// Recorrer 1000 páginas cada corrida sería absurdo — por eso
-// listarTodosLosCambiosRecientes ahora corta la paginación apenas
-// encuentra una página 100% conocida (ver detenerSiPaginaCompleta más
-// abajo), apoyándose en que la API ordena por fecha_ultimo_cambio
-// descendente. En la práctica, cada corrida solo pagina hasta donde
-// alcanzan los cambios genuinamente nuevos desde la corrida anterior.
-const TTL_CAMBIO_MS = 6 * 60 * 60 * 1000;
+// Pausa entre cada llamado de detalle — antes no existía ninguna acá,
+// mientras que el listado por páginas sí la tenía (PAUSA_ENTRE_PAGINAS_MS
+// en compraagil.service.js). Si en una corrida aparecen muchas Compras
+// Ágiles nuevas de golpe (por ejemplo, después de que el listado estuvo
+// fallando un rato y se acumularon), pedir el detalle de todas en ráfaga
+// corre el mismo riesgo de límite de corto plazo que ya se corrigió para
+// la paginación — nunca se aplicó la misma lección acá (hallazgo del
+// análisis de agosto 2026).
+const PAUSA_ENTRE_DETALLES_MS = 300;
+function esperar(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 // Evita que dos corridas se pisen si el cron (cada 3h) y un disparo manual
 // vía /api/admin/poll-compra-agil caen al mismo tiempo — sin esto, las dos
@@ -31,14 +29,32 @@ let pollEnCurso = false;
 
 /**
  * Corre una pasada de detección de Compras Ágiles nuevas:
- * 1. Trae los cambios de los últimos TTL_CAMBIO_MS milisegundos, paginando
- *    hasta encontrar una página 100% ya conocida (no todas las páginas).
+ * 1. Trae TODAS las Compras Ágiles con estado "publicada" ahora mismo,
+ *    paginando hasta encontrar una página 100% ya conocida (no todas las
+ *    páginas) — ver listarTodasLasPublicadas en compraagil.service.js.
  * 2. Filtra las que ya conocemos.
- * 3. Para las nuevas, intenta traer el detalle completo (proveedores_cotizando incluido).
+ * 3. Para las nuevas, pide el detalle completo (proveedores_cotizando
+ *    incluido) UNA POR UNA, con pausa entre cada pedido.
  * 4. Las guarda en la base de datos.
  *
- * Prioriza guardar rápido (sin esperar el detalle) porque una Compra Ágil puede cerrar en 24hs;
- * si el detalle falla por cuota agotada, igual se guarda el resumen y se sigue.
+ * Rediseño de agosto 2026 (ver conversación de análisis): antes esto se
+ * basaba en ttl_cambio_ms (ventana de tiempo de "qué cambió") — se
+ * reemplazó por estado=publicada (foto de "qué está activo ahora"),
+ * confirmado que funciona sin ttl_cambio_ms contra la API real. La
+ * diferencia importa: con una ventana de tiempo, algo que no se
+ * alcanzaba a procesar en una corrida (por un error transitorio, por
+ * ejemplo) corría el riesgo de quedar fuera de la ventana en la corrida
+ * siguiente, y perderse para siempre. Con "publicada" no hay ventana de
+ * la que salirse.
+ *
+ * También cambió el criterio ante una falla de detalle: ANTES se
+ * guardaba igual, con detalle=null — eso dejaba la Compra Ágil "vista"
+ * para siempre (ya no se reintentaba) pero con productos_solicitados
+ * vacío, lo que la volvía INVISIBLE para el matching por categoría
+ * (encontrado en el análisis de agosto 2026 — un bug real y silencioso).
+ * AHORA, si falla el detalle, NO se guarda nada — mismo criterio que ya
+ * usa poll-licitaciones.js. Como sigue "publicada", va a volver a
+ * aparecer como "no vista" en la próxima corrida, y se reintenta solo.
  */
 async function correrPollingCompraAgil(opciones = {}) {
   if (pollEnCurso) {
@@ -48,19 +64,14 @@ async function correrPollingCompraAgil(opciones = {}) {
   pollEnCurso = true;
 
   try {
-    console.log('[poll-compra-agil] Iniciando...');
-
-    const ttlMs = opciones.ttlMs || TTL_CAMBIO_MS;
-    console.log(`[poll-compra-agil] Usando ttl_cambio_ms=${ttlMs}`);
+    console.log('[poll-compra-agil] Iniciando (estado=publicada)...');
 
     let items;
     try {
-      items = await listarTodosLosCambiosRecientes(ttlMs, {
-        // Corte temprano de paginación — ver el comentario largo en
-        // TTL_CAMBIO_MS más arriba y el de listarTodosLosCambiosRecientes en
-        // compraagil.service.js. Reusa la misma función que ya se usaba más
-        // abajo para filtrar — acá se llama por página en vez de una sola
-        // vez al final, así se puede cortar apenas ya no hay nada nuevo.
+      items = await listarTodasLasPublicadas({
+        // Corte temprano de paginación — se apoya en que estado=publicada
+        // también ordena por fecha_ultimo_cambio descendente (confirmado
+        // contra la API real, agosto 2026).
         detenerSiPaginaCompleta: async (codigosPagina) => {
           const yaVistosPagina = await obtenerCodigosCompraAgilYaVistos(codigosPagina);
           return codigosPagina.every((c) => yaVistosPagina.has(c));
@@ -74,7 +85,7 @@ async function correrPollingCompraAgil(opciones = {}) {
       throw err;
     }
 
-    console.log(`[poll-compra-agil] ${items.length} procesos con cambios recientes.`);
+    console.log(`[poll-compra-agil] ${items.length} procesos publicados encontrados.`);
 
     const codigos = items.map((item) => item.codigo);
     const yaVistos = await obtenerCodigosCompraAgilYaVistos(codigos);
@@ -85,23 +96,31 @@ async function correrPollingCompraAgil(opciones = {}) {
       return [];
     }
 
-    console.log(`[poll-compra-agil] ${nuevas.length} Compras Ágiles nuevas — guardando...`);
+    console.log(`[poll-compra-agil] ${nuevas.length} Compras Ágiles nuevas — trayendo detalle y guardando una por una...`);
 
     const guardadas = [];
-    for (const item of nuevas) {
-      let detalle = null;
+    for (let i = 0; i < nuevas.length; i++) {
+      const item = nuevas[i];
       try {
-        detalle = await obtenerDetalleCompraAgil(item.codigo);
+        const detalle = await obtenerDetalleCompraAgil(item.codigo);
+        if (detalle) {
+          await guardarCompraAgil(item, detalle);
+          guardadas.push({ item, detalle });
+        }
       } catch (err) {
         if (err instanceof CuotaAgotadaError) {
-          console.warn(`[poll-compra-agil] Cuota agotada al pedir detalle de ${item.codigo}, se guarda solo el resumen.`);
-        } else {
-          console.error(`[poll-compra-agil] Error al pedir detalle de ${item.codigo}:`, err.message);
+          // A diferencia de un error puntual en un ítem, esto es una señal
+          // de que el problema es del servidor/cuota en general — seguir
+          // intentando los ítems que quedan solo repetiría la misma falla
+          // en cada uno. Se corta acá; lo que no se alcanzó a guardar
+          // sigue "publicada" y se reintenta solo en la próxima corrida.
+          console.warn(`[poll-compra-agil] ${err.message} — se corta acá (${i}/${nuevas.length} procesados). El resto se reintenta en la próxima corrida.`);
+          break;
         }
+        console.error(`[poll-compra-agil] Error ${i + 1}/${nuevas.length} — no se pudo obtener/guardar el detalle de ${item.codigo}: ${err.message}. Se reintentará en la próxima corrida (sigue "publicada").`);
       }
 
-      await guardarCompraAgil(item, detalle);
-      guardadas.push({ item, detalle });
+      if (i < nuevas.length - 1) await esperar(PAUSA_ENTRE_DETALLES_MS);
     }
 
     console.log(`[poll-compra-agil] ${guardadas.length} Compras Ágiles nuevas guardadas.`);
