@@ -1,6 +1,7 @@
 const pool = require('./pool');
 const { obtenerTramo } = require('../utils/tramos-licitacion');
 const { ESTADOS_FINALES_LICITACION } = require('../utils/estados-finales');
+const { parsearFechaChile } = require('../utils/fecha-chile');
 
 async function licitacionYaVista(codigoExterno) {
   const result = await pool.query(
@@ -90,8 +91,14 @@ async function guardarLicitacion(detalle) {
       // matching.service.js) — ver migración 031. Para licitaciones guardadas ANTES de
       // este cambio, se completa vía el backfill 031a_backfill_codigo_organismo.sql.
       detalle.Comprador?.CodigoOrganismo ? String(detalle.Comprador.CodigoOrganismo) : null,
-      detalle.Fechas?.FechaPublicacion || null,
-      detalle.Fechas?.FechaCierre || null,
+      // parsearFechaChile: la API manda estos 3 campos SIN zona horaria
+      // (hora de Chile) — se convierte acá, una sola vez, al guardar por
+      // primera vez, para que las columnas (TIMESTAMPTZ desde la migración
+      // 051) guarden el instante UTC correcto. Ver conversación de agosto
+      // 2026 — sin esto, cualquier comparación con NOW() quedaba corrida
+      // 3-4 horas según la época del año, sin que nada tirara error.
+      parsearFechaChile(detalle.Fechas?.FechaPublicacion),
+      parsearFechaChile(detalle.Fechas?.FechaCierre),
       detalle.Tipo || null,
       tramo?.utmMinGarantizado || null,
       tramo?.utmMax || null,
@@ -101,7 +108,7 @@ async function guardarLicitacion(detalle) {
       // Adjudicacion.Fecha (separado, a nivel superior) SIEMPRE viene a
       // medianoche en la API — se prioriza el que sí tiene hora, con el otro
       // como respaldo por si alguna vez faltara.
-      detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha || null,
+      parsearFechaChile(detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha),
       detalle.Adjudicacion?.NumeroOferentes || null,
       detalle.Adjudicacion?.UrlActa || null,
       resueltaDesdeElInicio,

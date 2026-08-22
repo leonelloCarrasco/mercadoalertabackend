@@ -1,5 +1,6 @@
 const pool = require('./pool');
 const { ESTADOS_FINALES_COMPRA_AGIL } = require('../utils/estados-finales');
+const { parsearFechaChile } = require('../utils/fecha-chile');
 
 async function compraAgilYaVista(codigoExterno) {
   const result = await pool.query(
@@ -51,8 +52,15 @@ async function guardarCompraAgil(item, detalle = null) {
       item.institucion?.rut || null,
       item.institucion?.organismo_comprador || null,
       item.estado?.codigo || null,
-      item.fechas?.fecha_publicacion || null,
-      item.fechas?.fecha_cierre || null,
+      // parsearFechaChile: la API manda estos 2 campos SIN zona horaria
+      // (hora de Chile) — se convierte acá, una sola vez, al guardar por
+      // primera vez, para que las columnas (TIMESTAMPTZ desde la migración
+      // 051) guarden el instante UTC correcto. Ver conversación de agosto
+      // 2026 — sin esto, cualquier comparación con NOW() (recordatorios,
+      // revisar-resoluciones, limpieza) quedaba corrida 3-4 horas según la
+      // época del año, sin que nada tirara error.
+      parsearFechaChile(item.fechas?.fecha_publicacion),
+      parsearFechaChile(item.fechas?.fecha_cierre),
       detalle ? JSON.stringify(detalle.proveedores_cotizando || []) : null,
       detalle ? JSON.stringify(detalle.productos_solicitados || []) : null,
       resueltaDesdeElInicio,
