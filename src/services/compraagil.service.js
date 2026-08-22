@@ -176,6 +176,7 @@ async function listarTodasLasPublicadas(opciones = {}) {
       }
       throw err;
     }
+    console.log(`[compraagil.service] OK Página ${numeroPagina} de ${payload.paginacion.total_paginas}`);
 
     if (numeroPagina === 1) {
       console.log(`[compraagil.service] Respuesta cruda (estado=publicada): total_resultados=${payload.paginacion.total_resultados}, total_paginas=${payload.paginacion.total_paginas}, items en esta página=${payload.items.length}`);
