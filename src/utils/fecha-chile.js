@@ -1,0 +1,45 @@
+/**
+ * Convierte un string de fecha SIN zona horaria (como los que manda
+ * Mercado Público: "2026-08-24 16:00" o "2026-08-09T14:10:01.257", sin
+ * sufijo Z ni offset) a un objeto Date que representa el instante UTC
+ * correcto, asumiendo que esos dígitos son hora de Chile.
+ *
+ * Por qué hace falta esto (ver conversación de agosto 2026): sin esta
+ * conversión, si se guarda el string crudo tal cual en una columna
+ * TIMESTAMPTZ, Postgres/el driver lo interpreta según la zona horaria de
+ * la SESIÓN (UTC en producción) — no la de Chile — lo que corre cualquier
+ * comparación con NOW() por 3-4 horas (según la época del año) sin que
+ * nada tire error. Se resuelve UNA VEZ acá, en el borde donde entra el
+ * dato externo, en vez de tener que acordarse de aplicar AT TIME ZONE en
+ * cada query que toque estos campos — sobre todo porque algunos puntos
+ * del código (el archivado de precios, por ejemplo) a veces reciben el
+ * string crudo de la API y otras veces un valor ya leído de la base
+ * (que después de esta migración ya sería un TIMESTAMPTZ correcto) —
+ * mezclar AT TIME ZONE en la misma query para los dos casos es un error
+ * fácil de cometer, porque SQL interpreta AT TIME ZONE distinto según si
+ * el valor de entrada ya tiene zona o no. Convertir acá, en JS, antes de
+ * que el dato le llegue a cualquier query, evita esa ambigüedad del todo.
+ *
+ * Usa 'America/Santiago' (no un offset fijo) — Node ya sabe exactamente
+ * cuándo Chile cambia de UTC-4 a UTC-3 y viceversa (misma base de datos de
+ * zonas horarias que usa Postgres), así que esto sigue funcionando solo,
+ * sin tocar código, cuando cambie la temporada.
+ */
+function parsearFechaChile(fechaSinZona) {
+  if (!fechaSinZona) return null;
+
+  const normalizada = String(fechaSinZona).trim().replace(' ', 'T');
+  const comoUTC = new Date(normalizada.endsWith('Z') ? normalizada : `${normalizada}Z`);
+  if (isNaN(comoUTC.getTime())) return null;
+
+  // Mide cuánto se corre esa misma fecha/hora al mirarla desde Chile en
+  // vez de UTC — el offset real que correspondía ese día puntual (-3 o -4
+  // según la temporada, resuelto automáticamente).
+  const comoSiFueraUTCTexto = comoUTC.toLocaleString('en-US', { timeZone: 'UTC' });
+  const comoSiFueraChileTexto = comoUTC.toLocaleString('en-US', { timeZone: 'America/Santiago' });
+  const offsetMs = new Date(comoSiFueraUTCTexto).getTime() - new Date(comoSiFueraChileTexto).getTime();
+
+  return new Date(comoUTC.getTime() + offsetMs);
+}
+
+module.exports = { parsearFechaChile };

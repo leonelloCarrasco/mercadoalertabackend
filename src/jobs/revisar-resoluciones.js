@@ -11,6 +11,7 @@ const {
 const { ESTADOS_FINALES_LICITACION, ESTADOS_FINALES_COMPRA_AGIL } = require('../utils/estados-finales');
 const { extraerItemsConAdjudicacion } = require('../utils/adjudicacion');
 const { archivarPreciosLicitacion, archivarPreciosCompraAgil } = require('../db/historico-precios.queries');
+const { parsearFechaChile } = require('../utils/fecha-chile');
 
 const DELAY_LICITACIONES_MS = 3100; // mismo mínimo que exige la API de licitaciones
 
@@ -44,7 +45,14 @@ async function revisarLicitaciones(limite) {
         // Fechas.FechaAdjudicacion trae la hora real; Adjudicacion.Fecha
         // (separado) siempre viene a medianoche en la API — se prioriza el
         // que sí tiene hora (mismo fix reutilizado para el archivado de abajo).
-        const fechaAdjudicacion = detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha || null;
+        // parsearFechaChile: la API manda este campo SIN zona horaria (hora
+        // de Chile) — se convierte UNA sola vez, acá, y el mismo valor ya
+        // convertido se reusa tanto para actualizarResolucionLicitacion
+        // como para archivarPreciosLicitacion más abajo. A propósito NO se
+        // usa AT TIME ZONE en las queries de esos dos destinos — ver el
+        // comentario largo en utils/fecha-chile.js sobre por qué convertir
+        // acá, en JS, es más seguro que repetirlo en cada query.
+        const fechaAdjudicacion = parsearFechaChile(detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha);
 
         await actualizarResolucionLicitacion(codigo, {
           items,
@@ -126,7 +134,9 @@ async function revisarComprasAgiles() {
             codigoExterno: codigo,
             nombre: detalle.nombre,
             organismo: detalle.institucion?.organismo_comprador,
-            fechaCierre: detalle.fechas?.fecha_cierre || null,
+            // parsearFechaChile: mismo criterio que para licitaciones más
+            // arriba — la API manda este campo sin zona horaria.
+            fechaCierre: parsearFechaChile(detalle.fechas?.fecha_cierre),
             proveedoresCotizando: detalle.proveedores_cotizando || [],
           });
           if (guardadas > 0) console.log(`[revisar-resoluciones] Archivados ${guardadas} precios de ${codigo} en historico_precios.`);
