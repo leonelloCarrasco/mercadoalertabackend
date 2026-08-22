@@ -15,6 +15,16 @@ const { parsearFechaChile } = require('../utils/fecha-chile');
 
 const DELAY_LICITACIONES_MS = 3100; // mismo mínimo que exige la API de licitaciones
 
+// Compra Ágil no tiene un mínimo documentado como licitaciones, pero corre el
+// mismo riesgo de límite de corto plazo por ráfaga que ya se corrigió en
+// poll-compra-agil.js (misma API, mismo problema) — acá nunca se había
+// aplicado la misma pausa, porque este archivo se tocó antes de encontrar
+// ese hallazgo. Mismo valor que ya se usa en el resto del código para
+// Compra Ágil (PAUSA_ENTRE_PAGINAS_MS / PAUSA_ENTRE_DETALLES_MS en
+// compraagil.service.js y poll-compra-agil.js), para no inventar un
+// tercer número distinto sin motivo.
+const DELAY_COMPRA_AGIL_MS = 300;
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -48,10 +58,7 @@ async function revisarLicitaciones(limite) {
         // parsearFechaChile: la API manda este campo SIN zona horaria (hora
         // de Chile) — se convierte UNA sola vez, acá, y el mismo valor ya
         // convertido se reusa tanto para actualizarResolucionLicitacion
-        // como para archivarPreciosLicitacion más abajo. A propósito NO se
-        // usa AT TIME ZONE en las queries de esos dos destinos — ver el
-        // comentario largo en utils/fecha-chile.js sobre por qué convertir
-        // acá, en JS, es más seguro que repetirlo en cada query.
+        // como para archivarPreciosLicitacion más abajo.
         const fechaAdjudicacion = parsearFechaChile(detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha);
 
         await actualizarResolucionLicitacion(codigo, {
@@ -153,6 +160,7 @@ async function revisarComprasAgiles() {
       }
       console.error(`[revisar-resoluciones] Error revisando Compra Ágil ${codigo}:`, err.message);
     }
+    await sleep(DELAY_COMPRA_AGIL_MS);
   }
 
   console.log(`[revisar-resoluciones] Compra Ágil: ${resueltas} resueltas, ${siguenPendientes} siguen pendientes.`);
@@ -173,10 +181,14 @@ async function revisarComprasAgiles() {
  */
 async function correrRevisionResoluciones(opciones = {}) {
   console.log('[revisar-resoluciones] Iniciando...');
-  // Compra Ágil primero: no tiene delay entre llamadas, así que es rápido y
-  // siempre alcanza a correr — aunque licitaciones se corte por timeout HTTP
-  // (con el delay de 3s por licitación, una corrida grande puede tardar mucho
-  // más que cualquier timeout razonable), Compra Ágil ya quedó procesado.
+  // Compra Ágil primero: su pausa entre llamadas (300ms) es mucho más chica
+  // que la de licitaciones (3.1s obligatorios), así que sigue siendo mucho
+  // más rápido en total — alcanza a terminar aunque licitaciones se corte
+  // por timeout HTTP a mitad de camino (con el delay de licitaciones, una
+  // corrida grande puede tardar mucho más que cualquier timeout razonable).
+  // Antes Compra Ágil no tenía ninguna pausa acá — se agregó en agosto 2026
+  // (mismo riesgo de límite de corto plazo que ya se había corregido en
+  // poll-compra-agil.js, pero nunca se replicó en este archivo).
   await revisarComprasAgiles();
   await revisarLicitaciones(opciones.limiteLicitaciones);
   console.log('[revisar-resoluciones] Terminado.');
