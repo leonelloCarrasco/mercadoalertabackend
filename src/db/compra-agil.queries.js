@@ -195,6 +195,32 @@ async function eliminarComprasAgilesAntiguas(mesesAntiguedad = 3) {
   return result.rowCount;
 }
 
+/**
+ * Agrega códigos a la cola de pendientes de detalle (ver migración 052) —
+ * ON CONFLICT DO NOTHING porque un mismo código puede quedar pendiente en
+ * más de una corrida seguida sin que eso sea un problema, y porque
+ * recuperacion-compra-agil.js puede volver a encontrar el mismo código que
+ * ya estaba en cola de una corrida normal anterior.
+ */
+async function agregarPendientesDetalleCompraAgil(codigos) {
+  if (codigos.length === 0) return;
+  await pool.query(
+    `INSERT INTO compra_agil_pendientes_detalle (codigo_externo)
+     SELECT unnest($1::text[])
+     ON CONFLICT (codigo_externo) DO NOTHING`,
+    [codigos]
+  );
+}
+
+async function listarPendientesDetalleCompraAgil() {
+  const result = await pool.query('SELECT codigo_externo FROM compra_agil_pendientes_detalle ORDER BY agregado_en ASC');
+  return result.rows.map((r) => r.codigo_externo);
+}
+
+async function quitarPendienteDetalleCompraAgil(codigo) {
+  await pool.query('DELETE FROM compra_agil_pendientes_detalle WHERE codigo_externo = $1', [codigo]);
+}
+
 module.exports = {
   compraAgilYaVista,
   obtenerCompraAgilPorCodigo,
@@ -204,4 +230,7 @@ module.exports = {
   listarCompraAgilPendienteDeResolucion,
   actualizarResolucionCompraAgil,
   eliminarComprasAgilesAntiguas,
+  agregarPendientesDetalleCompraAgil,
+  listarPendientesDetalleCompraAgil,
+  quitarPendienteDetalleCompraAgil,
 };

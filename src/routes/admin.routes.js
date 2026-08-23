@@ -1,6 +1,7 @@
 const express = require('express');
 const { correrPollingLicitaciones } = require('../jobs/poll-licitaciones');
 const { correrPollingCompraAgil } = require('../jobs/poll-compra-agil');
+const { correrRecuperacionCompraAgil } = require('../jobs/recuperacion-compra-agil');
 const { correrRevisionResoluciones } = require('../jobs/revisar-resoluciones');
 const { correrCargaHistoricaCompraAgil } = require('../jobs/carga-historica-compra-agil');
 const { requireAdminKey } = require('../middleware/admin.middleware');
@@ -61,6 +62,26 @@ router.post('/poll-compra-agil', (req, res) => {
     })
     .catch((err) => {
       console.error('[poll-compra-agil] Error no manejado:', err);
+    });
+});
+
+// Barrido manual completo de estado=publicada, SIN corte temprano — para
+// uso puntual cuando se sospecha que quedó un hueco en el polling normal
+// (ver el comentario largo en recuperacion-compra-agil.js). Puede tardar
+// bastante (varios minutos, según cuántas páginas haya) — pensado para
+// dispararse a mano, de noche, no para el cron. Asíncrono, mismo patrón
+// que el resto — responde al toque y sigue corriendo atrás. Comparte el
+// mismo lock que poll-compra-agil (utils/compra-agil-lock.js), así que si
+// alguno de los dos ya está corriendo, este simplemente no hace nada.
+router.post('/recuperacion-compra-agil', (req, res) => {
+  res.json({ mensaje: 'recuperacion-compra-agil iniciado en segundo plano. Puede tardar varios minutos — revisa los logs del servidor para ver el progreso.' });
+
+  correrRecuperacionCompraAgil()
+    .then((resultado) => {
+      console.log(`[recuperacion-compra-agil] Terminado: ${resultado.mensaje || 'ya había una corrida en curso, se ignoró este disparo'}`);
+    })
+    .catch((err) => {
+      console.error('[recuperacion-compra-agil] Error no manejado:', err);
     });
 });
 
