@@ -35,7 +35,7 @@ function escapeHtml(valor) {
 function formatFechaHoraCL(fecha) {
   if (!fecha) return 'No especificada';
   try {
-    return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' });
   } catch { return fecha; }
 }
 
@@ -412,7 +412,7 @@ function armarEmailSeguimiento({ nombre, codigoExterno, estadoAnterior, estadoNu
  * mostrarBannerPlan en dashboard.js). Enviado por avisos-trial.js.
  */
 function armarEmailAviso2Dias({ nombre, fechaExpiracionTrial }) {
-  const fechaTexto = new Date(fechaExpiracionTrial).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
+  const fechaTexto = new Date(fechaExpiracionTrial).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', timeZone: 'America/Santiago' });
   const contenidoHtml = `
     <h2>⏰ Tu período de prueba está por terminar</h2>
     <p>👋🏻 Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, tu prueba gratuita de MercadoAlerta vence el <strong>${fechaTexto}</strong>.</p>
@@ -480,7 +480,7 @@ function armarEmailConfirmacionSuscripcion({ nombre, plan, monto, tarjeta }) {
  * acceso" (mismo umbral que el aviso de trial). Enviado por avisos-trial.js.
  */
 function armarEmailAvisoAcceso2Dias({ nombre, accesoHasta }) {
-  const fechaTexto = new Date(accesoHasta).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
+  const fechaTexto = new Date(accesoHasta).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', timeZone: 'America/Santiago' });
   const contenidoHtml = `
     <h2>⏰ Tu acceso está por terminar</h2>
     <p>👋🏻 Hola${nombre ? ` ${escapeHtml(nombre)}` : ''}, cancelaste tu suscripción a MercadoAlerta hace un tiempo — tu acceso, que se mantuvo activo hasta terminar el período que ya habías pagado, vence el <strong>${fechaTexto}</strong>.</p>
