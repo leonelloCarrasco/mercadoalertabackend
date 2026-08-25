@@ -145,7 +145,11 @@ async function consultarUltimoPagoAutorizado(preapprovalId) {
   }
 
   try {
-    const responsePagos = await fetch(`${PREAPPROVAL_URL}/${preapprovalId}/authorized_payments`, {
+    // Mismo fix que en listarPagosAutorizados — /authorized_payments/search
+    // es el endpoint real, no ${PREAPPROVAL_URL}/${preapprovalId}/authorized_payments
+    // (que no existe, devuelve 404 — por eso "Forma de pago" siempre daba
+    // "No disponible", aunque MercadoPago sí tenía el dato).
+    const responsePagos = await fetch(`https://api.mercadopago.com/authorized_payments/search?preapproval_id=${encodeURIComponent(preapprovalId)}`, {
       headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
     });
     if (!responsePagos.ok) return null;
@@ -153,9 +157,12 @@ async function consultarUltimoPagoAutorizado(preapprovalId) {
     const pagos = await responsePagos.json();
     const lista = Array.isArray(pagos) ? pagos : pagos.results;
     const ultimoPago = lista && lista.length > 0 ? lista[lista.length - 1] : null;
-    if (!ultimoPago?.id) return null;
+    // ultimoPago.id es el ID del AUTHORIZED_PAYMENT (el cargo recurrente en
+    // sí) — /v1/payments/{id} necesita el ID del PAGO real, que viene
+    // anidado en ultimoPago.payment.id.
+    if (!ultimoPago?.payment?.id) return null;
 
-    const responseDetalle = await fetch(`https://api.mercadopago.com/v1/payments/${ultimoPago.id}`, {
+    const responseDetalle = await fetch(`https://api.mercadopago.com/v1/payments/${ultimoPago.payment.id}`, {
       headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
     });
     if (!responseDetalle.ok) return null;
@@ -196,7 +203,12 @@ async function listarPagosAutorizados(preapprovalId) {
   }
 
   try {
-    const response = await fetch(`${PREAPPROVAL_URL}/${preapprovalId}/authorized_payments`, {
+    // Endpoint confirmado contra una cuenta de prueba real (agosto 2026) —
+    // el que estaba acá antes (${PREAPPROVAL_URL}/${preapprovalId}/authorized_payments)
+    // no existe en la API real, devolvía 404. El endpoint correcto es
+    // /authorized_payments/search, un recurso aparte (no anidado bajo
+    // /preapproval), filtrado por preapproval_id como query param.
+    const response = await fetch(`https://api.mercadopago.com/authorized_payments/search?preapproval_id=${encodeURIComponent(preapprovalId)}`, {
       headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
     });
     if (!response.ok) return [];
