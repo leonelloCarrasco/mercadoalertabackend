@@ -14,10 +14,10 @@ CREATE TABLE empresas (
   telefono_contacto VARCHAR(30),
   plan VARCHAR(50) DEFAULT 'trial',
   monto_mensual NUMERIC,
-  fecha_expiracion_trial TIMESTAMP,
+  fecha_expiracion_trial TIMESTAMPTZ,
   estado_pago VARCHAR(20) DEFAULT 'activo',
   mercadopago_subscription_id VARCHAR(100),
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE users (
@@ -34,11 +34,11 @@ CREATE TABLE users (
   -- sesión hasta llegar a 'activo'.
   estado VARCHAR(30) NOT NULL DEFAULT 'pendiente_email',
   acepta_terminos BOOLEAN NOT NULL DEFAULT false,
-  acepta_terminos_at TIMESTAMP,
+  acepta_terminos_at TIMESTAMPTZ,
   -- Acceso al panel de administrador interno (migración 028) — se activa a
   -- mano en la base de datos, no hay flujo de auto-registro para esto.
   es_admin BOOLEAN NOT NULL DEFAULT false,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Límite de usuarios por empresa: 1, para todos los planes (migración 023 —
@@ -88,7 +88,7 @@ CREATE TABLE alert_configs (
   -- código, no por texto.
   organismos TEXT[],
   activo BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE licitaciones_vistas (
@@ -116,8 +116,8 @@ CREATE TABLE licitaciones_vistas (
   numero_oferentes INTEGER,
   url_acta TEXT,
   resuelta BOOLEAN DEFAULT false,
-  fecha_ultima_revision TIMESTAMP,
-  primera_vez_vista TIMESTAMP DEFAULT NOW()
+  fecha_ultima_revision TIMESTAMPTZ,
+  primera_vez_vista TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX idx_licitaciones_vistas_codigo_organismo ON licitaciones_vistas (codigo_organismo);
@@ -137,8 +137,8 @@ CREATE TABLE compras_agiles_vistas (
   productos_solicitados JSONB,
   id_orden_compra VARCHAR(100),
   resuelta BOOLEAN DEFAULT false,
-  fecha_ultima_revision TIMESTAMP,
-  primera_vez_vista TIMESTAMP DEFAULT NOW()
+  fecha_ultima_revision TIMESTAMPTZ,
+  primera_vez_vista TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Tabla de tokens de un solo uso, reutilizada para varios propósitos
@@ -151,8 +151,8 @@ CREATE TABLE password_reset_tokens (
   tipo VARCHAR(30) NOT NULL DEFAULT 'reset_password',
   token_hash VARCHAR(64) UNIQUE NOT NULL,
   expires_at TIMESTAMPTZ NOT NULL,
-  used_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT NOW()
+  used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE alerts_sent (
@@ -164,7 +164,7 @@ CREATE TABLE alerts_sent (
   alert_config_id INTEGER REFERENCES alert_configs(id) ON DELETE SET NULL,
   codigo_externo VARCHAR(100),
   tipo_proceso VARCHAR(20),
-  sent_at TIMESTAMP DEFAULT NOW(),
+  sent_at TIMESTAMPTZ DEFAULT NOW(),
   canal VARCHAR(20),
   UNIQUE (user_id, codigo_externo, canal)
 );
