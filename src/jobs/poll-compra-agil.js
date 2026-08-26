@@ -2,6 +2,7 @@ const {
   listarTodasLasPublicadas,
   obtenerDetalleCompraAgil,
   CuotaAgotadaError,
+  ErrorTransitorioItem,
 } = require('../services/compraagil.service');
 const {
   obtenerCodigosCompraAgilYaVistos,
@@ -55,8 +56,8 @@ async function procesarConPausa(cosas, { obtenerCodigo, guardar }) {
       procesadas++;
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {
-        // A diferencia de un error puntual en un ítem, esto es una señal
-        // de que el problema es del servidor/cuota en general — seguir
+        // Cuota/límite real — es una señal de que el problema es del
+        // servidor/cuota en general, no de este ítem puntual. Seguir
         // intentando los que quedan solo repetiría la misma falla en cada
         // uno. Se corta acá; lo que no se guardó (haya fallado o ni
         // siquiera se haya llegado a intentar) lo maneja quien llama.
@@ -64,6 +65,15 @@ async function procesarConPausa(cosas, { obtenerCodigo, guardar }) {
         cortadoPorCuota = true;
         break;
       }
+      // ErrorTransitorioItem (o cualquier otro error puntual) cae acá —
+      // a propósito NO corta el loop. Antes, un 504 tras 3 reintentos
+      // también se lanzaba como CuotaAgotadaError, y esta función cortaba
+      // TODO el resto de la corrida por la falla de un solo ítem —
+      // demasiado conservador: no hay ninguna razón para asumir que el
+      // PRÓXIMO ítem también va a fallar. Este ítem queda afuera de
+      // `guardadas`, así que igual termina en la cola de pendientes (ver
+      // correrPollingCompraAgil) — se reintenta solo en la próxima
+      // corrida, sin descartar de paso todo lo que sigue.
       console.error(`[poll-compra-agil] Error ${i + 1}/${cosas.length} — no se pudo obtener/guardar el detalle de ${codigo}: ${err.message}.`);
       procesadas++;
     }
