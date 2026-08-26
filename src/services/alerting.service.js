@@ -17,6 +17,7 @@ const {
 const { enviarTelegramAlerta } = require('./telegram.service');
 const { enviarResumenAlertaWhatsapp } = require('./whatsapp.service');
 const { puedeRecibirWhatsapp } = require('../utils/planes');
+const { parsearFechaChile } = require('../utils/fecha-chile');
 
 /**
  * Arma el texto de la variable {{2}} de la plantilla "alerta_resumen":
@@ -192,7 +193,7 @@ function armarTextoTelegramLicitaciones(items) {
   const bloques = items.map((d) => {
     const link = urlFichaLicitacion(d.CodigoExterno);
     const nombre = `<a href="${escapeHtml(link)}">${escapeHtml(d.Nombre)}</a>`;
-    return `\n\n• <b>${nombre}</b>\n✔️ <b>Código:</b> ${escapeHtml(d.CodigoExterno)}\n🏛️ <b>Organismo:</b> ${escapeHtml(d.Comprador?.NombreOrganismo)}\n💲 <b>Monto:</b> ${formatMontoLicitacion(d)}\n⚠️ <b>Cierra:</b> ${formatFechaHoraCL(d.Fechas?.FechaCierre) || 'N/E'}`;
+    return `\n\n• <b>${nombre}</b>\n✔️ <b>Código:</b> ${escapeHtml(d.CodigoExterno)}\n🏛️ <b>Organismo:</b> ${escapeHtml(d.Comprador?.NombreOrganismo)}\n💲 <b>Monto:</b> ${formatMontoLicitacion(d)}\n⚠️ <b>Cierra:</b> ${formatFechaHoraCL(parsearFechaChile(d.Fechas?.FechaCierre)) || 'N/E'}`;
   });
 
   return partirEnMensajesTelegram(encabezado, bloques);
@@ -206,7 +207,7 @@ function armarTextoTelegramCompraAgil(items) {
   const bloques = items.map((item) => {
     const link = urlFichaCompraAgil(item.codigo);
     const nombre = `<a href="${escapeHtml(link)}">${escapeHtml(item.nombre)}</a>`;
-    return `\n\n• <b>${nombre}</b>\n✔️ <b>Código:</b> ${escapeHtml(item.codigo)}\n🏛️ <b>Organismo:</b> ${escapeHtml(item.institucion?.organismo_comprador)}\n💲 <b>Monto:</b> ${formatMontoCompraAgil(item)}\n⚠️ <b>Cierra:</b> ${formatFechaHoraCL(item.fechas?.fecha_cierre) || 'N/E'}`;
+    return `\n\n• <b>${nombre}</b>\n✔️ <b>Código:</b> ${escapeHtml(item.codigo)}\n🏛️ <b>Organismo:</b> ${escapeHtml(item.institucion?.organismo_comprador)}\n💲 <b>Monto:</b> ${formatMontoCompraAgil(item)}\n⚠️ <b>Cierra:</b> ${formatFechaHoraCL(parsearFechaChile(item.fechas?.fecha_cierre)) || 'N/E'}`;
   });
 
   return partirEnMensajesTelegram(encabezado, bloques, '\n\n⚠️ Recuerda que las Compras Ágiles pueden cerrar en menos de 24 horas.');

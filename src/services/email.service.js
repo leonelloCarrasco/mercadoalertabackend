@@ -1,4 +1,5 @@
 const { obtenerTramo } = require('../utils/tramos-licitacion');
+const { parsearFechaChile } = require('../utils/fecha-chile');
 
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
@@ -243,7 +244,16 @@ function armarResumenLicitaciones(items) {
       codigo: d.CodigoExterno,
       organismo: d.Comprador?.NombreOrganismo,
       monto,
-      cierre: formatFechaHoraCL(d.Fechas?.FechaCierre),
+      // parsearFechaChile: d.Fechas.FechaCierre es el campo CRUDO de la API
+      // de Mercado Público (sin zona, hora de Chile) — a diferencia de un
+      // valor ya leído de la base de datos (TIMESTAMPTZ, sin ambigüedad),
+      // este viene directo del listado, sin pasar nunca por la conversión
+      // que sí se aplica al guardar. Sin esto, formatFechaHoraCL
+      // malinterpretaba esos dígitos como si ya fueran UTC, y el
+      // timeZone:'America/Santiago' de acá abajo los volvía a correr una
+      // segunda vez — doble conversión, 8 horas de error en vez de 0
+      // (encontrado en producción, agosto 2026).
+      cierre: formatFechaHoraCL(parsearFechaChile(d.Fechas?.FechaCierre)),
     });
   }).join('');
 
@@ -276,7 +286,10 @@ function armarResumenCompraAgil(items) {
       codigo: item.codigo,
       organismo: item.institucion?.organismo_comprador,
       monto,
-      cierre: formatFechaHoraCL(item.fechas?.fecha_cierre),
+      // parsearFechaChile: mismo motivo que en armarResumenLicitaciones más
+      // arriba — item.fechas.fecha_cierre es el campo crudo de la API, sin
+      // zona horaria.
+      cierre: formatFechaHoraCL(parsearFechaChile(item.fechas?.fecha_cierre)),
     });
   }).join('');
 
