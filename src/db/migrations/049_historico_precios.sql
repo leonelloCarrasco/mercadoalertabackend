@@ -7,11 +7,16 @@
 --  2. Como red de seguridad, justo antes de que el cron de limpieza borre
 --     una licitación/Compra Ágil vieja — por si llegó a resolverse por otro
 --     camino que nunca pasó por (1) (ej. algo que se guarda YA resuelto
---     desde el principio, ver guardarLicitacion/guardarCompraAgil).
+--     desde el principio, ver guardarLicitacion/guardarCompraAgil — que
+--     desde agosto 2026 también archiva ahí mismo, en el momento de
+--     guardar, para no depender de esperar los 6 meses de la red de
+--     seguridad para que ese precio se vea en el análisis).
 --
--- A propósito no reemplaza todavía a licitaciones_vistas/compras_agiles_vistas
--- como fuente de /api/analisis/precios — el menú de Análisis de Precios
--- sigue deshabilitado. Por ahora solo archiva en silencio.
+-- Desde agosto 2026, /api/analisis/* (ver analisis.routes.js) lee de ACÁ en
+-- vez de licitaciones_vistas/compras_agiles_vistas directo — antes, un
+-- precio con más de 6 meses de antigüedad (el umbral de limpieza) dejaba de
+-- verse en el análisis apenas se borraba la fila viva, aunque ya estuviera
+-- archivado a salvo acá.
 CREATE TABLE historico_precios (
   id SERIAL PRIMARY KEY,
   codigo_externo VARCHAR(100) NOT NULL,
