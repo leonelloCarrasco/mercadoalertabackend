@@ -34,13 +34,13 @@ function iniciarCronJobs() {
   // topen — igual criterio que ya usa seguimiento-estado más abajo, solo
   // que con 1h de desfase en vez de 30 min. Rediseño de agosto 2026: pasó
   // de ttl_cambio_ms a estado=publicada (ver poll-compra-agil.js).
-  cron.schedule('0 1-23/3 * * *', async () => {
-    try {
-      await correrPollingCompraAgil();
-    } catch (err) {
-      console.error('[cron] Error en polling de Compra Ágil:', err);
-    }
-  }, TIMEZONE);
+  //cron.schedule('0 1-23/3 * * *', async () => {
+   // try {
+   //   await correrPollingCompraAgil();
+   // } catch (err) {
+   //   console.error('[cron] Error en polling de Compra Ágil:', err);
+  //  }
+  //}, TIMEZONE);
 
   // Revisión de adjudicaciones: una vez al día (03:00) — no hay apuro, la
   // adjudicación puede tardar días o semanas en publicarse, así que no vale
