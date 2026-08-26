@@ -4,7 +4,7 @@ const {
   obtenerDetalleLicitacion,
   obtenerDetallesConDelay,
 } = require('./mercadopublico.service');
-const { obtenerDetalleCompraAgil, listarCambiosRecientes, CuotaAgotadaError } = require('./compraagil.service');
+const { obtenerDetalleCompraAgil, listarCambiosRecientes, CuotaAgotadaError, ErrorTransitorioItem } = require('./compraagil.service');
 const { obtenerCodigosYaVistos } = require('../db/licitaciones.queries');
 const { obtenerCodigosCompraAgilYaVistos } = require('../db/compra-agil.queries');
 const { algunCodigoCoincide } = require('./matching.service');
@@ -132,7 +132,13 @@ async function buscarComprasAgiles({ ventanaDias, codigo, producto }) {
     try {
       detalle = await obtenerDetalleCompraAgil(codigo);
     } catch (err) {
-      if (err instanceof CuotaAgotadaError) throw err;
+      // Búsqueda de UN solo código puntual — acá también vale la pena
+      // relanzar ErrorTransitorioItem (no solo CuotaAgotadaError): con un
+      // solo ítem en juego, devolver "vacío" en silencio ante un 504
+      // confundiría a quien busca ("no encontré nada" cuando en realidad
+      // ni se llegó a intentar) — mejor que la ruta de arriba se entere y
+      // pueda avisar "no se pudo, probá de nuevo" en vez de "sin resultados".
+      if (err instanceof CuotaAgotadaError || err instanceof ErrorTransitorioItem) throw err;
       return { resultados: [], truncado: false };
     }
     if (!detalle) return { resultados: [], truncado: false };

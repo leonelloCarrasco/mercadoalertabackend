@@ -1,4 +1,4 @@
-const { listarPublicadas, CuotaAgotadaError } = require('../services/compraagil.service');
+const { listarPublicadas, CuotaAgotadaError, ErrorTransitorioItem } = require('../services/compraagil.service');
 const { obtenerCodigosCompraAgilYaVistos, agregarPendientesDetalleCompraAgil } = require('../db/compra-agil.queries');
 const { estaEnCurso, marcarEnCurso } = require('../utils/compra-agil-lock');
 
@@ -55,7 +55,13 @@ async function correrRecuperacionCompraAgil() {
       try {
         payload = await listarPublicadas({ numeroPagina });
       } catch (err) {
-        if (err instanceof CuotaAgotadaError) {
+        // A nivel de PÁGINA (no de ítem), ErrorTransitorioItem se trata
+        // igual que CuotaAgotadaError — ver el comentario largo en
+        // listarTodasLasPublicadas (compraagil.service.js) para el
+        // porqué: acá no hay cola de pendientes por página, así que
+        // saltarse una que falló transitoriamente perdería esos códigos
+        // sin ningún mecanismo de recuperación.
+        if (err instanceof CuotaAgotadaError || err instanceof ErrorTransitorioItem) {
           console.warn(`[recuperacion-compra-agil] ${err.message} — se corta en la página ${numeroPagina}/${totalPaginas}. Se puede volver a correr más tarde para seguir desde donde quede.`);
           cortado = true;
           break;

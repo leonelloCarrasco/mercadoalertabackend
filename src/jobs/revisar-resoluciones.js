@@ -158,6 +158,9 @@ async function revisarComprasAgiles() {
         console.warn('[revisar-resoluciones] Cuota diaria de Compra Ágil agotada, se corta acá por hoy.');
         break;
       }
+      // ErrorTransitorioItem (u otro error puntual) cae acá — sigue con la
+      // próxima Compra Ágil pendiente en vez de cortar toda la revisión
+      // del día, mismo criterio que procesarConPausa en poll-compra-agil.js.
       console.error(`[revisar-resoluciones] Error revisando Compra Ágil ${codigo}:`, err.message);
     }
     await sleep(DELAY_COMPRA_AGIL_MS);

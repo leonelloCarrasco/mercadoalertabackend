@@ -19,6 +19,24 @@ class CuotaAgotadaError extends Error {
   }
 }
 
+/**
+ * Falla transitoria de UN pedido puntual (5xx tras agotar los reintentos) —
+ * a propósito NO es CuotaAgotadaError. La diferencia importa para quien
+ * llama: un 429 real significa "todo lo que sigue también va a fallar,
+ * cortá todo" — pero un 504 en un pedido puntual no dice nada sobre el
+ * PRÓXIMO pedido, que perfectamente puede salir bien. Antes esto se
+ * lanzaba como CuotaAgotadaError, y el loop de detalles de
+ * poll-compra-agil.js cortaba TODO el resto de la corrida por una falla
+ * de un solo ítem — de mala manera conservador, descartando ítems que
+ * hubieran funcionado bien (encontrado en producción, agosto 2026).
+ */
+class ErrorTransitorioItem extends Error {
+  constructor(mensaje) {
+    super(mensaje);
+    this.name = 'ErrorTransitorioItem';
+  }
+}
+
 // Pausa entre página y página al recorrer un listado completo — sin esto,
 // una ventana con muchas páginas (ej. un solo día con 90 páginas) dispara
 // pedidos en ráfaga que Mercado Público puede frenar con un límite de
@@ -74,12 +92,10 @@ async function llamarApi(path, params = {}) {
   }
 
   if (response.status >= 500) {
-    // Se agotaron los reintentos y sigue fallando — se trata como transitorio
-    // igual (CuotaAgotadaError es, en la práctica, "error recuperable, el
-    // que llama debe cortar prolijo y reintentar en el próximo ciclo
-    // programado"), pero con un mensaje que deja claro que NO es un tema de
-    // cuota, para no confundir el diagnóstico la próxima vez.
-    throw new CuotaAgotadaError(`Servidor de Mercado Público no respondió (HTTP ${response.status}) tras ${REINTENTOS_5XX + 1} intentos — probablemente transitorio, no un tema de cuota. Va a reintentar en el próximo ciclo programado.`);
+    // ErrorTransitorioItem, NO CuotaAgotadaError (ver la clase, definida
+    // más arriba, para el porqué) — se agotaron los reintentos para ESTE
+    // pedido puntual, pero eso no dice nada sobre el próximo.
+    throw new ErrorTransitorioItem(`Servidor de Mercado Público no respondió (HTTP ${response.status}) tras ${REINTENTOS_5XX + 1} intentos en este pedido puntual — probablemente transitorio, no un tema de cuota.`);
   }
 
   let data;
@@ -170,7 +186,14 @@ async function listarTodasLasPublicadas(opciones = {}) {
     try {
       payload = await listarPublicadas({ ...opciones, numeroPagina });
     } catch (err) {
-      if (err instanceof CuotaAgotadaError) {
+      // A nivel de PÁGINA (no de ítem individual), un ErrorTransitorioItem
+      // se trata igual que CuotaAgotadaError — cortar acá y quedarse con lo
+      // ya juntado. A diferencia del loop de detalles por ítem (ver
+      // ErrorTransitorioItem, definida más arriba), acá no hay una cola de
+      // pendientes por PÁGINA — saltarse una página que falló transitoriamente
+      // perdería esos códigos sin ningún mecanismo de recuperación, así que
+      // conviene ser conservador y cortar, igual que con cuota agotada.
+      if (err instanceof CuotaAgotadaError || err instanceof ErrorTransitorioItem) {
         console.warn(`[compraagil.service] Se corta la paginación: ${err.message}`);
         break;
       }
@@ -256,17 +279,13 @@ async function listarTodosLosCambiosPorRangoFecha(cambioDesde, cambioHasta, opci
     try {
       payload = await listarCambiosPorRangoFecha(cambioDesde, cambioHasta, { ...opciones, numeroPagina });
     } catch (err) {
-      if (err instanceof CuotaAgotadaError) {
-        // Se usa err.message (la razón real y específica que arma
-        // llamarApi — puede ser cuota diaria de verdad, límite de ráfaga,
-        // o un 5xx transitorio del servidor) en vez de un texto fijo acá.
-        // CuotaAgotadaError terminó siendo, con los ajustes de agosto
-        // 2026, un tipo de error genérico para "esto es recuperable, hay
-        // que cortar prolijo y reintentar después" — no exclusivo de la
-        // cuota diaria real, así que el nombre de la clase quedó
-        // desactualizado respecto a lo que representa hoy. Loguear el
-        // texto genérico acá en vez del mensaje real fue justo lo que
-        // generó la confusión de un 504 mostrándose como "cuota agotada".
+      // A nivel de PÁGINA, ErrorTransitorioItem se trata igual que
+      // CuotaAgotadaError — ver el comentario largo en
+      // listarTodasLasPublicadas más arriba para el porqué. Se usa
+      // err.message (la razón real y específica) en vez de un texto fijo,
+      // para no repetir la confusión de un 504 mostrándose como "cuota
+      // agotada" que ya se corrigió acá.
+      if (err instanceof CuotaAgotadaError || err instanceof ErrorTransitorioItem) {
         console.warn(`[compraagil.service] Se corta la paginación: ${err.message}`);
         break;
       }
@@ -308,6 +327,7 @@ async function buscarComprasAgiles({ texto, codigoRegion, estados, horasReciente
 
 module.exports = {
   CuotaAgotadaError,
+  ErrorTransitorioItem,
   listarPublicadas,
   listarTodasLasPublicadas,
   listarCambiosRecientes,

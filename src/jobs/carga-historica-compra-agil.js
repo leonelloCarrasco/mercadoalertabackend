@@ -2,6 +2,7 @@ const {
   listarTodosLosCambiosPorRangoFecha,
   obtenerDetalleCompraAgil,
   CuotaAgotadaError,
+  ErrorTransitorioItem,
 } = require('../services/compraagil.service');
 const { obtenerCodigosCompraAgilYaVistos, guardarCompraAgil } = require('../db/compra-agil.queries');
 
@@ -109,6 +110,9 @@ async function correrCargaHistoricaCompraAgil() {
               cortadoPorCuota = true;
               break;
             }
+            // ErrorTransitorioItem (u otro error puntual) cae acá — sigue
+            // con el próximo código del mismo día en vez de cortar todo,
+            // mismo criterio que procesarConPausa en poll-compra-agil.js.
             console.error(`[carga-historica] Error guardando ${codigo}, se sigue con el próximo:`, err.message);
           }
         }
