@@ -69,7 +69,7 @@ async function guardarLicitacion(detalle) {
   // pero así queda cubierto el caso igual, sin quedar erróneamente pendiente).
   const resueltaDesdeElInicio = ESTADOS_FINALES_LICITACION.includes(detalle.Estado);
 
-  await pool.query(
+  const resultado = await pool.query(
     `INSERT INTO licitaciones_vistas
        (codigo_externo, nombre, categoria, codigo_categoria, monto_estimado,
         region, nombre_organismo, codigo_organismo, fecha_publicacion, fecha_cierre,
@@ -114,6 +114,35 @@ async function guardarLicitacion(detalle) {
       resueltaDesdeElInicio,
     ]
   );
+
+  // Archivado inmediato si se guarda YA resuelta (ej. carga histórica que
+  // trae algo con resultado conocido desde el vamos) — sin esto, el precio
+  // quedaba invisible para /api/analisis/* (que desde agosto 2026 lee de
+  // historico_precios, no de esta tabla) hasta que la red de seguridad de
+  // la limpieza lo archivara a los 6 meses. resultado.rowCount > 0 confirma
+  // que fue un INSERT genuino (no un ON CONFLICT DO NOTHING sobre algo que
+  // ya existía) — evita archivar dos veces si esta función se vuelve a
+  // llamar para el mismo código_externo.
+  if (resultado.rowCount > 0 && resueltaDesdeElInicio) {
+    try {
+      // Require local (no arriba del archivo) para no crear una dependencia
+      // circular entre los módulos de queries — mismo criterio que ya usa
+      // eliminarLicitacionesAntiguas más abajo en este archivo.
+      const { archivarPreciosLicitacion } = require('./historico-precios.queries');
+      const guardadas = await archivarPreciosLicitacion({
+        codigoExterno: detalle.CodigoExterno,
+        nombre: detalle.Nombre,
+        organismo: detalle.Comprador?.NombreOrganismo,
+        fechaAdjudicacion: parsearFechaChile(detalle.Fechas?.FechaAdjudicacion || detalle.Adjudicacion?.Fecha),
+        numeroOferentes: detalle.Adjudicacion?.NumeroOferentes || null,
+        urlActa: detalle.Adjudicacion?.UrlActa || null,
+        items: itemsParaGuardar,
+      });
+      if (guardadas > 0) console.log(`[licitaciones.queries] Archivados ${guardadas} precios de ${detalle.CodigoExterno} (resuelta desde el inicio).`);
+    } catch (err) {
+      console.error(`[licitaciones.queries] Error archivando precios de ${detalle.CodigoExterno} (resuelta desde el inicio, no afecta el guardado):`, err.message);
+    }
+  }
 }
 
 async function listarLicitacionesNuevas() {

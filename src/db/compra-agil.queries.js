@@ -36,7 +36,7 @@ async function guardarCompraAgil(item, detalle = null) {
   const tieneDatosCompletos = (detalle?.proveedores_cotizando?.length || 0) > 0;
   const resueltaDesdeElInicio = ESTADOS_FINALES_COMPRA_AGIL.includes(item.estado?.codigo) && tieneDatosCompletos;
 
-  await pool.query(
+  const resultado = await pool.query(
     `INSERT INTO compras_agiles_vistas
        (codigo_externo, nombre, categoria, monto_estimado, region,
         rut_institucion, nombre_institucion, estado, fecha_publicacion, fecha_cierre,
@@ -66,6 +66,29 @@ async function guardarCompraAgil(item, detalle = null) {
       resueltaDesdeElInicio,
     ]
   );
+
+  // Archivado inmediato si se guarda YA resuelta — mismo motivo que en
+  // guardarLicitacion (ver ese comentario para el detalle completo).
+  // resultado.rowCount > 0 confirma que fue un INSERT genuino, evita
+  // archivar dos veces si esta función se vuelve a llamar para el mismo
+  // código_externo.
+  if (resultado.rowCount > 0 && resueltaDesdeElInicio) {
+    try {
+      // Require local — mismo criterio que ya usa eliminarComprasAgilesAntiguas
+      // más abajo en este archivo, para no crear una dependencia circular.
+      const { archivarPreciosCompraAgil } = require('./historico-precios.queries');
+      const guardadas = await archivarPreciosCompraAgil({
+        codigoExterno: item.codigo,
+        nombre: item.nombre,
+        organismo: item.institucion?.organismo_comprador,
+        fechaCierre: parsearFechaChile(item.fechas?.fecha_cierre),
+        proveedoresCotizando: detalle.proveedores_cotizando || [],
+      });
+      if (guardadas > 0) console.log(`[compra-agil.queries] Archivados ${guardadas} precios de ${item.codigo} (resuelta desde el inicio).`);
+    } catch (err) {
+      console.error(`[compra-agil.queries] Error archivando precios de ${item.codigo} (resuelta desde el inicio, no afecta el guardado):`, err.message);
+    }
+  }
 }
 
 /**
