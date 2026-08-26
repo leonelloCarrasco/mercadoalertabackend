@@ -1,3 +1,5 @@
+const { parsearFechaChile } = require('../utils/fecha-chile');
+
 const BASE_URL = 'https://api2.mercadopublico.cl';
 
 // Tamaño de página por defecto para las 3 funciones de listado de acá abajo
@@ -161,9 +163,13 @@ async function listarPublicadas(opciones = {}) {
  * Recorre las páginas de "publicada" y devuelve el array de items. Mismo
  * mecanismo de corte temprano y manejo de errores que la versión anterior
  * basada en ttl_cambio_ms (ver historial de este archivo) — confirmado
- * contra la API real (agosto 2026) que estado=publicada TAMBIÉN ordena por
- * fecha_ultimo_cambio descendente, así que el mismo truco de "cortar apenas
- * una página está 100% conocida" sigue siendo válido acá.
+ * contra la API real (agosto 2026) que estado=publicada ordena por
+ * fecha_publicacion descendente (NO fecha_ultimo_cambio — probado con una
+ * sola página de 20 ítems: fecha_ultimo_cambio resultó ser idéntica, al
+ * milisegundo, en los 20; fecha_publicacion sí bajaba de forma prolija.
+ * Corregido acá porque el comentario original asumía fecha_ultimo_cambio,
+ * arrastrado del endpoint viejo con ttl_cambio_ms, sin volver a verificarlo
+ * para este modo de consulta específico).
  *
  * Por qué se reemplazó ttl_cambio_ms por esto (ver conversación de diseño,
  * agosto 2026): con una ventana de tiempo, algo que no se llega a procesar
@@ -175,6 +181,21 @@ async function listarPublicadas(opciones = {}) {
  *
  * `opciones.detenerSiPaginaCompleta`: misma función que antes, ver el
  * comentario de la versión vieja en el historial de git de este archivo.
+ *
+ * `opciones.cortarAntesDeFecha` (Date, opcional): corte adicional para la
+ * carga en frío o después de un hueco largo sin correr — sin esto, la
+ * PRIMERA vez que se corre este job contra una base vacía, el corte de
+ * "página completa conocida" nunca se dispara (no hay nada conocido
+ * todavía con qué comparar), y termina recorriendo las 8.000+ Compras
+ * Ágiles publicadas enteras en una sola corrida, agotando la cuota diaria
+ * de un saque (encontrado en producción, agosto 2026). Con esto, apenas el
+ * ÚLTIMO ítem de una página (el más viejo, dado el orden descendente) tiene
+ * fecha_publicacion anterior a la fecha límite, se corta ahí — en la
+ * primera corrida contra una base vacía, esto limita la carga a "lo
+ * publicado hoy", en vez de recorrer meses de historial de una vez. En
+ * corridas posteriores del mismo día, el corte de "página completa
+ * conocida" suele dispararse primero (más barato, no hace falta llegar
+ * hasta el límite del día) — los dos coexisten, gana el que dispare antes.
  */
 async function listarTodasLasPublicadas(opciones = {}) {
   let numeroPagina = 1;
@@ -213,6 +234,19 @@ async function listarTodasLasPublicadas(opciones = {}) {
       const paginaCompletaConocida = await opciones.detenerSiPaginaCompleta(codigosPagina);
       if (paginaCompletaConocida) {
         console.log(`[compraagil.service] Página ${numeroPagina} ya era 100% conocida — se corta la paginación acá (de ${totalPaginas} páginas totales).`);
+        break;
+      }
+    }
+
+    // Corte por fecha — ver el comentario largo de la función, arriba.
+    // Se mira el ÚLTIMO ítem de la página (el más viejo, dado el orden
+    // descendente por fecha_publicacion) — si ya es anterior al límite,
+    // todo lo que sigue en páginas posteriores también lo va a ser.
+    if (opciones.cortarAntesDeFecha && payload.items.length > 0) {
+      const ultimoItem = payload.items[payload.items.length - 1];
+      const fechaPublicacionUltimo = parsearFechaChile(ultimoItem.fechas?.fecha_publicacion);
+      if (fechaPublicacionUltimo && fechaPublicacionUltimo < opciones.cortarAntesDeFecha) {
+        console.log(`[compraagil.service] Página ${numeroPagina} ya tiene ítems anteriores a la fecha límite (${opciones.cortarAntesDeFecha.toISOString()}) — se corta la paginación acá.`);
         break;
       }
     }

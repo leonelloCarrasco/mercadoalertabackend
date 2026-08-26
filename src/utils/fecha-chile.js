@@ -42,4 +42,16 @@ function parsearFechaChile(fechaSinZona) {
   return new Date(comoUTC.getTime() + offsetMs);
 }
 
-module.exports = { parsearFechaChile };
+module.exports = { parsearFechaChile, inicioDelDiaChile };
+
+/**
+ * Devuelve el instante UTC correspondiente a las 00:00:00 de HOY, hora de
+ * Chile — para cortes de "solo lo de hoy" (ver poll-compra-agil.js). Se
+ * apoya en parsearFechaChile: primero arma la fecha de hoy en formato
+ * YYYY-MM-DD según la zona de Chile, y la interpreta como medianoche en
+ * esa misma zona.
+ */
+function inicioDelDiaChile() {
+  const fechaHoyEnChile = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' }); // "YYYY-MM-DD"
+  return parsearFechaChile(`${fechaHoyEnChile} 00:00:00`);
+}
