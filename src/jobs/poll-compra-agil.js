@@ -13,11 +13,13 @@ const {
 } = require('../db/compra-agil.queries');
 const { procesarAlertasCompraAgil } = require('../services/alerting.service');
 const { estaEnCurso, marcarEnCurso } = require('../utils/compra-agil-lock');
-const { inicioDelDiaChile } = require('../utils/fecha-chile');
+const { inicioDelDiaChile, formatearParaQueryChile } = require('../utils/fecha-chile');
 
-// Pausa entre cada llamado de detalle — ver PAUSA_ENTRE_PAGINAS_MS en
-// compraagil.service.js, mismo motivo (evitar ráfaga contra la misma API).
-const PAUSA_ENTRE_DETALLES_MS = 300;
+// Pausa entre cada llamado de detalle — subida de 300ms a 1s (agosto 2026,
+// mismo motivo que PAUSA_ENTRE_PAGINAS_MS en compraagil.service.js — ver
+// el comentario largo ahí para el detalle completo sobre por qué se
+// sospecha una cuota compartida entre todos los consumidores de esta API).
+const PAUSA_ENTRE_DETALLES_MS = 1000;
 function esperar(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -156,21 +158,28 @@ async function correrPollingCompraAgil(opciones = {}) {
     let items;
     try {
       items = await listarTodasLasPublicadas({
-        // Corte 1 — página 100% conocida. Se apoya en que estado=publicada
-        // ordena por fecha_publicacion descendente (ver el comentario largo
-        // en listarTodasLasPublicadas, compraagil.service.js, para el
-        // porqué se corrigió de fecha_ultimo_cambio a fecha_publicacion).
+        // Filtro por fecha — DEL LADO DEL SERVIDOR (agosto 2026, confirmado
+        // contra la API real: ver el comentario largo en listarPublicadas,
+        // compraagil.service.js). Evita que la PRIMERA corrida contra una
+        // base vacía (o después de un hueco largo sin correr) recorra las
+        // 8.000+ Compras Ágiles publicadas enteras de una sola vez,
+        // agotando la cuota. Reemplaza una versión anterior que filtraba
+        // del lado del cliente, ítem por ítem — esta versión ni siquiera
+        // recibe los ítems viejos, así que no tiene el punto ciego que
+        // tenía esa (una página con la mitad de ítems de ayer se colaba
+        // igual, porque el corte solo miraba el último ítem de la página).
+        publicadoDesde: formatearParaQueryChile(inicioDelDiaChile()),
+        // Página 100% conocida — se apoya en que estado=publicada ordena
+        // por fecha_publicacion descendente (ver el comentario largo en
+        // listarTodasLasPublicadas). Coexiste con el filtro de arriba: en
+        // la carga en frío, el filtro por fecha ya acota a "hoy" (277
+        // páginas en vez de 589, por ejemplo); en corridas posteriores del
+        // mismo día, este corte suele disparar antes de llegar al final de
+        // esas 277, sin tener que re-caminar lo que ya se guardó.
         detenerSiPaginaCompleta: async (codigosPagina) => {
           const yaVistosPagina = await obtenerCodigosCompraAgilYaVistos(codigosPagina);
           return codigosPagina.every((c) => yaVistosPagina.has(c));
         },
-        // Corte 2 — nada anterior a hoy (hora de Chile). Coexiste con el
-        // corte 1 (gana el que dispare antes) — este es el que evita que la
-        // PRIMERA corrida contra una base vacía recorra las 8.000+ Compras
-        // Ágiles publicadas enteras de una sola vez, agotando la cuota
-        // diaria (encontrado en producción, agosto 2026). Ver el comentario
-        // largo en listarTodasLasPublicadas para el detalle completo.
-        cortarAntesDeFecha: inicioDelDiaChile(),
       });
     } catch (err) {
       if (err instanceof CuotaAgotadaError) {

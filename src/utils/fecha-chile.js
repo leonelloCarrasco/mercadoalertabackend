@@ -42,7 +42,7 @@ function parsearFechaChile(fechaSinZona) {
   return new Date(comoUTC.getTime() + offsetMs);
 }
 
-module.exports = { parsearFechaChile, inicioDelDiaChile };
+module.exports = { parsearFechaChile, inicioDelDiaChile, formatearParaQueryChile };
 
 /**
  * Devuelve el instante UTC correspondiente a las 00:00:00 de HOY, hora de
@@ -54,4 +54,22 @@ module.exports = { parsearFechaChile, inicioDelDiaChile };
 function inicioDelDiaChile() {
   const fechaHoyEnChile = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' }); // "YYYY-MM-DD"
   return parsearFechaChile(`${fechaHoyEnChile} 00:00:00`);
+}
+
+/**
+ * Inverso de parsearFechaChile — toma un instante (Date) y lo formatea
+ * como "YYYY-MM-DDTHH:mm:ss" en hora de Chile, para mandarlo como
+ * parámetro de query a la API de Compra Ágil (ej. publicado_desde).
+ * Confirmado contra la API real (agosto 2026) que espera exactamente este
+ * formato, sin zona horaria explícita, en hora de Chile.
+ */
+function formatearParaQueryChile(fecha) {
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Santiago',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+  }).formatToParts(fecha);
+  const obtener = (tipo) => partes.find((p) => p.type === tipo).value;
+  return `${obtener('year')}-${obtener('month')}-${obtener('day')}T${obtener('hour')}:${obtener('minute')}:${obtener('second')}`;
 }

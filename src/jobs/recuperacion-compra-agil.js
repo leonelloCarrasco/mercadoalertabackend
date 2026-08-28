@@ -4,8 +4,9 @@ const { estaEnCurso, marcarEnCurso } = require('../utils/compra-agil-lock');
 
 // Mismo valor que PAUSA_ENTRE_PAGINAS_MS en compraagil.service.js — no se
 // importa de ahí porque es una constante privada de ese archivo, pero es
-// el mismo motivo (evitar ráfaga contra la misma API).
-const PAUSA_ENTRE_PAGINAS_MS = 300;
+// el mismo motivo (evitar ráfaga contra la misma API, ver el comentario
+// largo ahí sobre la sospecha de cuota compartida — agosto 2026).
+const PAUSA_ENTRE_PAGINAS_MS = 1000;
 function esperar(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

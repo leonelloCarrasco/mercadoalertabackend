@@ -17,13 +17,14 @@ const DELAY_LICITACIONES_MS = 3100; // mismo mínimo que exige la API de licitac
 
 // Compra Ágil no tiene un mínimo documentado como licitaciones, pero corre el
 // mismo riesgo de límite de corto plazo por ráfaga que ya se corrigió en
-// poll-compra-agil.js (misma API, mismo problema) — acá nunca se había
-// aplicado la misma pausa, porque este archivo se tocó antes de encontrar
-// ese hallazgo. Mismo valor que ya se usa en el resto del código para
-// Compra Ágil (PAUSA_ENTRE_PAGINAS_MS / PAUSA_ENTRE_DETALLES_MS en
-// compraagil.service.js y poll-compra-agil.js), para no inventar un
-// tercer número distinto sin motivo.
-const DELAY_COMPRA_AGIL_MS = 300;
+// poll-compra-agil.js (misma API, mismo problema) — mismo valor que se usa
+// en el resto del código para Compra Ágil (PAUSA_ENTRE_PAGINAS_MS /
+// PAUSA_ENTRE_DETALLES_MS en compraagil.service.js y poll-compra-agil.js),
+// para no inventar un tercer número distinto sin motivo. Subido de 300ms a
+// 1s en agosto 2026 — ver el comentario largo en PAUSA_ENTRE_PAGINAS_MS
+// (compraagil.service.js) sobre la sospecha de cuota compartida entre
+// todos los consumidores de esta API.
+const DELAY_COMPRA_AGIL_MS = 1000;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));

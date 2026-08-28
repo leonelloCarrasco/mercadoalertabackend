@@ -1,5 +1,3 @@
-const { parsearFechaChile } = require('../utils/fecha-chile');
-
 const BASE_URL = 'https://api2.mercadopublico.cl';
 
 // Tamaño de página por defecto para las 3 funciones de listado de acá abajo
@@ -39,12 +37,19 @@ class ErrorTransitorioItem extends Error {
   }
 }
 
-// Pausa entre página y página al recorrer un listado completo — sin esto,
-// una ventana con muchas páginas (ej. un solo día con 90 páginas) dispara
-// pedidos en ráfaga que Mercado Público puede frenar con un límite de
-// corto plazo, distinto de la cuota diaria (y que no siempre se anuncia
-// como HTTP 429, ver el manejo de errores en llamarApi más abajo).
-const PAUSA_ENTRE_PAGINAS_MS = 300;
+// Pausa entre página y página al recorrer un listado completo — subida de
+// 300ms a 1s (agosto 2026): se sospecha que la cuota de esta API es
+// compartida entre TODOS los consumidores (este listado, el loop de
+// detalles de poll-compra-agil.js, revisar-resoluciones.js, etc.), no
+// exclusiva de cada uno por separado — un 429 con números de corte muy
+// distintos entre corridas seguidas (44, luego 9, luego 46 ítems antes de
+// toparse) no es compatible con un límite de ráfaga fijo y sostenido, más
+// bien sugiere una cuota que se comparte y se va rellenando con el tiempo.
+// 1s es un punto medio entre no alargar demasiado cada corrida y darle más
+// margen a la API — bastante menos que los 3.1s de licitaciones (una API
+// distinta, sin garantía de compartir el mismo límite), a probar primero
+// antes de subir más si el 429 sigue apareciendo con la misma frecuencia.
+const PAUSA_ENTRE_PAGINAS_MS = 1000;
 function esperar(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -90,7 +95,26 @@ async function llamarApi(path, params = {}) {
   }
 
   if (response.status === 429) {
-    throw new CuotaAgotadaError('Se agotó la cuota diaria de la API de Compra Ágil. Reintentar mañana.');
+    // Se usa el mensaje REAL que devuelve Mercado Público, no un texto
+    // fijo — confirmado en producción (agosto 2026) que el cuerpo real
+    // dice "Se ha alcanzado el limite de solicitudes permitido. Intente
+    // nuevamente más tarde." — ninguna mención a "diaria" ni a "mañana".
+    // El texto anterior ("cuota diaria... reintentar mañana") era una
+    // suposición nuestra, nunca confirmada contra la API real, y llevaba a
+    // pensar que hacía falta esperar hasta el día siguiente cuando en la
+    // práctica el límite se recupera en cuestión de horas (confirmado con
+    // los propios logs de producción: la misma corrida recuperaba
+    // capacidad cada pocas horas, no al día siguiente).
+    let mensajeReal = 'Se ha alcanzado el límite de solicitudes permitido. Intente nuevamente más tarde.';
+    try {
+      const cuerpo = await response.json();
+      if (cuerpo?.errors?.[0]?.mensaje) mensajeReal = cuerpo.errors[0].mensaje;
+    } catch {
+      // Si el cuerpo no es JSON válido (raro para un 429, pero no
+      // imposible), se usa el mensaje de respaldo de arriba — no vale la
+      // pena que esto rompa el manejo del error en sí.
+    }
+    throw new CuotaAgotadaError(`HTTP 429 — ${mensajeReal}`);
   }
 
   if (response.status >= 500) {
@@ -156,6 +180,17 @@ async function listarPublicadas(opciones = {}) {
     tamano_pagina: opciones.tamanoPagina || TAMANO_PAGINA_DEFECTO,
     numero_pagina: opciones.numeroPagina || 1,
     ...(opciones.region ? { region: opciones.region } : {}),
+    // Filtro SERVIDOR (no cliente) — confirmado contra la API real (agosto
+    // 2026) que este parámetro existe y funciona: probado con
+    // publicado_desde="2026-08-27T00:00:00" contra una base con 8.823
+    // resultados totales, el filtro los redujo a 4.151 — y la última
+    // página del resultado filtrado (la más vieja) seguía siendo
+    // enteramente del mismo día, sin ningún ítem del día anterior colado.
+    // Reemplaza al filtrado manual que existía antes (ver historial de
+    // este archivo) — mucho más simple y sin el punto ciego que tenía esa
+    // versión (una página con la mitad de ítems de ayer, la mitad de hoy,
+    // que dejaba pasar los de ayer igual).
+    ...(opciones.publicadoDesde ? { publicado_desde: opciones.publicadoDesde } : {}),
   });
 }
 
@@ -166,10 +201,7 @@ async function listarPublicadas(opciones = {}) {
  * contra la API real (agosto 2026) que estado=publicada ordena por
  * fecha_publicacion descendente (NO fecha_ultimo_cambio — probado con una
  * sola página de 20 ítems: fecha_ultimo_cambio resultó ser idéntica, al
- * milisegundo, en los 20; fecha_publicacion sí bajaba de forma prolija.
- * Corregido acá porque el comentario original asumía fecha_ultimo_cambio,
- * arrastrado del endpoint viejo con ttl_cambio_ms, sin volver a verificarlo
- * para este modo de consulta específico).
+ * milisegundo, en los 20; fecha_publicacion sí bajaba de forma prolija).
  *
  * Por qué se reemplazó ttl_cambio_ms por esto (ver conversación de diseño,
  * agosto 2026): con una ventana de tiempo, algo que no se llega a procesar
@@ -179,23 +211,20 @@ async function listarPublicadas(opciones = {}) {
  * siga activo, va a seguir apareciendo en cada corrida hasta que se procese
  * bien o cierre. Autocorrección estructural, no un parche.
  *
- * `opciones.detenerSiPaginaCompleta`: misma función que antes, ver el
- * comentario de la versión vieja en el historial de git de este archivo.
+ * `opciones.detenerSiPaginaCompleta`: función async `(codigos: string[]) =>
+ * boolean` — se llama con los códigos de cada página; si devuelve true, se
+ * corta la paginación ahí. Se apoya en el orden descendente: si una página
+ * completa ya es conocida, todo lo que sigue es más viejo todavía.
  *
- * `opciones.cortarAntesDeFecha` (Date, opcional): corte adicional para la
- * carga en frío o después de un hueco largo sin correr — sin esto, la
- * PRIMERA vez que se corre este job contra una base vacía, el corte de
- * "página completa conocida" nunca se dispara (no hay nada conocido
- * todavía con qué comparar), y termina recorriendo las 8.000+ Compras
- * Ágiles publicadas enteras en una sola corrida, agotando la cuota diaria
- * de un saque (encontrado en producción, agosto 2026). Con esto, apenas el
- * ÚLTIMO ítem de una página (el más viejo, dado el orden descendente) tiene
- * fecha_publicacion anterior a la fecha límite, se corta ahí — en la
- * primera corrida contra una base vacía, esto limita la carga a "lo
- * publicado hoy", en vez de recorrer meses de historial de una vez. En
- * corridas posteriores del mismo día, el corte de "página completa
- * conocida" suele dispararse primero (más barato, no hace falta llegar
- * hasta el límite del día) — los dos coexisten, gana el que dispare antes.
+ * `opciones.publicadoDesde` (string, opcional) — se reenvía tal cual como
+ * `publicado_desde` a listarPublicadas (ver ese comentario para el
+ * formato). El filtro de "solo lo de hoy" para la carga en frío (ver
+ * poll-compra-agil.js) se resuelve ACÁ, del lado del servidor — versión
+ * anterior de esto filtraba del lado del cliente, ítem por ítem, después
+ * de recibir la respuesta completa (ver historial de este archivo); este
+ * cambio (agosto 2026) es estrictamente mejor: ni siquiera se reciben los
+ * ítems viejos, así que no hay nada que filtrar ni ningún punto ciego
+ * posible por dónde caiga el límite dentro de una página.
  */
 async function listarTodasLasPublicadas(opciones = {}) {
   let numeroPagina = 1;
@@ -220,11 +249,12 @@ async function listarTodasLasPublicadas(opciones = {}) {
       }
       throw err;
     }
-    console.log(`[compraagil.service] OK Página ${numeroPagina} de ${payload.paginacion.total_paginas}`);
 
     if (numeroPagina === 1) {
       console.log(`[compraagil.service] Respuesta cruda (estado=publicada): total_resultados=${payload.paginacion.total_resultados}, total_paginas=${payload.paginacion.total_paginas}, items en esta página=${payload.items.length}`);
     }
+
+    console.log(`[compraagil.service] OK Página ${numeroPagina} de ${payload.paginacion.total_paginas}`);
 
     items.push(...payload.items);
     totalPaginas = payload.paginacion.total_paginas;
@@ -234,19 +264,6 @@ async function listarTodasLasPublicadas(opciones = {}) {
       const paginaCompletaConocida = await opciones.detenerSiPaginaCompleta(codigosPagina);
       if (paginaCompletaConocida) {
         console.log(`[compraagil.service] Página ${numeroPagina} ya era 100% conocida — se corta la paginación acá (de ${totalPaginas} páginas totales).`);
-        break;
-      }
-    }
-
-    // Corte por fecha — ver el comentario largo de la función, arriba.
-    // Se mira el ÚLTIMO ítem de la página (el más viejo, dado el orden
-    // descendente por fecha_publicacion) — si ya es anterior al límite,
-    // todo lo que sigue en páginas posteriores también lo va a ser.
-    if (opciones.cortarAntesDeFecha && payload.items.length > 0) {
-      const ultimoItem = payload.items[payload.items.length - 1];
-      const fechaPublicacionUltimo = parsearFechaChile(ultimoItem.fechas?.fecha_publicacion);
-      if (fechaPublicacionUltimo && fechaPublicacionUltimo < opciones.cortarAntesDeFecha) {
-        console.log(`[compraagil.service] Página ${numeroPagina} ya tiene ítems anteriores a la fecha límite (${opciones.cortarAntesDeFecha.toISOString()}) — se corta la paginación acá.`);
         break;
       }
     }
@@ -330,6 +347,8 @@ async function listarTodosLosCambiosPorRangoFecha(cambioDesde, cambioHasta, opci
       console.log(`[compraagil.service] Rango ${cambioDesde} a ${cambioHasta}: total_resultados=${payload.paginacion.total_resultados}, total_paginas=${payload.paginacion.total_paginas}`);
     }
 
+    console.log(`[compraagil.service] OK Página ${numeroPagina} de ${payload.paginacion.total_paginas}`);
+    
     items.push(...payload.items);
     totalPaginas = payload.paginacion.total_paginas;
     numeroPagina += 1;
