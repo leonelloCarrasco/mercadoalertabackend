@@ -18,6 +18,20 @@ const { correrLimpiezaDatosAntiguos } = require('./limpieza-datos-antiguos');
 // verano/invierno de Chile — un offset fijo se hubiera roto en marzo/septiembre.
 const TIMEZONE = { timezone: 'America/Santiago' };
 
+// Poll de Compra Ágil pausado (septiembre 2026) — mientras se resuelve el
+// problema de rendimiento de la API de Mercado Público para Compra Ágil
+// (tiempos de 10-20s, 504 frecuentes — ver consulta a soporte y solicitud
+// a Contraloría en curso). UN SOLO interruptor, simétrico al que ya existe
+// en el frontend (COMPRA_AGIL_HABILITADA en js/dashboard.js) — cambiar
+// esto a `true` reactiva el cron sin tocar nada más. No se borra el
+// cron.schedule en sí, solo se salta la ejecución mientras está en false,
+// para no tener que volver a escribir el registro del cron después.
+// Alcance: solo el DESCUBRIMIENTO de nuevas Compra Ágil (este cron). No
+// incluye la revisión de resoluciones (revisar-resoluciones.js), que sigue
+// corriendo para terminar de resolver lo que ya se había descubierto antes
+// de la pausa — si también querés pausar eso, avisame.
+const POLL_COMPRA_AGIL_HABILITADO = false;
+
 function iniciarCronJobs() {
   // Licitaciones: cada 3 horas (el volumen de detalle a traer puede tardar varios minutos
   // por el delay de 3s entre llamadas, así que no conviene correrlo más seguido).
@@ -35,6 +49,10 @@ function iniciarCronJobs() {
   // que con 1h de desfase en vez de 30 min. Rediseño de agosto 2026: pasó
   // de ttl_cambio_ms a estado=publicada (ver poll-compra-agil.js).
   cron.schedule('0 1-23/3 * * *', async () => {
+    if (!POLL_COMPRA_AGIL_HABILITADO) {
+      console.log('[cron] Poll de Compra Ágil pausado (POLL_COMPRA_AGIL_HABILITADO=false) — se omite esta corrida.');
+      return;
+    }
     try {
       await correrPollingCompraAgil();
     } catch (err) {
